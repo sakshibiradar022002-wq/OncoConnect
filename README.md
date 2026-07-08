@@ -158,10 +158,19 @@ reads — and public/sync-client.js mirrors every change to the server:
 
 ## Testing
 
-Verified with 31 end-to-end assertions: registration, login, duplicate-email and
-wrong-password rejection, RBAC, patient CRUD, the full lab workflow (assign -> tech login
--> submit -> doctor reads results), session revocation on logout, and — most importantly —
-confirming patient names and diagnoses are never present in plaintext in the raw database.
+```bash
+npm test                                        # local SQLite backend
+TURSO_DATABASE_URL=file:/tmp/t.db npm test      # libsql backend
+```
+
+test/e2e.test.js boots the real server on a random port with a throwaway
+database and exercises every route group over HTTP: registration, login,
+duplicate-email and wrong-password rejection, RBAC, patient CRUD, messages,
+appointments, symptom logs, the full lab workflow (assign -> tech login ->
+submit -> doctor reads results), kv-sync push/pull with patient scope
+enforcement and credential stripping, session revocation on logout, and —
+most importantly — confirming patient names and diagnoses are never present
+in plaintext in the raw database file. No test framework needed (node:test).
 
 ## Not yet included (honest scope)
 
