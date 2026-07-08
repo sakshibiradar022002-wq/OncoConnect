@@ -1,0 +1,18 @@
+{
+  "name": "ChemoCure — Patient App",
+  "short_name": "ChemoCure",
+  "description": "Track your symptoms, treatment, and appointments. Stay connected with your care team.",
+  "id": "/patient.html",
+  "start_url": "/patient.html",
+  "scope": "/patient.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f0f5ff",
+  "theme_color": "#059669",
+  "categories": ["medical", "health", "lifestyle"],
+  "icons": [
+    { "src": "/icons/patient-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/patient-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/patient-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
