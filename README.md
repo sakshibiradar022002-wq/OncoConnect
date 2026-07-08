@@ -119,28 +119,27 @@ Patients (doctor): GET /patients, POST /patients, GET /patients/:id, PUT /patien
 Labs: POST /labs (register + auto-credentials), GET /labs, POST /labs/tasks (assign),
   GET /labs/tasks (doctor queue), GET /labs/my-tasks (lab tech), POST /labs/submit,
   GET /labs/submissions/:patientId
+Clinical: POST/GET /clinical/messages, POST/GET /clinical/appointments (+ PUT status),
+  POST/GET /clinical/symptom-logs
+Sync: GET/PUT /sync (doctor keyspace), POST /sync/patient-login,
+  GET/PUT /sync/patient (MRN-scoped)
 
-The frontend talks to all of this through public/api-client.js (window.ChemoCureAPI).
+The frontend talks to the structured API through public/api-client.js (window.ChemoCureAPI).
 
-## Connecting the existing HTML apps
+## How the HTML apps stay connected (cross-device sync)
 
-The apps in public/ are the prototype UIs. To make them use the backend instead of
-localStorage, include the client and swap storage calls for API calls:
+The UIs keep their working data in localStorage for instant, offline-capable
+reads — and public/sync-client.js mirrors every change to the server:
 
-```html
-<script src="/api-client.js"></script>
-<script>
-  // was: LS.set('pat_'+mrn, record)
-  await ChemoCureAPI.createPatient(record);   // returns { id, mrn, password }
-  // was: scan localStorage for pat_*
-  const { patients } = await ChemoCureAPI.listPatients();
-  // login now sets an httpOnly cookie; no password ever stored client-side
-  await ChemoCureAPI.login(email, password);
-</script>
-```
-
-This migration is incremental — screen by screen — and the API mirrors the old record
-shapes, so most changes are mechanical.
+- Signing in authenticates against the backend and pulls the account's data
+  onto the device (per-key last-write-wins), so a doctor can log in anywhere
+  and see their patients; a patient needs only their MRN + password on any phone.
+- Every localStorage write is pushed back to the server (debounced), stored
+  AES-256-GCM encrypted in the kv_store table.
+- Accounts created before the backend existed are enrolled automatically on
+  their next login, and local-only data is uploaded on first server sign-in.
+- If the server is unreachable, both apps keep working local-only and the
+  sync retries later.
 
 ## Testing
 
@@ -152,8 +151,6 @@ confirming patient names and diagnoses are never present in plaintext in the raw
 ## Not yet included (honest scope)
 
 This is the security-first core. Still worth adding for full production:
-- Messages, appointments, symptom-log routes (tables exist in schema; routes are next)
-- A localStorage->server migration script for existing prototype data
 - PHI key-rotation script
 - HTTPS is assumed to be terminated by the host (Render/Fly/Railway all do this)
 - Formal HIPAA/GDPR compliance review before real patient use
