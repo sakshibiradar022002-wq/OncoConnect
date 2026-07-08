@@ -1,0 +1,22 @@
+# Render.com blueprint. Push to a Git repo, then "New > Blueprint" on Render.
+services:
+  - type: web
+    name: chemocure-server
+    runtime: node
+    plan: starter
+    buildCommand: npm install
+    startCommand: node src/server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true          # Render generates a strong secret
+      - key: PHI_ENCRYPTION_KEY
+        sync: false                  # set manually — must be 64 hex chars
+      - key: DB_PATH
+        value: /data/chemocure.db
+    disk:
+      name: chemocure-data
+      mountPath: /data               # persistent volume so the DB survives deploys
+      sizeGB: 1
