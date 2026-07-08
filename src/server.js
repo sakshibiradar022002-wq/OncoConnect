@@ -14,6 +14,7 @@ import { authRouter } from './routes/auth.js';
 import { patientsRouter } from './routes/patients.js';
 import { labsRouter } from './routes/labs.js';
 import { clinicalRouter } from './routes/clinical.js';
+import { syncRouter } from './routes/sync.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -79,6 +80,7 @@ app.use('/api/auth', authLimiter, authRouter);
 app.use('/api/patients', apiLimiter, patientsRouter);
 app.use('/api/labs', apiLimiter, labsRouter);
 app.use('/api/clinical', apiLimiter, clinicalRouter);
+app.use('/api/sync', apiLimiter, syncRouter);
 
 // ── PWA assets: correct headers for manifests & service workers ───
 app.get('/sw-doctor.js', (req, res) => {

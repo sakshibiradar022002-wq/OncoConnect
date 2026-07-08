@@ -2,10 +2,11 @@
 // Same safety rules: PHI (/api/*) is never cached; app shell is cache-first so
 // the app opens instantly and works offline for viewing the last-loaded screen.
 
-const CACHE = 'chemocure-patient-v1';
+const CACHE = 'chemocure-patient-v2';
 const SHELL = [
   '/patient.html',
   '/api-client.js',
+  '/sync-client.js',
   '/patient.webmanifest',
   '/icons/patient-192.png',
   '/icons/patient-512.png',

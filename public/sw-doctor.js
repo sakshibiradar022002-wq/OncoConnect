@@ -4,11 +4,12 @@
 //   - API calls (/api/*): NEVER cached (PHI must always be fresh + server-authorized).
 //   - Everything else (fonts, CDN libs): stale-while-revalidate.
 
-const CACHE = 'chemocure-doctor-v1';
+const CACHE = 'chemocure-doctor-v2';
 const SHELL = [
   '/',
   '/index.html',
   '/api-client.js',
+  '/sync-client.js',
   '/doctor.webmanifest',
   '/icons/doctor-192.png',
   '/icons/doctor-512.png',
