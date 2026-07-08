@@ -13,6 +13,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "@libsql/client": "^0.14.0",
     "express": "^4.21.0",
     "express-rate-limit": "^7.4.0",
     "helmet": "^8.0.0",

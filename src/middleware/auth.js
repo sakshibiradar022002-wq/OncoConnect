@@ -8,12 +8,12 @@ import { randomToken } from '../crypto.js';
 const COOKIE_NAME = 'cc_session';
 
 // ── Issue a session ───────────────────────────────────────────────
-export function createSession(res, { subjectId, subjectType, role }) {
+export async function createSession(res, { subjectId, subjectType, role }) {
   const jti = randomToken(16);
   const now = new Date();
   const expires = new Date(now.getTime() + config.sessionTtlMinutes * 60 * 1000);
 
-  db.prepare(`
+  await db.prepare(`
     INSERT INTO sessions (id, subject_id, subject_type, role, created_at, expires_at, revoked)
     VALUES (?, ?, ?, ?, ?, ?, 0)
   `).run(jti, subjectId, subjectType, role, now.toISOString(), expires.toISOString());
@@ -36,8 +36,8 @@ export function createSession(res, { subjectId, subjectType, role }) {
 }
 
 // ── Revoke (logout) ───────────────────────────────────────────────
-export function revokeSession(jti) {
-  db.prepare('UPDATE sessions SET revoked = 1 WHERE id = ?').run(jti);
+export async function revokeSession(jti) {
+  await db.prepare('UPDATE sessions SET revoked = 1 WHERE id = ?').run(jti);
 }
 
 export function clearSessionCookie(res) {
@@ -45,7 +45,7 @@ export function clearSessionCookie(res) {
 }
 
 // ── Verify on each request ────────────────────────────────────────
-export function authenticate(req, res, next) {
+export async function authenticate(req, res, next) {
   const token = req.cookies?.[COOKIE_NAME];
   if (!token) return res.status(401).json({ error: 'Not authenticated' });
 
@@ -57,7 +57,7 @@ export function authenticate(req, res, next) {
   }
 
   // Check the session still exists and isn't revoked/expired server-side.
-  const session = db.prepare('SELECT * FROM sessions WHERE id = ?').get(payload.jti);
+  const session = await db.prepare('SELECT * FROM sessions WHERE id = ?').get(payload.jti);
   if (!session || session.revoked) {
     return res.status(401).json({ error: 'Session revoked' });
   }

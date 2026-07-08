@@ -10,18 +10,18 @@ import { encryptPHI, randomToken } from '../crypto.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export const db = await openDatabase(config.dbPath);
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+await db.pragma('journal_mode = WAL');
+await db.pragma('foreign_keys = ON');
 console.log(`[db] using ${activeImpl()}`);
 
-export function initSchema() {
+export async function initSchema() {
   const schema = readFileSync(join(__dirname, 'schema.sql'), 'utf8');
-  db.exec(schema);
+  await db.exec(schema);
   console.log('[db] schema ready');
 }
 
-export function writeAudit({ actorId, actorRole, action, targetId, detail, ip }) {
-  db.prepare(`
+export async function writeAudit({ actorId, actorRole, action, targetId, detail, ip }) {
+  await db.prepare(`
     INSERT INTO audit_log (id, actor_id, actor_role, action, target_id, detail_enc, ip, created_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `).run(

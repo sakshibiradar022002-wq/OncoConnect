@@ -14,15 +14,15 @@ export const patientsRouter = Router();
 patientsRouter.use(authenticate);
 
 // Helper: ensure the requesting doctor owns this patient.
-function assertDoctorOwns(patientId, doctorId) {
-  const row = db.prepare('SELECT doctor_id FROM patients WHERE id = ?').get(patientId);
+async function assertDoctorOwns(patientId, doctorId) {
+  const row = await db.prepare('SELECT doctor_id FROM patients WHERE id = ?').get(patientId);
   if (!row) { const e = new Error('Patient not found'); e.status = 404; throw e; }
   if (row.doctor_id !== doctorId) { const e = new Error('Not your patient'); e.status = 403; throw e; }
 }
 
 // ── List my patients (doctor) ─────────────────────────────────────
 patientsRouter.get('/', requireRole('doctor', 'admin'), asyncHandler(async (req, res) => {
-  const rows = db.prepare('SELECT id, mrn, record_enc, created_at, updated_at FROM patients WHERE doctor_id = ? AND active = 1 ORDER BY updated_at DESC')
+  const rows = await db.prepare('SELECT id, mrn, record_enc, created_at, updated_at FROM patients WHERE doctor_id = ? AND active = 1 ORDER BY updated_at DESC')
     .all(req.auth.subjectId);
   // Return only lightweight summary fields, not the whole record, for the list view.
   const patients = rows.map(r => {
@@ -48,12 +48,12 @@ patientsRouter.post('/', requireRole('doctor'), validate(createSchema), asyncHan
   const now = new Date().toISOString();
   const record = { ...req.valid.record, mrn };
 
-  db.prepare(`
+  await db.prepare(`
     INSERT INTO patients (id, mrn, password_hash, doctor_id, record_enc, active, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, 1, ?, ?)
   `).run(id, mrn, hashPassword(plainPassword), req.auth.subjectId, encryptPHI(record), now, now);
 
-  writeAudit({ actorId: req.auth.subjectId, actorRole: 'doctor', action: 'patient.create', targetId: id, ip: req.ip });
+  await writeAudit({ actorId: req.auth.subjectId, actorRole: 'doctor', action: 'patient.create', targetId: id, ip: req.ip });
 
   // Return the generated credentials ONCE — the doctor must record them now.
   res.status(201).json({ ok: true, id, mrn, password: plainPassword, record });
@@ -67,9 +67,9 @@ patientsRouter.get('/:id', asyncHandler(async (req, res) => {
   if (req.auth.role === 'patient' && req.auth.subjectId !== id) {
     return res.status(403).json({ error: 'Forbidden' });
   }
-  if (req.auth.role === 'doctor') assertDoctorOwns(id, req.auth.subjectId);
+  if (req.auth.role === 'doctor') await assertDoctorOwns(id, req.auth.subjectId);
 
-  const row = db.prepare('SELECT * FROM patients WHERE id = ? AND active = 1').get(id);
+  const row = await db.prepare('SELECT * FROM patients WHERE id = ? AND active = 1').get(id);
   if (!row) return res.status(404).json({ error: 'Patient not found' });
 
   res.json({ id: row.id, mrn: row.mrn, record: decryptPHI(row.record_enc), updatedAt: row.updated_at });
@@ -83,15 +83,15 @@ const updateSchema = z.object({
 
 patientsRouter.put('/:id', requireRole('doctor'), validate(updateSchema), asyncHandler(async (req, res) => {
   const { id } = req.params;
-  assertDoctorOwns(id, req.auth.subjectId);
+  await assertDoctorOwns(id, req.auth.subjectId);
 
   const now = new Date().toISOString();
   const record = { ...req.valid.record };
 
-  db.prepare('UPDATE patients SET record_enc = ?, updated_at = ? WHERE id = ?')
+  await db.prepare('UPDATE patients SET record_enc = ?, updated_at = ? WHERE id = ?')
     .run(encryptPHI(record), now, id);
 
-  writeAudit({
+  await writeAudit({
     actorId: req.auth.subjectId, actorRole: 'doctor', action: 'patient.update',
     targetId: id, detail: { changedFields: req.valid.changedFields || [] }, ip: req.ip,
   });
@@ -102,11 +102,11 @@ patientsRouter.put('/:id', requireRole('doctor'), validate(updateSchema), asyncH
 // ── Reset a patient's password (doctor) ───────────────────────────
 patientsRouter.post('/:id/reset-password', requireRole('doctor'), asyncHandler(async (req, res) => {
   const { id } = req.params;
-  assertDoctorOwns(id, req.auth.subjectId);
+  await assertDoctorOwns(id, req.auth.subjectId);
 
   const newPassword = generatePassword(14);
-  db.prepare('UPDATE patients SET password_hash = ? WHERE id = ?').run(hashPassword(newPassword), id);
-  writeAudit({ actorId: req.auth.subjectId, actorRole: 'doctor', action: 'patient.reset_password', targetId: id, ip: req.ip });
+  await db.prepare('UPDATE patients SET password_hash = ? WHERE id = ?').run(hashPassword(newPassword), id);
+  await writeAudit({ actorId: req.auth.subjectId, actorRole: 'doctor', action: 'patient.reset_password', targetId: id, ip: req.ip });
 
   res.json({ ok: true, password: newPassword });
 }));
@@ -114,8 +114,8 @@ patientsRouter.post('/:id/reset-password', requireRole('doctor'), asyncHandler(a
 // ── Soft-delete (doctor) ──────────────────────────────────────────
 patientsRouter.delete('/:id', requireRole('doctor'), asyncHandler(async (req, res) => {
   const { id } = req.params;
-  assertDoctorOwns(id, req.auth.subjectId);
-  db.prepare('UPDATE patients SET active = 0 WHERE id = ?').run(id);
-  writeAudit({ actorId: req.auth.subjectId, actorRole: 'doctor', action: 'patient.delete', targetId: id, ip: req.ip });
+  await assertDoctorOwns(id, req.auth.subjectId);
+  await db.prepare('UPDATE patients SET active = 0 WHERE id = ?').run(id);
+  await writeAudit({ actorId: req.auth.subjectId, actorRole: 'doctor', action: 'patient.delete', targetId: id, ip: req.ip });
   res.json({ ok: true });
 }));

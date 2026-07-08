@@ -20,18 +20,18 @@ export const syncRouter = Router();
 const MAX_KEYS_PER_PUSH = 500;
 const MAX_KEY_LENGTH = 200;
 
-function upsertKey(ownerId, k, v, now) {
+async function upsertKey(ownerId, k, v, now) {
   if (v === null || v === undefined) {
-    db.prepare('DELETE FROM kv_store WHERE owner_id = ? AND k = ?').run(ownerId, k);
+    await db.prepare('DELETE FROM kv_store WHERE owner_id = ? AND k = ?').run(ownerId, k);
   } else {
-    db.prepare(`
+    await db.prepare(`
       INSERT INTO kv_store (owner_id, k, v_enc, updated_at) VALUES (?, ?, ?, ?)
       ON CONFLICT(owner_id, k) DO UPDATE SET v_enc = excluded.v_enc, updated_at = excluded.updated_at
     `).run(ownerId, k, encryptPHI(v), now);
   }
 }
 
-function applyChanges(ownerId, changes, allow) {
+async function applyChanges(ownerId, changes, allow) {
   const entries = Object.entries(changes);
   if (entries.length > MAX_KEYS_PER_PUSH) {
     const e = new Error('Too many keys in one push'); e.status = 400; throw e;
@@ -41,7 +41,7 @@ function applyChanges(ownerId, changes, allow) {
   for (const [k, v] of entries) {
     if (typeof k !== 'string' || !k || k.length > MAX_KEY_LENGTH) continue;
     if (allow && !allow(k)) continue;
-    upsertKey(ownerId, k, v ?? null, now);
+    await upsertKey(ownerId, k, v ?? null, now);
     count++;
   }
   return count;
@@ -51,7 +51,7 @@ const pushSchema = z.object({ changes: z.record(z.any()) });
 
 // ── Doctor: pull the whole keyspace ───────────────────────────────
 syncRouter.get('/', authenticate, requireRole('doctor', 'admin'), asyncHandler(async (req, res) => {
-  const rows = db.prepare('SELECT k, v_enc, updated_at FROM kv_store WHERE owner_id = ?')
+  const rows = await db.prepare('SELECT k, v_enc, updated_at FROM kv_store WHERE owner_id = ?')
     .all(req.auth.subjectId);
   const keys = {};
   for (const r of rows) keys[r.k] = { v: decryptPHI(r.v_enc), ts: r.updated_at };
@@ -60,8 +60,8 @@ syncRouter.get('/', authenticate, requireRole('doctor', 'admin'), asyncHandler(a
 
 // ── Doctor: push changes (value null = delete) ────────────────────
 syncRouter.put('/', authenticate, requireRole('doctor', 'admin'), validate(pushSchema), asyncHandler(async (req, res) => {
-  const count = applyChanges(req.auth.subjectId, req.valid.changes);
-  writeAudit({ actorId: req.auth.subjectId, actorRole: req.auth.role, action: 'sync.push', detail: { count }, ip: req.ip });
+  const count = await applyChanges(req.auth.subjectId, req.valid.changes);
+  await writeAudit({ actorId: req.auth.subjectId, actorRole: req.auth.role, action: 'sync.push', detail: { count }, ip: req.ip });
   res.json({ ok: true, count });
 }));
 
@@ -85,8 +85,8 @@ function verifyUiPassword(password, stored) {
 
 // Everything the patient app needs: keys mentioning the MRN, plus the owning
 // doctor's profile with credentials stripped.
-function collectPatientKeys(ownerId, mrn) {
-  const rows = db.prepare('SELECT k, v_enc, updated_at FROM kv_store WHERE owner_id = ? AND instr(k, ?) > 0')
+async function collectPatientKeys(ownerId, mrn) {
+  const rows = await db.prepare('SELECT k, v_enc, updated_at FROM kv_store WHERE owner_id = ? AND instr(k, ?) > 0')
     .all(ownerId, mrn);
   const keys = {};
   let docId = null;
@@ -97,7 +97,7 @@ function collectPatientKeys(ownerId, mrn) {
     if (r.k === 'pat_' + mrn && v && v.docId) docId = v.docId;
   }
   if (docId) {
-    const d = db.prepare('SELECT k, v_enc, updated_at FROM kv_store WHERE owner_id = ? AND k = ?')
+    const d = await db.prepare('SELECT k, v_enc, updated_at FROM kv_store WHERE owner_id = ? AND k = ?')
       .get(ownerId, 'doc_' + docId);
     if (d) {
       const doc = decryptPHI(d.v_enc) || {};
@@ -124,7 +124,7 @@ const patientLoginSchema = z.object({
 
 syncRouter.post('/patient-login', loginLimiter, validate(patientLoginSchema), asyncHandler(async (req, res) => {
   const { mrn, password } = req.valid;
-  const rows = db.prepare('SELECT owner_id, v_enc FROM kv_store WHERE k = ?').all('pat_' + mrn);
+  const rows = await db.prepare('SELECT owner_id, v_enc FROM kv_store WHERE k = ?').all('pat_' + mrn);
 
   let ownerId = null;
   for (const r of rows) {
@@ -137,10 +137,10 @@ syncRouter.post('/patient-login', loginLimiter, validate(patientLoginSchema), as
   if (!ownerId) return res.status(401).json({ error: 'Invalid MRN or password' });
 
   // Session subject encodes which doctor's keyspace this patient lives in.
-  createSession(res, { subjectId: `${ownerId}::${mrn}`, subjectType: 'kv-patient', role: 'kv-patient' });
-  writeAudit({ actorId: mrn, actorRole: 'kv-patient', action: 'sync.patient_login', targetId: ownerId, ip: req.ip });
+  await createSession(res, { subjectId: `${ownerId}::${mrn}`, subjectType: 'kv-patient', role: 'kv-patient' });
+  await writeAudit({ actorId: mrn, actorRole: 'kv-patient', action: 'sync.patient_login', targetId: ownerId, ip: req.ip });
 
-  res.json({ ok: true, mrn, keys: collectPatientKeys(ownerId, mrn) });
+  res.json({ ok: true, mrn, keys: await collectPatientKeys(ownerId, mrn) });
 }));
 
 function patientScope(req, res, next) {
@@ -153,13 +153,13 @@ function patientScope(req, res, next) {
 // ── Patient: refresh own keys ─────────────────────────────────────
 syncRouter.get('/patient', authenticate, requireRole('kv-patient'), patientScope, asyncHandler(async (req, res) => {
   const { ownerId, mrn } = req.patientScope;
-  res.json({ keys: collectPatientKeys(ownerId, mrn) });
+  res.json({ keys: await collectPatientKeys(ownerId, mrn) });
 }));
 
 // ── Patient: push changes — only keys that mention their MRN ──────
 syncRouter.put('/patient', authenticate, requireRole('kv-patient'), patientScope, validate(pushSchema), asyncHandler(async (req, res) => {
   const { ownerId, mrn } = req.patientScope;
-  const count = applyChanges(ownerId, req.valid.changes, k => k.includes(mrn) && !k.startsWith('doc_'));
-  writeAudit({ actorId: mrn, actorRole: 'kv-patient', action: 'sync.patient_push', targetId: ownerId, detail: { count }, ip: req.ip });
+  const count = await applyChanges(ownerId, req.valid.changes, k => k.includes(mrn) && !k.startsWith('doc_'));
+  await writeAudit({ actorId: mrn, actorRole: 'kv-patient', action: 'sync.patient_push', targetId: ownerId, detail: { count }, ip: req.ip });
   res.json({ ok: true, count });
 }));

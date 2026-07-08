@@ -19,7 +19,7 @@ import { syncRouter } from './routes/sync.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Ensure DB & tables exist before serving.
-initSchema();
+await initSchema();
 
 const app = express();
 app.set('trust proxy', 1); // needed for correct req.ip behind cloud proxies

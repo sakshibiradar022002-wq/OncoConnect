@@ -1,9 +1,19 @@
-# Render.com blueprint. Push to a Git repo, then "New > Blueprint" on Render.
+# Render.com blueprint — FREE tier setup.
+# The app itself runs on Render's free plan; the database lives in Turso
+# (free cloud SQLite, https://turso.tech), so no paid persistent disk is
+# needed and data survives deploys and restarts.
+#
+# Push to a Git repo, then "New > Blueprint" on Render. You will be asked
+# for the three secrets marked sync:false below:
+#   PHI_ENCRYPTION_KEY  — 64 hex chars; generate:
+#       node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+#   TURSO_DATABASE_URL  — from `turso db show <name> --url` or the Turso dashboard
+#   TURSO_AUTH_TOKEN    — from `turso db tokens create <name>` or the dashboard
 services:
   - type: web
     name: chemocure-server
     runtime: node
-    plan: starter
+    plan: free
     buildCommand: npm install
     startCommand: node src/server.js
     healthCheckPath: /health
@@ -14,9 +24,7 @@ services:
         generateValue: true          # Render generates a strong secret
       - key: PHI_ENCRYPTION_KEY
         sync: false                  # set manually — must be 64 hex chars
-      - key: DB_PATH
-        value: /data/chemocure.db
-    disk:
-      name: chemocure-data
-      mountPath: /data               # persistent volume so the DB survives deploys
-      sizeGB: 1
+      - key: TURSO_DATABASE_URL
+        sync: false                  # libsql://<db-name>-<org>.turso.io
+      - key: TURSO_AUTH_TOKEN
+        sync: false

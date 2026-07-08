@@ -26,7 +26,7 @@ labsRouter.post('/', requireRole('doctor'), validate(createLabSchema), asyncHand
   const labId = randomToken(16);
   const now = new Date().toISOString();
 
-  db.prepare(`
+  await db.prepare(`
     INSERT INTO labs (id, doctor_id, name_enc, meta_enc, created_at)
     VALUES (?, ?, ?, ?, ?)
   `).run(labId, req.auth.subjectId, encryptPHI(name), encryptPHI({ contact, phone, email, address }), now);
@@ -37,12 +37,12 @@ labsRouter.post('/', requireRole('doctor'), validate(createLabSchema), asyncHand
   const plainPassword = generatePassword(12);
   const userId = randomToken(16);
 
-  db.prepare(`
+  await db.prepare(`
     INSERT INTO users (id, email, password_hash, role, name_enc, lab_id, active, created_at)
     VALUES (?, ?, ?, 'lab', ?, ?, 1, ?)
   `).run(userId, labEmail, hashPassword(plainPassword), encryptPHI(name + ' (Lab Tech)'), labId, now);
 
-  writeAudit({ actorId: req.auth.subjectId, actorRole: 'doctor', action: 'lab.create', targetId: labId, ip: req.ip });
+  await writeAudit({ actorId: req.auth.subjectId, actorRole: 'doctor', action: 'lab.create', targetId: labId, ip: req.ip });
 
   res.status(201).json({
     ok: true, labId,
@@ -52,7 +52,7 @@ labsRouter.post('/', requireRole('doctor'), validate(createLabSchema), asyncHand
 
 // ── List my labs (doctor) ─────────────────────────────────────────
 labsRouter.get('/', requireRole('doctor', 'admin'), asyncHandler(async (req, res) => {
-  const rows = db.prepare('SELECT id, name_enc, meta_enc, created_at FROM labs WHERE doctor_id = ?').all(req.auth.subjectId);
+  const rows = await db.prepare('SELECT id, name_enc, meta_enc, created_at FROM labs WHERE doctor_id = ?').all(req.auth.subjectId);
   res.json({ labs: rows.map(r => ({ id: r.id, name: decryptPHI(r.name_enc), meta: decryptPHI(r.meta_enc), createdAt: r.created_at })) });
 }));
 
@@ -69,16 +69,16 @@ labsRouter.post('/tasks', requireRole('doctor'), validate(assignSchema), asyncHa
   const { labId, patientId, description, priority, dueDate } = req.valid;
 
   // Verify the lab and patient both belong to this doctor.
-  const lab = db.prepare('SELECT * FROM labs WHERE id = ? AND doctor_id = ?').get(labId, req.auth.subjectId);
+  const lab = await db.prepare('SELECT * FROM labs WHERE id = ? AND doctor_id = ?').get(labId, req.auth.subjectId);
   if (!lab) return res.status(403).json({ error: 'Lab not found or not yours' });
-  const patient = db.prepare('SELECT * FROM patients WHERE id = ? AND doctor_id = ?').get(patientId, req.auth.subjectId);
+  const patient = await db.prepare('SELECT * FROM patients WHERE id = ? AND doctor_id = ?').get(patientId, req.auth.subjectId);
   if (!patient) return res.status(403).json({ error: 'Patient not found or not yours' });
 
   const patientRec = decryptPHI(patient.record_enc) || {};
   const taskId = randomToken(16);
   const now = new Date().toISOString();
 
-  db.prepare(`
+  await db.prepare(`
     INSERT INTO lab_tasks (id, doctor_id, lab_id, patient_id, payload_enc, due_date, priority, status, created_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending Upload', ?)
   `).run(
@@ -87,13 +87,13 @@ labsRouter.post('/tasks', requireRole('doctor'), validate(assignSchema), asyncHa
     dueDate, priority, now
   );
 
-  writeAudit({ actorId: req.auth.subjectId, actorRole: 'doctor', action: 'lab_task.create', targetId: taskId, ip: req.ip });
+  await writeAudit({ actorId: req.auth.subjectId, actorRole: 'doctor', action: 'lab_task.create', targetId: taskId, ip: req.ip });
   res.status(201).json({ ok: true, taskId });
 }));
 
 // ── Doctor: view active task queue ────────────────────────────────
 labsRouter.get('/tasks', requireRole('doctor'), asyncHandler(async (req, res) => {
-  const rows = db.prepare(`
+  const rows = await db.prepare(`
     SELECT * FROM lab_tasks WHERE doctor_id = ? AND status = 'Pending Upload'
     ORDER BY due_date ASC
   `).all(req.auth.subjectId);
@@ -102,10 +102,10 @@ labsRouter.get('/tasks', requireRole('doctor'), asyncHandler(async (req, res) =>
 
 // ── Lab tech: see tasks assigned to my lab ────────────────────────
 labsRouter.get('/my-tasks', requireRole('lab'), asyncHandler(async (req, res) => {
-  const me = db.prepare('SELECT lab_id FROM users WHERE id = ?').get(req.auth.subjectId);
+  const me = await db.prepare('SELECT lab_id FROM users WHERE id = ?').get(req.auth.subjectId);
   if (!me?.lab_id) return res.json({ tasks: [] });
 
-  const rows = db.prepare(`
+  const rows = await db.prepare(`
     SELECT * FROM lab_tasks WHERE lab_id = ? AND status = 'Pending Upload'
     ORDER BY due_date ASC
   `).all(me.lab_id);
@@ -122,30 +122,30 @@ const submitSchema = z.object({
 
 labsRouter.post('/submit', requireRole('lab'), validate(submitSchema), asyncHandler(async (req, res) => {
   const { taskId, results, files, notes } = req.valid;
-  const me = db.prepare('SELECT lab_id FROM users WHERE id = ?').get(req.auth.subjectId);
+  const me = await db.prepare('SELECT lab_id FROM users WHERE id = ?').get(req.auth.subjectId);
 
-  const task = db.prepare('SELECT * FROM lab_tasks WHERE id = ?').get(taskId);
+  const task = await db.prepare('SELECT * FROM lab_tasks WHERE id = ?').get(taskId);
   if (!task || task.lab_id !== me?.lab_id) return res.status(403).json({ error: 'Task not assigned to your lab' });
   if (task.status !== 'Pending Upload') return res.status(409).json({ error: 'Task already completed' });
 
   const now = new Date().toISOString();
-  db.prepare(`
+  await db.prepare(`
     INSERT INTO lab_submissions (id, task_id, lab_id, patient_id, data_enc, created_at)
     VALUES (?, ?, ?, ?, ?, ?)
   `).run(randomToken(16), taskId, task.lab_id, task.patient_id, encryptPHI({ results, files, notes }), now);
 
-  db.prepare("UPDATE lab_tasks SET status = 'Completed', completed_at = ? WHERE id = ?").run(now, taskId);
-  writeAudit({ actorId: req.auth.subjectId, actorRole: 'lab', action: 'lab_task.submit', targetId: taskId, ip: req.ip });
+  await db.prepare("UPDATE lab_tasks SET status = 'Completed', completed_at = ? WHERE id = ?").run(now, taskId);
+  await writeAudit({ actorId: req.auth.subjectId, actorRole: 'lab', action: 'lab_task.submit', targetId: taskId, ip: req.ip });
 
   res.json({ ok: true });
 }));
 
 // ── Doctor: view submissions for a patient ────────────────────────
 labsRouter.get('/submissions/:patientId', requireRole('doctor'), asyncHandler(async (req, res) => {
-  const patient = db.prepare('SELECT id FROM patients WHERE id = ? AND doctor_id = ?').get(req.params.patientId, req.auth.subjectId);
+  const patient = await db.prepare('SELECT id FROM patients WHERE id = ? AND doctor_id = ?').get(req.params.patientId, req.auth.subjectId);
   if (!patient) return res.status(403).json({ error: 'Not your patient' });
 
-  const rows = db.prepare('SELECT * FROM lab_submissions WHERE patient_id = ? ORDER BY created_at DESC').all(req.params.patientId);
+  const rows = await db.prepare('SELECT * FROM lab_submissions WHERE patient_id = ? ORDER BY created_at DESC').all(req.params.patientId);
   res.json({ submissions: rows.map(r => ({ id: r.id, taskId: r.task_id, data: decryptPHI(r.data_enc), createdAt: r.created_at })) });
 }));
 
