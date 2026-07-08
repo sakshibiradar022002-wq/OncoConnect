@@ -60,12 +60,27 @@ built-in node:sqlite (Node 22+) automatically — zero native build step needed.
 
 ## Deploy to a cloud host
 
-### Render (easiest)
+### Vercel + Turso (free, no card required)
+The app data lives in Turso (free cloud SQLite), so the host needs no disk:
+1. On turso.tech: sign up (GitHub login), create a database, copy its
+   libsql:// URL and create an auth token.
+2. On vercel.com: sign up (GitHub login, Hobby plan), Add New -> Project,
+   import this repo. vercel.json routes everything through api/index.js.
+3. Set three environment variables before deploying:
+   - PHI_ENCRYPTION_KEY (64 hex chars — generate with the command above)
+   - TURSO_DATABASE_URL (the libsql:// URL)
+   - TURSO_AUTH_TOKEN
+   - JWT_SECRET (another 64-hex-char random string)
+4. Deploy. The PWAs install straight from the https://<project>.vercel.app URL.
+
+Note: serverless = each instance rate-limits independently, and there is no
+local file state — both fine here since all state is in Turso.
+
+### Render (blueprint included)
 1. Push this folder to a Git repo.
-2. On Render: New -> Blueprint, point it at the repo. render.yaml does the rest.
-3. Render auto-generates JWT_SECRET. You must set PHI_ENCRYPTION_KEY manually
-   (64 hex chars) in the dashboard. A 1 GB persistent disk is mounted at /data
-   so the database survives deploys.
+2. On Render: New -> Blueprint, point it at the repo. render.yaml runs the
+   app on the free plan with data in Turso (same env vars as above;
+   JWT_SECRET is auto-generated).
 
 ### Fly.io
 ```bash
