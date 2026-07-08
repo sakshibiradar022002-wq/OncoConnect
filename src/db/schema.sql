@@ -145,3 +145,16 @@ CREATE TABLE IF NOT EXISTS sessions (
   revoked     INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS idx_sessions_subject ON sessions(subject_id);
+
+-- ── Synced key-value store: encrypted server mirror of the app UIs' data ──
+-- The doctor/patient UIs keep working data in localStorage (cc_* keys).
+-- Each account's keyspace is mirrored here so data follows the account
+-- across devices. Values are whole JSON blobs, encrypted like all PHI.
+CREATE TABLE IF NOT EXISTS kv_store (
+  owner_id   TEXT NOT NULL,               -- doctor user id
+  k          TEXT NOT NULL,               -- localStorage key without the cc_ prefix
+  v_enc      TEXT NOT NULL,               -- encrypted JSON value
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (owner_id, k)
+);
+CREATE INDEX IF NOT EXISTS idx_kv_key ON kv_store(k);

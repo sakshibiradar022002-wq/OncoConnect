@@ -774,6 +774,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
   </div>
 </div>
 
+<script src="/sync-client.js"></script>
 <script>
 var LS={get:function(k){try{var v=localStorage.getItem('cc_'+k);return v?JSON.parse(v):null;}catch(e){return null;}},set:function(k,v){try{localStorage.setItem('cc_'+k,JSON.stringify(v));}catch(e){}},keys:function(pre){return Object.keys(localStorage).filter(function(k){return k.startsWith('cc_'+pre);}).map(function(k){return k.slice(3);});}};
 var PAT=null;
@@ -820,6 +821,10 @@ async function doLogin(){
   errEl.style.display='none';
 
   if(!mrn||!pass){ errEl.textContent='Enter your MRN and password.'; errEl.style.display='block'; return; }
+
+  // Server sync: sign in and pull this patient's records, so login works on
+  // any device. If the server is unreachable, fall back to local-only data.
+  try { await CCSync.patientLogin(mrn, pass); } catch(e) {}
 
   var pat = null;
   try {

@@ -1071,6 +1071,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
   </div>
 </div>
 
+<script src="/sync-client.js"></script>
 <script>
 // ═══════════════════════════════════════════════
 // STORAGE — localStorage (shared with Patient App)
@@ -1312,6 +1313,10 @@ async function verifyAndCreate() {
   LS.set('doc_'+docId, doc);
   LS.set('doc_email_'+emailKey(email), docId);
 
+  // Enroll on the server too, so the account and its data sync across devices.
+  CCSync.doctorRegister({name, email, password:pass, specialty:spec, institution:hosp})
+    .then(()=>CCSync.doctorLogin(email, pass)).catch(()=>{});
+
   _pendingOTP = null; _otpExpiry = null; _otpEmail = null;
   clearInterval(_resendTimer);
 
@@ -1335,6 +1340,10 @@ async function doRegister() {
 async function doLogin(){
   const email=v('li-email').toLowerCase().trim(), pass=v('li-pass');
   if(!email||!pass){showMsg('login-msg','Enter your credentials.');return;}
+  // Server sync: sign in and pull this account's data first, so login works
+  // on any device. If the server is unreachable, fall back to local-only.
+  let serverErr=null;
+  try{ await CCSync.doctorLogin(email,pass); }catch(e){ serverErr=e; }
   const docId=LS.get('doc_email_'+emailKey(email));
   if(!docId){showMsg('login-msg','No account found for this email.');return;}
   const doc=LS.get('doc_'+docId);
@@ -1345,6 +1354,12 @@ async function doLogin(){
   if(doc.pass && !doc.pass.startsWith('pbkdf2:')) {
     doc.pass = await makePasswordHash(pass);
     LS.set('doc_'+docId, doc);
+  }
+  // Local credentials valid but the server doesn't know this account yet
+  // (account predates the backend) — enroll it, then sync.
+  if(serverErr && serverErr.status===401){
+    CCSync.doctorRegister({name:doc.name,email,password:pass,specialty:doc.spec,institution:doc.hosp})
+      .then(()=>CCSync.doctorLogin(email,pass)).catch(()=>{});
   }
   currentDoc=doc;
   document.getElementById('auth-screen').style.display='none';
