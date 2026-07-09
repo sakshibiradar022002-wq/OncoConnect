@@ -947,7 +947,7 @@ function findAllLabAccounts() {
   return accounts;
 }
 
-function doLabLogin() {
+async function doLabLogin() {
   var user = (document.getElementById('lab-l-user').value || '').trim();
   var pass = document.getElementById('lab-l-pass').value;
   var errEl = document.getElementById('lab-login-err');
@@ -956,6 +956,10 @@ function doLabLogin() {
   dbgEl.style.display = 'none';
 
   if (!user || !pass) { errEl.textContent = 'Enter username and password.'; errEl.style.display = 'block'; return; }
+
+  // Server sync: sign in and pull this lab's tasks and submissions, so login
+  // works on any device. If the server is unreachable, fall back to local data.
+  try { await CCSync.labLogin(user, pass); } catch(e) {}
 
   var accounts = findAllLabAccounts();
 
@@ -1264,18 +1268,28 @@ function clearActiveTask() {
 function populateLabPatients(docId) {
   var sel = document.getElementById('lab-pat-sel');
   sel.innerHTML = '<option value="">— Select patient —</option>';
+  var seen = {};
+  function addOpt(p) {
+    if (!p || !p.mrn || !p.name || seen[p.mrn]) return;
+    seen[p.mrn] = true;
+    var opt = document.createElement('option');
+    opt.value = p.mrn;
+    opt.textContent = p.mrn + ' · ' + p.name + (p.diag ? ' · ' + p.diag : '');
+    sel.appendChild(opt);
+  }
+  // Server-synced sanitized patient list (cross-device lab login)
+  try {
+    var synced = JSON.parse(localStorage.getItem('cc_lab_pat_' + docId)) || [];
+    synced.forEach(addOpt);
+  } catch(e) {}
+  // Same-browser prototype data
   try {
     for (var i = 0; i < localStorage.length; i++) {
       var rawKey = localStorage.key(i);
       if (!rawKey || !rawKey.startsWith('cc_pat_')) continue;
       try {
         var p = JSON.parse(localStorage.getItem(rawKey));
-        if (p && p.docId === docId && p.mrn && p.name) {
-          var opt = document.createElement('option');
-          opt.value = p.mrn;
-          opt.textContent = p.mrn + ' · ' + p.name + (p.diag ? ' · ' + p.diag : '');
-          sel.appendChild(opt);
-        }
+        if (p && p.docId === docId) addOpt(p);
       } catch(e) {}
     }
   } catch(e) {}
