@@ -60,12 +60,27 @@ built-in node:sqlite (Node 22+) automatically — zero native build step needed.
 
 ## Deploy to a cloud host
 
-### Render (easiest)
+### Vercel + Turso (free, no card required)
+The app data lives in Turso (free cloud SQLite), so the host needs no disk:
+1. On turso.tech: sign up (GitHub login), create a database, copy its
+   libsql:// URL and create an auth token.
+2. On vercel.com: sign up (GitHub login, Hobby plan), Add New -> Project,
+   import this repo. vercel.json routes everything through api/index.js.
+3. Set three environment variables before deploying:
+   - PHI_ENCRYPTION_KEY (64 hex chars — generate with the command above)
+   - TURSO_DATABASE_URL (the libsql:// URL)
+   - TURSO_AUTH_TOKEN
+   - JWT_SECRET (another 64-hex-char random string)
+4. Deploy. The PWAs install straight from the https://<project>.vercel.app URL.
+
+Note: serverless = each instance rate-limits independently, and there is no
+local file state — both fine here since all state is in Turso.
+
+### Render (blueprint included)
 1. Push this folder to a Git repo.
-2. On Render: New -> Blueprint, point it at the repo. render.yaml does the rest.
-3. Render auto-generates JWT_SECRET. You must set PHI_ENCRYPTION_KEY manually
-   (64 hex chars) in the dashboard. A 1 GB persistent disk is mounted at /data
-   so the database survives deploys.
+2. On Render: New -> Blueprint, point it at the repo. render.yaml runs the
+   app on the free plan with data in Turso (same env vars as above;
+   JWT_SECRET is auto-generated).
 
 ### Fly.io
 ```bash
@@ -119,41 +134,47 @@ Patients (doctor): GET /patients, POST /patients, GET /patients/:id, PUT /patien
 Labs: POST /labs (register + auto-credentials), GET /labs, POST /labs/tasks (assign),
   GET /labs/tasks (doctor queue), GET /labs/my-tasks (lab tech), POST /labs/submit,
   GET /labs/submissions/:patientId
+Clinical: POST/GET /clinical/messages, POST/GET /clinical/appointments (+ PUT status),
+  POST/GET /clinical/symptom-logs
+Sync: GET/PUT /sync (doctor keyspace), POST /sync/patient-login,
+  GET/PUT /sync/patient (MRN-scoped)
 
-The frontend talks to all of this through public/api-client.js (window.ChemoCureAPI).
+The frontend talks to the structured API through public/api-client.js (window.ChemoCureAPI).
 
-## Connecting the existing HTML apps
+## How the HTML apps stay connected (cross-device sync)
 
-The apps in public/ are the prototype UIs. To make them use the backend instead of
-localStorage, include the client and swap storage calls for API calls:
+The UIs keep their working data in localStorage for instant, offline-capable
+reads — and public/sync-client.js mirrors every change to the server:
 
-```html
-<script src="/api-client.js"></script>
-<script>
-  // was: LS.set('pat_'+mrn, record)
-  await ChemoCureAPI.createPatient(record);   // returns { id, mrn, password }
-  // was: scan localStorage for pat_*
-  const { patients } = await ChemoCureAPI.listPatients();
-  // login now sets an httpOnly cookie; no password ever stored client-side
-  await ChemoCureAPI.login(email, password);
-</script>
-```
-
-This migration is incremental — screen by screen — and the API mirrors the old record
-shapes, so most changes are mechanical.
+- Signing in authenticates against the backend and pulls the account's data
+  onto the device (per-key last-write-wins), so a doctor can log in anywhere
+  and see their patients; a patient needs only their MRN + password on any phone.
+- Every localStorage write is pushed back to the server (debounced), stored
+  AES-256-GCM encrypted in the kv_store table.
+- Accounts created before the backend existed are enrolled automatically on
+  their next login, and local-only data is uploaded on first server sign-in.
+- If the server is unreachable, both apps keep working local-only and the
+  sync retries later.
 
 ## Testing
 
-Verified with 31 end-to-end assertions: registration, login, duplicate-email and
-wrong-password rejection, RBAC, patient CRUD, the full lab workflow (assign -> tech login
--> submit -> doctor reads results), session revocation on logout, and — most importantly —
-confirming patient names and diagnoses are never present in plaintext in the raw database.
+```bash
+npm test                                        # local SQLite backend
+TURSO_DATABASE_URL=file:/tmp/t.db npm test      # libsql backend
+```
+
+test/e2e.test.js boots the real server on a random port with a throwaway
+database and exercises every route group over HTTP: registration, login,
+duplicate-email and wrong-password rejection, RBAC, patient CRUD, messages,
+appointments, symptom logs, the full lab workflow (assign -> tech login ->
+submit -> doctor reads results), kv-sync push/pull with patient scope
+enforcement and credential stripping, session revocation on logout, and —
+most importantly — confirming patient names and diagnoses are never present
+in plaintext in the raw database file. No test framework needed (node:test).
 
 ## Not yet included (honest scope)
 
 This is the security-first core. Still worth adding for full production:
-- Messages, appointments, symptom-log routes (tables exist in schema; routes are next)
-- A localStorage->server migration script for existing prototype data
 - PHI key-rotation script
 - HTTPS is assumed to be terminated by the host (Render/Fly/Railway all do this)
 - Formal HIPAA/GDPR compliance review before real patient use

@@ -25,11 +25,11 @@ const registerSchema = z.object({
 authRouter.post('/register', validate(registerSchema), asyncHandler(async (req, res) => {
   const { name, email, password, specialty, institution } = req.valid;
 
-  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+  const existing = await db.prepare('SELECT id FROM users WHERE email = ?').get(email);
   if (existing) return res.status(409).json({ error: 'An account already exists for this email' });
 
   const id = randomToken(16);
-  db.prepare(`
+  await db.prepare(`
     INSERT INTO users (id, email, password_hash, role, name_enc, meta_enc, active, created_at)
     VALUES (?, ?, ?, 'doctor', ?, ?, 1, ?)
   `).run(
@@ -38,7 +38,7 @@ authRouter.post('/register', validate(registerSchema), asyncHandler(async (req, 
     new Date().toISOString()
   );
 
-  writeAudit({ actorId: id, actorRole: 'doctor', action: 'doctor.register', targetId: id, ip: req.ip });
+  await writeAudit({ actorId: id, actorRole: 'doctor', action: 'doctor.register', targetId: id, ip: req.ip });
   res.status(201).json({ ok: true, message: 'Account created. You can now sign in.' });
 }));
 
@@ -50,15 +50,15 @@ const loginSchema = z.object({
 
 authRouter.post('/login', validate(loginSchema), asyncHandler(async (req, res) => {
   const { email, password } = req.valid;
-  const user = db.prepare('SELECT * FROM users WHERE email = ? AND active = 1').get(email);
+  const user = await db.prepare('SELECT * FROM users WHERE email = ? AND active = 1').get(email);
 
   // Constant-ish behaviour whether or not the user exists.
   const ok = user && verifyPassword(password, user.password_hash);
   if (!ok) return res.status(401).json({ error: 'Invalid email or password' });
 
-  db.prepare('UPDATE users SET last_login = ? WHERE id = ?').run(new Date().toISOString(), user.id);
-  createSession(res, { subjectId: user.id, subjectType: 'user', role: user.role });
-  writeAudit({ actorId: user.id, actorRole: user.role, action: 'user.login', targetId: user.id, ip: req.ip });
+  await db.prepare('UPDATE users SET last_login = ? WHERE id = ?').run(new Date().toISOString(), user.id);
+  await createSession(res, { subjectId: user.id, subjectType: 'user', role: user.role });
+  await writeAudit({ actorId: user.id, actorRole: user.role, action: 'user.login', targetId: user.id, ip: req.ip });
 
   res.json({
     ok: true,
@@ -79,14 +79,14 @@ const patientLoginSchema = z.object({
 
 authRouter.post('/patient-login', validate(patientLoginSchema), asyncHandler(async (req, res) => {
   const { mrn, password } = req.valid;
-  const patient = db.prepare('SELECT * FROM patients WHERE mrn = ? AND active = 1').get(mrn);
+  const patient = await db.prepare('SELECT * FROM patients WHERE mrn = ? AND active = 1').get(mrn);
 
   const ok = patient && verifyPassword(password, patient.password_hash);
   if (!ok) return res.status(401).json({ error: 'Invalid MRN or password' });
 
-  db.prepare('UPDATE patients SET last_login = ? WHERE id = ?').run(new Date().toISOString(), patient.id);
-  createSession(res, { subjectId: patient.id, subjectType: 'patient', role: 'patient' });
-  writeAudit({ actorId: patient.id, actorRole: 'patient', action: 'patient.login', targetId: patient.id, ip: req.ip });
+  await db.prepare('UPDATE patients SET last_login = ? WHERE id = ?').run(new Date().toISOString(), patient.id);
+  await createSession(res, { subjectId: patient.id, subjectType: 'patient', role: 'patient' });
+  await writeAudit({ actorId: patient.id, actorRole: 'patient', action: 'patient.login', targetId: patient.id, ip: req.ip });
 
   const record = decryptPHI(patient.record_enc) || {};
   res.json({ ok: true, patient: { id: patient.id, mrn: patient.mrn, name: record.name } });
@@ -95,14 +95,14 @@ authRouter.post('/patient-login', validate(patientLoginSchema), asyncHandler(asy
 // ── Current session info ──────────────────────────────────────────
 authRouter.get('/me', authenticate, asyncHandler(async (req, res) => {
   if (req.auth.subjectType === 'user') {
-    const u = db.prepare('SELECT * FROM users WHERE id = ?').get(req.auth.subjectId);
+    const u = await db.prepare('SELECT * FROM users WHERE id = ?').get(req.auth.subjectId);
     if (!u) return res.status(404).json({ error: 'Not found' });
     return res.json({
       type: 'user', id: u.id, email: u.email, role: u.role,
       name: decryptPHI(u.name_enc), meta: decryptPHI(u.meta_enc), labId: u.lab_id,
     });
   }
-  const p = db.prepare('SELECT * FROM patients WHERE id = ?').get(req.auth.subjectId);
+  const p = await db.prepare('SELECT * FROM patients WHERE id = ?').get(req.auth.subjectId);
   if (!p) return res.status(404).json({ error: 'Not found' });
   const record = decryptPHI(p.record_enc) || {};
   res.json({ type: 'patient', id: p.id, mrn: p.mrn, name: record.name });
@@ -110,7 +110,7 @@ authRouter.get('/me', authenticate, asyncHandler(async (req, res) => {
 
 // ── Logout ────────────────────────────────────────────────────────
 authRouter.post('/logout', authenticate, asyncHandler(async (req, res) => {
-  revokeSession(req.auth.jti);
+  await revokeSession(req.auth.jti);
   clearSessionCookie(res);
   res.json({ ok: true });
 }));
