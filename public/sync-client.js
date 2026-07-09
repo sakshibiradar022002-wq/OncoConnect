@@ -13,12 +13,18 @@
   var META_KEY = 'cc__sync_meta'; // per-key server timestamps, excluded from sync
 
   var state = {
-    mode: null,        // 'doctor' | 'patient' | null (local-only)
+    mode: null,        // 'doctor' | 'patient' | 'lab' | null (local-only)
     online: false,
     dirty: new Set(),
     timer: null,
     pushing: false,
   };
+
+  function pushUrl() {
+    if (state.mode === 'patient') return API + '/patient';
+    if (state.mode === 'lab') return API + '/lab';
+    return API;
+  }
 
   function meta() {
     try { return JSON.parse(localStorage.getItem(META_KEY)) || {}; } catch (e) { return {}; }
@@ -86,7 +92,7 @@
     });
     state.pushing = true;
     try {
-      await req('PUT', state.mode === 'patient' ? API + '/patient' : API, { changes: changes });
+      await req('PUT', pushUrl(), { changes: changes });
       var m = meta();
       var now = new Date().toISOString();
       keys.forEach(function (k) { if (changes[k] === null) delete m[k]; else m[k] = now; });
@@ -118,6 +124,18 @@
     }
   };
 
+  // Patient/lab portals: poll for new server data (e.g. a task assigned by
+  // the doctor after login) and refresh the task list when something changed.
+  setInterval(function () {
+    if (!state.online || (state.mode !== 'patient' && state.mode !== 'lab')) return;
+    req('GET', state.mode === 'patient' ? API + '/patient' : API + '/lab').then(function (d) {
+      var applied = mergeKeys(d.keys);
+      if (applied && state.mode === 'lab' && typeof window.refreshLabTasks === 'function') {
+        try { window.refreshLabTasks(); } catch (e) {}
+      }
+    }).catch(function () {});
+  }, 45000);
+
   // Flush pending changes when the tab closes.
   window.addEventListener('pagehide', function () {
     if (!state.online || state.dirty.size === 0) return;
@@ -127,7 +145,7 @@
       try { changes[k] = raw === null ? null : JSON.parse(raw); } catch (e) { changes[k] = null; }
     });
     try {
-      fetch(state.mode === 'patient' ? API + '/patient' : API, {
+      fetch(pushUrl(), {
         method: 'PUT',
         credentials: 'include',
         keepalive: true,
@@ -172,6 +190,16 @@
     patientLogin: async function (mrn, password) {
       var data = await req('POST', API + '/patient-login', { mrn: mrn, password: password });
       state.mode = 'patient';
+      state.online = true;
+      mergeKeys(data.keys);
+      return true;
+    },
+
+    // Lab technician: authenticate against the synced lab account and pull
+    // the lab's tasks, submissions, and sanitized patient list.
+    labLogin: async function (username, password) {
+      var data = await req('POST', API + '/lab-login', { username: username, password: password });
+      state.mode = 'lab';
       state.online = true;
       mergeKeys(data.keys);
       return true;
