@@ -15,11 +15,15 @@ import { initSchema } from './db/index.js';
 import { errorHandler } from './middleware/validate.js';
 import { authRouter } from './routes/auth.js';
 import { syncRouter } from './routes/sync.js';
+import { adminRouter } from './routes/admin.js';
+import { pushRouter } from './routes/push.js';
+import { initPush } from './push.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Ensure DB & tables exist before serving.
 await initSchema();
+await initPush();
 
 const app = express();
 app.set('trust proxy', 1); // needed for correct req.ip behind cloud proxies
@@ -79,6 +83,8 @@ app.get('/health', (req, res) => res.json({ ok: true, ts: new Date().toISOString
 // ── API routes ────────────────────────────────────────────────────
 app.use('/api/auth', authLimiter, authRouter);
 app.use('/api/sync', apiLimiter, syncRouter);
+app.use('/api/admin', apiLimiter, adminRouter);
+app.use('/api/push', apiLimiter, pushRouter);
 
 // ── PWA assets: correct headers for manifests & service workers ───
 // One sw.js serves both apps; it reads its own URL to pick cache + shell.

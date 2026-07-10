@@ -371,6 +371,23 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 .outline-btn{padding:10px 18px;border-radius:10px;border:1.5px solid var(--border2);background:transparent;color:var(--text);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;width:100%;}
 .outline-btn:hover{background:var(--surface2);}
 
+/* ═══ Notifications ═══ */
+.notif-bell{position:relative;background:none;border:none;color:rgba(255,255,255,0.8);font-size:15px;cursor:pointer;margin-left:auto;padding:4px 8px;}
+.notif-badge{position:absolute;top:-2px;right:0;background:var(--red);color:#fff;font-size:9px;font-weight:800;border-radius:8px;padding:1px 5px;min-width:15px;display:inline-flex;align-items:center;justify-content:center;}
+.notif-panel{display:none;position:fixed;top:46px;right:12px;width:340px;max-width:92vw;max-height:70vh;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-lg);z-index:500;}
+.notif-panel.open{display:block;}
+.notif-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border);font-weight:800;font-size:13px;color:var(--text);}
+.notif-markread{background:none;border:none;color:var(--blue);font-size:11.5px;cursor:pointer;font-weight:700;}
+.notif-item{padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer;}
+.notif-item:hover{background:var(--surface2);}
+.notif-item.unread{background:var(--blue-pale);}
+.notif-item.urgent .notif-item-title{color:var(--red);}
+.notif-item-title{font-weight:800;font-size:12.5px;color:var(--text);}
+.notif-item-text{font-size:12px;color:var(--text-muted);margin-top:2px;}
+.notif-item-ts{font-size:10.5px;color:var(--text-dim);margin-top:3px;}
+.urgent-banner-inner{background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.3);color:var(--red);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.urgent-banner-btn{margin-left:auto;background:var(--red);color:#fff;border:none;border-radius:7px;padding:6px 12px;font-weight:700;cursor:pointer;font-size:12px;}
+
 /* ═══ Responsive & polish layer ═══ */
 html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
 ::selection{background:rgba(75,184,250,.3);}
@@ -527,6 +544,11 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
       <span class="titlebar-name">ChemoCure Pro</span>
       <span class="titlebar-badge">DOCTOR</span>
     </div>
+    <button class="notif-bell" id="notif-bell" onclick="toggleNotifs()" title="Notifications">🔔<span class="notif-badge" id="notif-badge" style="display:none;">0</span></button>
+    <div class="notif-panel" id="notif-panel">
+      <div class="notif-head"><span>Notifications</span><button onclick="markAllNotifsRead()" class="notif-markread">Mark all read</button></div>
+      <div id="notif-list"></div>
+    </div>
     <div class="titlebar-sub" id="tb-doctor-id">ID: —</div>
   </div>
 
@@ -572,6 +594,16 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
       <div class="panel" id="panel-backup">
         <div class="page-header">
           <div><div class="page-title">💾 Data &amp; Backup</div><div class="page-sub">Storage, export, sync, integrations</div></div>
+        </div>
+
+        <!-- CSV export -->
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-title" style="margin-bottom:4px;">📈 CSV Export</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Spreadsheet-friendly exports for reporting and analysis.</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm" onclick="exportPatientsCSV()">⬇ Patients (.csv)</button>
+            <button class="btn btn-primary btn-sm" onclick="exportLogsCSV()">⬇ Symptom logs (.csv)</button>
+          </div>
         </div>
 
         <!-- Storage meter -->
@@ -746,6 +778,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
             <button class="btn btn-primary" onclick="openAddPat()">+ Add Patient</button>
           </div>
         </div>
+        <div id="urgent-banner" style="display:none;"></div>
         <div class="stats-row">
           <div class="stat-card"><div class="stat-label">Total Patients</div><div class="stat-num blue" id="st-total">0</div></div>
           <div class="stat-card"><div class="stat-label">Active Treatment</div><div class="stat-num cyan" id="st-active">0</div></div>
@@ -777,7 +810,10 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
           <button class="btn btn-primary" onclick="openAddPat()">+ Add Patient</button>
         </div>
         <div class="card">
-          <input class="search-bar" id="pat-search" placeholder="Search by name, MRN, or diagnosis…" oninput="renderPatList()">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <input class="search-bar" id="pat-search" style="flex:1;min-width:200px;" placeholder="Search by name, MRN, or diagnosis…" oninput="renderPatList()">
+            <select id="pat-phase-filter" onchange="renderPatList()" style="padding:10px 12px;border:1px solid var(--border2);border-radius:8px;font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);"><option value="">All phases</option><option>Diagnosis</option><option>Pre-Treatment</option><option>Treatment Phase</option><option>Post-Treatment</option><option>Monitoring</option><option>Palliative</option></select>
+          </div>
           <div id="pat-list"></div>
         </div>
       </div>
@@ -1100,6 +1136,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
       <button class="rnav-item" onclick="showRTab('rt-labs',this)">🧪 Labs</button>
       <button class="rnav-item" onclick="showRTab('rt-prescriptions',this)">💊 Prescriptions</button>
       <button class="rnav-item" onclick="showRTab('rt-treatment',this)">⚡ Treatment</button>
+      <button class="rnav-item" onclick="showRTab('rt-documents',this)">📁 Documents</button>
       <button class="rnav-item" onclick="showRTab('rt-export',this)">📄 Export</button>
       <button class="rnav-item" onclick="showRTab('rt-appointments',this)">🗓 Appointments</button>
       <button class="rnav-item" onclick="showRTab('rt-mdt',this)">🧬 MDT Notes</button>
@@ -1418,6 +1455,7 @@ function initApp(){
   document.getElementById('doc-role').textContent=currentDoc.spec;
   document.getElementById('doc-av').textContent=currentDoc.name.charAt(0).toUpperCase();
   document.getElementById('tb-doctor-id').textContent='ID: '+currentDoc.docId;
+  renderNotifs();
   updateStats();renderPatList();renderOvPatients();renderCalSel();renderConvos();
 }
 
@@ -1506,7 +1544,8 @@ function renderPatRow(p){
 }
 function renderPatList(){
   const pats=getMyPatients();const q=(v('pat-search')||'').toLowerCase();
-  const f=pats.filter(p=>p.name.toLowerCase().includes(q)||p.mrn.toLowerCase().includes(q)||(p.diag||'').toLowerCase().includes(q));
+  const ph=v('pat-phase-filter')||'';
+  const f=pats.filter(p=>(p.name.toLowerCase().includes(q)||p.mrn.toLowerCase().includes(q)||(p.diag||'').toLowerCase().includes(q))&&(!ph||(p.phase||'')===ph));
   const c=document.getElementById('pat-list');
   c.innerHTML=f.length?f.map(renderPatRow).join(''):`<div style="text-align:center;padding:32px;color:var(--text-dim);">No patients found. Add your first patient.</div>`;
 }
@@ -1514,6 +1553,120 @@ function renderOvPatients(){
   const pats=getMyPatients().slice(0,5);
   document.getElementById('ov-patients').innerHTML=pats.length?pats.map(renderPatRow).join(''):`<div style="text-align:center;padding:24px;color:var(--text-dim);">No patients yet.</div>`;
 }
+
+// ── CSV EXPORT ──
+function csvCell(v){v=v==null?'':String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
+function downloadCSV(name,rows){
+  const csv=rows.map(r=>r.map(csvCell).join(',')).join('\r\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download=name;a.click();URL.revokeObjectURL(a.href);
+}
+function exportPatientsCSV(){
+  const rows=[['MRN','Name','Age','Sex','Diagnosis','WHO Grade','Phase','ECOG','Active Meds','Created']];
+  getMyPatients().forEach(p=>rows.push([p.mrn,p.name,p.age||'',p.sex||'',p.diag||'',p.grade||'',p.phase||'',p.ecog||'',(p.meds||[]).filter(m=>(m.status||'Active')==='Active').map(m=>m.name).join('; '),p.createdAt||'']));
+  downloadCSV('chemocure-patients-'+new Date().toISOString().slice(0,10)+'.csv',rows);
+}
+function exportLogsCSV(){
+  const rows=[['MRN','Patient','Date','Cognitive','Seizure','Vision','Headache','Mood','Fatigue','Nausea','Appetite','Sleep','Temp','BP sys','BP dia','Weight','Meds taken','Notes']];
+  getMyPatients().forEach(p=>{
+    LS.keys('log_'+p.mrn+'_').map(k=>LS.get(k)).filter(Boolean).forEach(l=>rows.push([p.mrn,p.name,l.date,l.cognitive,l.seizure,l.vision,l.headache,l.mood,l.fatigue,l.nausea,l.appetite,l.sleep,l.temp||'',l.bp_sys||'',l.bp_dia||'',l.weight||'',(l.meds||[]).join('; '),l.notes||'']));
+  });
+  downloadCSV('chemocure-symptom-logs-'+new Date().toISOString().slice(0,10)+'.csv',rows);
+}
+
+// ── PATIENT DOCUMENTS LOCKER ──
+function uploadPatientDoc(input){
+  const f=input.files[0];if(!f)return;
+  if(f.size>2*1024*1024){alert('File too large — max 2 MB.');input.value='';return;}
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const docs=LS.get('docs_'+selectedMRN)||[];
+    docs.unshift({id:Date.now()+''+Math.floor(Math.random()*1e4),name:f.name,type:f.type||'file',size:f.size,ts:new Date().toISOString(),by:currentDoc.name,data:reader.result});
+    LS.set('docs_'+selectedMRN,docs.slice(0,20));
+    renderDocsList();
+  };
+  reader.readAsDataURL(f);
+  input.value='';
+}
+function renderDocsList(){
+  const c=document.getElementById('r-docs-list');if(!c)return;
+  const docs=LS.get('docs_'+selectedMRN)||[];
+  c.innerHTML=docs.length?docs.map(d=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:20px;">${d.type.includes('pdf')?'📕':d.type.includes('image')?'🖼️':'📄'}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.name}</div>
+        <div style="font-size:11px;color:var(--text-dim);">${(d.size/1024).toFixed(0)} KB · ${new Date(d.ts).toLocaleDateString()} · ${d.by||''}</div>
+      </div>
+      <a href="${d.data}" download="${d.name}" class="btn btn-ghost btn-sm">⬇</a>
+      <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="deletePatientDoc('${d.id}')">✕</button>
+    </div>`).join(''):'<div style="text-align:center;padding:20px;color:var(--text-dim);font-size:12px;">No documents uploaded yet.</div>';
+}
+function deletePatientDoc(id){
+  if(!confirm('Delete this document?'))return;
+  LS.set('docs_'+selectedMRN,(LS.get('docs_'+selectedMRN)||[]).filter(d=>d.id!==id));
+  renderDocsList();
+}
+
+// ── MEDICATION ADHERENCE (from patient medlog_ keys) ──
+function medAdherence7d(mrn){
+  const p=LS.get('pat_'+mrn);if(!p)return null;
+  const active=(p.meds||[]).filter(m=>(m.status||'Active')==='Active');
+  if(!active.length)return null;
+  const slotsPerDay=active.reduce((n,m)=>{
+    const f=(m.freq||'').toUpperCase();
+    return n+(f.startsWith('BID')?2:f.startsWith('TID')?3:f.startsWith('QID')?4:1);
+  },0);
+  let taken=0,days=0;
+  for(let i=0;i<7;i++){
+    const d=new Date(Date.now()-i*86400000).toISOString().slice(0,10);
+    const log=LS.get('medlog_'+mrn+'_'+d);
+    if(!log)continue;
+    days++;taken+=Object.values(log.taken||{}).filter(Boolean).length;
+  }
+  if(!days)return null;
+  return Math.min(100,Math.round(100*taken/(slotsPerDay*days)));
+}
+
+// ── NOTIFICATIONS ──
+function getDocAlerts(){
+  let out=[];
+  LS.keys('alerts_'+currentDoc.docId+'_').forEach(k=>{(LS.get(k)||[]).forEach(a=>out.push({...a,_key:k}));});
+  const subs=LS.get('lab_subs_'+currentDoc.docId)||[];
+  const seen=LS.get('seen_subs_'+currentDoc.docId)||0;
+  if(subs.length>seen)out.push({id:'labsubs',ts:new Date().toISOString(),type:'lab',text:(subs.length-seen)+' new lab result'+(subs.length-seen>1?'s':'')+' uploaded',name:'Lab results',urgent:false,read:false,_labsubs:true});
+  out.sort((a,b)=>(b.ts||'').localeCompare(a.ts||''));
+  return out;
+}
+function renderNotifs(){
+  if(!currentDoc)return;
+  const alerts=getDocAlerts();
+  const unread=alerts.filter(a=>!a.read).length;
+  const badge=document.getElementById('notif-badge');
+  if(badge){badge.style.display=unread?'inline-flex':'none';badge.textContent=unread;}
+  const list=document.getElementById('notif-list');
+  if(list)list.innerHTML=alerts.length?alerts.slice(0,30).map(a=>`
+    <div class="notif-item${a.read?'':' unread'}${a.urgent?' urgent':''}" onclick="${a._labsubs?"toggleNotifs()":`openRecord('${a.mrn}')`}">
+      <div class="notif-item-title">${a.urgent?'🚨 ':''}${a.name||a.mrn}</div>
+      <div class="notif-item-text">${a.text}</div>
+      <div class="notif-item-ts">${new Date(a.ts).toLocaleString()}</div>
+    </div>`).join(''):'<div style="padding:24px;text-align:center;color:var(--text-dim);font-size:12px;">No notifications yet</div>';
+  const urgent=alerts.filter(a=>!a.read&&a.urgent);
+  const b=document.getElementById('urgent-banner');
+  if(b){
+    b.style.display=urgent.length?'block':'none';
+    if(urgent.length)b.innerHTML=`<div class="urgent-banner-inner">🚨 <strong>${urgent.length} urgent alert${urgent.length>1?'s':''}</strong><span>${urgent.slice(0,2).map(a=>(a.name||a.mrn)+' — '+a.text).join(' · ')}</span><button onclick="toggleNotifs()" class="urgent-banner-btn">Review</button></div>`;
+  }
+}
+function toggleNotifs(){const p=document.getElementById('notif-panel');p.classList.toggle('open');if(p.classList.contains('open'))renderNotifs();}
+function markAllNotifsRead(){
+  LS.keys('alerts_'+currentDoc.docId+'_').forEach(k=>{LS.set(k,(LS.get(k)||[]).map(a=>({...a,read:true})));});
+  LS.set('seen_subs_'+currentDoc.docId,(LS.get('lab_subs_'+currentDoc.docId)||[]).length);
+  renderNotifs();
+}
+window.refreshDoctorNotifs=function(){try{renderNotifs();}catch(e){}};
+setInterval(()=>{if(currentDoc)renderNotifs();},30000);
 
 // ── ADD PATIENT ──
 function openAddPat(){document.getElementById('ap-creds').style.display='none';['ap-name','ap-email','ap-phone','ap-diag'].forEach(id=>sv(id,''));sv('ap-dob','');openOverlay('add-pat-modal');}
@@ -1654,7 +1807,7 @@ function openRecord(mrn){
   document.querySelector('.rnav-item').classList.add('active');
   document.getElementById('rt-identity').classList.add('active');
   // Render uploaded files after DOM is ready
-  setTimeout(() => renderLabFilesList(), 50);
+  setTimeout(() => { renderLabFilesList(); renderDocsList(); }, 50);
 }
 
 function buildRecordTabs(p){
@@ -2479,6 +2632,16 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
   </div>
 
   <!-- EXPORT -->
+  <!-- DOCUMENTS -->
+  <div id="rt-documents" class="rtab">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:4px;">📁 Patient Documents</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;">MRI reports, discharge summaries, prescriptions — visible to the patient in their app.</div>
+      <label class="btn btn-primary btn-sm" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;">⬆ Upload document<input type="file" style="display:none;" onchange="uploadPatientDoc(this)" accept=".pdf,.png,.jpg,.jpeg,.txt,.doc,.docx"></label>
+      <span style="font-size:11px;color:var(--text-dim);margin-left:10px;">Max 2 MB per file</span>
+      <div id="r-docs-list" style="margin-top:14px;"></div>
+    </div>
+  </div>
   <div id="rt-export" class="rtab">
     <div style="max-width:560px;">
       <div class="rt-title" style="border:none;padding:0 0 6px;">Generate Clinical Report</div>
@@ -5040,6 +5203,8 @@ function renderMedList() {
   const c = document.getElementById('r-med-list');
   if (!c) return;
   if (!rMeds.length) { c.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-dim);">No medications yet.</div>'; return; }
+  const adh = medAdherence7d(selectedMRN);
+  const adhHtml = adh===null ? '' : `<div style="margin:0 0 10px;padding:9px 14px;border-radius:9px;background:${adh>=80?'rgba(5,150,105,0.08)':adh>=50?'rgba(217,119,6,0.08)':'rgba(220,38,38,0.08)'};color:${adh>=80?'var(--green)':adh>=50?'var(--orange)':'var(--red)'};font-size:12.5px;font-weight:700;">Patient-reported adherence (7 days): ${adh}%</div>`;
   const statusOrder = { Active:0, 'On Hold':1, Discontinued:2 };
   const scColor = { Active:'#00d4b4', 'On Hold':'#f0a04b', Discontinued:'#ff5c5c' };
   const sorted = [...rMeds].map((m,i) => ({...m, _orig:i})).sort((a,b) => {
@@ -5065,7 +5230,7 @@ function renderMedList() {
         + '</div>';
     });
   });
-  c.innerHTML = html;
+  c.innerHTML = adhHtml + html;
 }
 
 // ── Save Record + Audit ──

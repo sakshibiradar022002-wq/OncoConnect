@@ -47,3 +47,23 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+
+self.addEventListener('push', (event) => {
+  let d = {};
+  try { d = event.data.json(); } catch (e) {}
+  event.waitUntil(self.registration.showNotification(d.title || 'ChemoCure', {
+    body: d.body || '',
+    icon: `/icons/${APP}-192.png`,
+    badge: `/icons/${APP}-192.png`,
+    data: { url: d.url || (APP === 'doctor' ? '/' : '/patient.html') },
+  }));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || '/';
+  event.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then((tabs) => {
+    for (const t of tabs) { if (t.url.includes(url)) return t.focus(); }
+    return clients.openWindow(url);
+  }));
+});

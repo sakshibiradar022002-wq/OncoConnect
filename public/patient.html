@@ -457,6 +457,10 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
     <div class="cal-month" id="cal-month-lbl"></div>
     <div class="cal-grid" id="cal-headers"></div>
     <div class="cal-grid" id="cal-days" style="margin-top:3px;"></div>
+    <div class="info-card" id="today-meds-card" style="margin:16px 20px 0;display:none;">
+      <div class="info-card-title">💊 Today's Medications <span id="meds-adherence" style="float:right;font-size:11px;color:var(--text-muted);font-weight:600;"></span></div>
+      <div id="today-meds-list"></div>
+    </div>
     <button class="log-btn" onclick="openLogSheet()">📋 Log Today's Symptoms</button>
     <button class="log-btn" onclick="openFactBr()" style="background:linear-gradient(135deg,#4a3aa7,#6b5bd4);margin-top:8px;">🧠 Monthly Quality-of-Life Survey (FACT-Br)</button>
     <div class="recent-section" id="recent-logs"></div>
@@ -501,6 +505,12 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
     <div class="info-card" id="tx-cycle-card" style="display:none;margin-bottom:12px;">
       <div class="info-card-title">📊 Treatment Progress</div>
       <div id="tx-cycle-content"></div>
+    </div>
+
+    <!-- Documents from your doctor -->
+    <div class="info-card" id="tx-docs-card" style="display:none;margin-bottom:12px;">
+      <div class="info-card-title">📁 My Documents</div>
+      <div id="tx-docs-list"></div>
     </div>
 
     <!-- Diagnosis summary card -->
@@ -1443,6 +1453,7 @@ function initApp(){
   renderCalendar();
   updateLogCount();
   renderRecentLogs();
+  renderTodayMeds();
   goScreen('calendar');
 }
 
@@ -1461,11 +1472,66 @@ function goScreen(name){
   if(name==='appointments')renderAppts();
   if(name==='profile')updatePatStorageBar();
   if(name==='treatment')renderTreatmentPlan();
+  if(name==='symptoms'||name==='home')renderTodayMeds();
 }
 
+// ── TODAY'S MEDICATIONS CHECKLIST ──
+function medSlots(freq){
+  freq=(freq||'').toUpperCase();
+  if(freq.indexOf('BID')===0)return['Morning','Evening'];
+  if(freq.indexOf('TID')===0)return['Morning','Afternoon','Evening'];
+  if(freq.indexOf('QID')===0)return['Morning','Noon','Afternoon','Evening'];
+  if(freq.indexOf('PRN')===0)return['As needed'];
+  return['Morning'];
+}
+function renderTodayMeds(){
+  var card=document.getElementById('today-meds-card');if(!card||!PAT)return;
+  var p=LS.get('pat_'+PAT.mrn)||PAT;
+  var meds=(p.meds||[]).filter(function(m){return (m.status||'Active')==='Active';});
+  if(!meds.length){card.style.display='none';return;}
+  card.style.display='block';
+  var taken=(LS.get('medlog_'+PAT.mrn+'_'+todayStr())||{}).taken||{};
+  var total=0,done=0,html='';
+  meds.forEach(function(m){
+    medSlots(m.freq).forEach(function(slot){
+      var k=m.name+'|'+slot;total++;if(taken[k])done++;
+      html+='<label style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px;">'
+        +'<input type="checkbox" '+(taken[k]?'checked':'')+' onchange="toggleMedTaken(this)" data-med="'+encodeURIComponent(m.name)+'" data-slot="'+slot+'" style="width:18px;height:18px;accent-color:var(--blue);flex-shrink:0;">'
+        +'<span style="flex:1;'+(taken[k]?'text-decoration:line-through;color:var(--text-dim);':'')+'"><strong>'+m.name+'</strong>'+(m.dose?' \u00b7 '+m.dose:'')+'</span>'
+        +'<span style="font-size:11px;color:var(--text-muted);flex-shrink:0;">'+slot+'</span></label>';
+    });
+  });
+  document.getElementById('meds-adherence').textContent=done+'/'+total+' taken';
+  document.getElementById('today-meds-list').innerHTML=html;
+}
+function toggleMedTaken(el){
+  var name=decodeURIComponent(el.getAttribute('data-med')),slot=el.getAttribute('data-slot');
+  var key='medlog_'+PAT.mrn+'_'+todayStr();
+  var log=LS.get(key)||{mrn:PAT.mrn,date:todayStr(),taken:{}};
+  var k=name+'|'+slot;
+  log.taken[k]=!log.taken[k];
+  LS.set(key,log);
+  renderTodayMeds();
+}
+
+function renderPatDocs(){
+  var card=document.getElementById('tx-docs-card');if(!card)return;
+  var docs=LS.get('docs_'+PAT.mrn)||[];
+  if(!docs.length){card.style.display='none';return;}
+  card.style.display='block';
+  document.getElementById('tx-docs-list').innerHTML=docs.map(function(d){
+    var icon=d.type&&d.type.indexOf('pdf')>=0?'\ud83d\udcd5':d.type&&d.type.indexOf('image')>=0?'\ud83d\uddbc\ufe0f':'\ud83d\udcc4';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">'
+      +'<span style="font-size:18px;">'+icon+'</span>'
+      +'<div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+d.name+'</div>'
+      +'<div style="font-size:11px;color:var(--text-dim);">'+(d.size/1024).toFixed(0)+' KB \u00b7 '+new Date(d.ts).toLocaleDateString()+'</div></div>'
+      +'<a href="'+d.data+'" download="'+d.name+'" style="text-decoration:none;padding:6px 12px;border-radius:8px;background:var(--blue);color:#fff;font-size:11.5px;font-weight:700;">\u2b07 Save</a></div>';
+  }).join('');
+}
 function renderTreatmentPlan(){
   if(!PAT)return;
   var p=LS.get('pat_'+PAT.mrn)||PAT;
+  renderPatDocs();
 
   // Last updated
   var lu=document.getElementById('tx-last-updated');
@@ -1790,6 +1856,20 @@ function saveLog(){
     savedAt:new Date().toISOString()
   };
   LS.set('log_'+PAT.mrn+'_'+todayStr(),log);
+  // Red-flag escalation: severe symptoms raise an alert on the doctor's dashboard.
+  var flags=[];
+  if(log.seizure>=7||(szType&&log.seizure>=5))flags.push('seizure activity');
+  if(log.headache>=8)flags.push('severe headache');
+  if(log.cognitive>=8)flags.push('cognitive decline');
+  if(log.vision>=8)flags.push('severe vision problems');
+  if(log.nausea>=8)flags.push('severe nausea');
+  if(log.temp&&parseFloat(log.temp)>=38.5)flags.push('fever '+log.temp+'\u00b0C');
+  if(flags.length&&PAT.docId){
+    var ak='alerts_'+PAT.docId+'_'+PAT.mrn;
+    var alerts=LS.get(ak)||[];
+    alerts.unshift({id:Date.now()+''+Math.floor(Math.random()*1e4),ts:new Date().toISOString(),type:'symptom',mrn:PAT.mrn,name:PAT.name,text:'Red flag: '+flags.join(', '),urgent:true,read:false});
+    LS.set(ak,alerts.slice(0,50));
+  }
   closeSheet('log-sheet');
   renderCalendar();updateLogCount();renderRecentLogs();
   toast('Health log saved!');
@@ -1820,15 +1900,37 @@ function showLogDetail(log){
   openSheet('detail-sheet');
 }
 
+function apptAction(idx,action){
+  var appts=LS.get('appts_'+PAT.mrn)||[];
+  var a=appts[idx];if(!a)return;
+  if(action==='confirm'){a.status='Confirmed';toast('Appointment confirmed \u2713');}
+  else{a.status='Reschedule Requested';toast('Reschedule request sent to your doctor');}
+  LS.set('appts_'+PAT.mrn,appts);
+  if(PAT.docId){
+    var ak='alerts_'+PAT.docId+'_'+PAT.mrn;
+    var alerts=LS.get(ak)||[];
+    alerts.unshift({id:Date.now()+''+Math.floor(Math.random()*1e4),ts:new Date().toISOString(),type:'appt',mrn:PAT.mrn,name:PAT.name,
+      text:(action==='confirm'?'Confirmed appointment on ':'Requested to reschedule appointment on ')+a.date+(a.time?' '+a.time:''),
+      urgent:false,read:false});
+    LS.set(ak,alerts.slice(0,50));
+  }
+  renderAppts();
+}
 function renderAppts(){
   var appts=(LS.get('appts_'+PAT.mrn)||[]).sort(function(a,b){return new Date(b.date)-new Date(a.date);});
   var t=todayStr();
   var upcoming=appts.filter(function(a){return a.date>=t&&a.status!=='Cancelled';});
   var past=appts.filter(function(a){return a.date<t||a.status==='Completed';});
-  var sc={Confirmed:'var(--green)',Pending:'var(--orange)',Cancelled:'var(--red)',Completed:'var(--blue)'};
+  var sc={Confirmed:'var(--green)',Pending:'var(--orange)',Cancelled:'var(--red)',Completed:'var(--blue)','Reschedule Requested':'var(--orange)','No-show':'var(--red)'};
   var uEl=document.getElementById('upcoming-appts');
   var pEl=document.getElementById('past-appts');
-  uEl.innerHTML=upcoming.length?upcoming.map(function(a){return '<div class="appt-card"><div class="appt-date">'+a.date+(a.time?' - '+a.time:'')+'</div><div class="appt-sub">'+(a.type||'Visit')+' - '+(a.doctor||'Your Doctor')+'</div>'+(a.reason?'<div class="appt-sub" style="margin-top:4px;">'+a.reason+'</div>':'')+'<div style="margin-top:6px;"><span style="font-size:10.5px;padding:2px 8px;border-radius:8px;font-weight:600;background:'+( sc[a.status]||'var(--text-muted)')+'22;color:'+(sc[a.status]||'var(--text-muted)')+';">'+a.status+'</span></div></div>';}).join(''):'<div class="empty-card">No upcoming appointments.</div>';
+  uEl.innerHTML=upcoming.length?upcoming.map(function(a,i){
+    var idx=appts.indexOf(a);
+    var actions='';
+    if(a.status==='Pending'||a.status==='Scheduled')actions+='<button onclick="apptAction('+idx+',\'confirm\')" style="padding:6px 12px;border:none;border-radius:8px;background:var(--blue);color:#fff;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">\u2713 Confirm</button>';
+    if(a.status!=='Reschedule Requested')actions+='<button onclick="apptAction('+idx+',\'reschedule\')" style="padding:6px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text-muted);font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">\u21bb Request reschedule</button>';
+    return '<div class="appt-card"><div class="appt-date">'+a.date+(a.time?' - '+a.time:'')+'</div><div class="appt-sub">'+(a.type||'Visit')+' - '+(a.doctor||'Your Doctor')+'</div>'+(a.reason?'<div class="appt-sub" style="margin-top:4px;">'+a.reason+'</div>':'')+'<div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="font-size:10.5px;padding:2px 8px;border-radius:8px;font-weight:600;background:'+( sc[a.status]||'var(--text-muted)')+'22;color:'+(sc[a.status]||'var(--text-muted)')+';">'+a.status+'</span>'+actions+'</div></div>';
+  }).join(''):'<div class="empty-card">No upcoming appointments.</div>';
   pEl.innerHTML=past.length?past.map(function(a){return '<div class="appt-card"><div class="appt-date" style="color:var(--text-muted);">'+a.date+(a.time?' - '+a.time:'')+'</div><div class="appt-sub">'+(a.type||'Visit')+' - '+(a.doctor||'Your Doctor')+'</div></div>';}).join(''):'<div class="empty-card">No past visits.</div>';
 }
 

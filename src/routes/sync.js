@@ -14,6 +14,23 @@ import { db, writeAudit } from '../db/index.js';
 import { encryptPHI, decryptPHI } from '../crypto.js';
 import { authenticate, requireRole, createSession } from '../middleware/auth.js';
 import { validate, asyncHandler } from '../middleware/validate.js';
+import { notifySubject } from '../push.js';
+
+// Fire-and-forget doctor notifications for incoming alert / lab-result keys.
+function pushDoctorForChanges(ownerId, changes) {
+  for (const [k, v] of Object.entries(changes || {})) {
+    if (k.startsWith('alerts_') && Array.isArray(v) && v[0]) {
+      const a = v[0];
+      notifySubject(ownerId, {
+        title: a.urgent ? '🚨 Urgent patient alert' : 'Patient update',
+        body: `${a.name || a.mrn}: ${a.text}`,
+        url: '/',
+      }).catch(() => {});
+    } else if (k.startsWith('lab_subs_')) {
+      notifySubject(ownerId, { title: 'New lab result', body: 'A lab uploaded new results. Tap to review.', url: '/' }).catch(() => {});
+    }
+  }
+}
 
 export const syncRouter = Router();
 
@@ -188,6 +205,7 @@ syncRouter.get('/patient', authenticate, requireRole('kv-patient'), patientScope
 syncRouter.put('/patient', authenticate, requireRole('kv-patient'), patientScope, validate(pushSchema), asyncHandler(async (req, res) => {
   const { ownerId, mrn } = req.patientScope;
   const count = await applyChanges(ownerId, req.valid.changes, k => k.includes(mrn) && !k.startsWith('doc_'));
+  pushDoctorForChanges(ownerId, req.valid.changes);
   await writeAudit({ actorId: mrn, actorRole: 'kv-patient', action: 'sync.patient_push', targetId: ownerId, detail: { count }, ip: req.ip });
   res.json({ ok: true, count });
 }));
@@ -273,6 +291,7 @@ syncRouter.put('/lab', authenticate, requireRole('kv-lab'), labScope, validate(p
   const { ownerId, docId, labId } = req.labScope;
   const allowed = new Set([`pat_tokens_${docId}`, `lab_subs_${docId}`]);
   const count = await applyChanges(ownerId, req.valid.changes, k => allowed.has(k));
+  pushDoctorForChanges(ownerId, req.valid.changes);
   await writeAudit({ actorId: labId, actorRole: 'kv-lab', action: 'sync.lab_push', targetId: ownerId, detail: { count }, ip: req.ip });
   res.json({ ok: true, count });
 }));

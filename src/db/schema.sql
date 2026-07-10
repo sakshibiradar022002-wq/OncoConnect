@@ -59,3 +59,12 @@ CREATE TABLE IF NOT EXISTS kv_store (
   PRIMARY KEY (owner_id, k)
 );
 CREATE INDEX IF NOT EXISTS idx_kv_key ON kv_store(k);
+
+-- ── Web push subscriptions (one row per device) ──
+CREATE TABLE IF NOT EXISTS push_subs (
+  endpoint   TEXT PRIMARY KEY,            -- push service URL, unique per device
+  subject_id TEXT NOT NULL,               -- who receives: user id or owner::mrn
+  sub_enc    TEXT NOT NULL,               -- encrypted subscription JSON
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_push_subject ON push_subs(subject_id);

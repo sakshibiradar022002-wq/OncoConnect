@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChemoCure Admin</title>
+<meta name="theme-color" content="#2C5EAD">
+<style>
+:root{--blue:#1591DC;--blue2:#2C5EAD;--blue-light:#4BB8FA;--pale:#C4E2F5;--bg:#F1F8FD;--surface:#fff;--border:#C4E2F5;--text:#0f172a;--muted:#475569;--dim:#94a3b8;--red:#dc2626;--green:#059669;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;}
+.top{background:var(--blue2);color:#fff;padding:14px 22px;display:flex;align-items:center;gap:10px;}
+.top h1{font-size:16px;}
+.top .who{margin-left:auto;font-size:12px;opacity:.8;}
+.wrap{max-width:960px;margin:24px auto;padding:0 16px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:18px;box-shadow:0 1px 8px rgba(44,94,173,.08);}
+h2{font-size:14px;margin-bottom:12px;}
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+th{text-align:left;padding:8px;color:var(--muted);font-size:11px;text-transform:uppercase;border-bottom:2px solid var(--border);}
+td{padding:9px 8px;border-bottom:1px solid var(--border);}
+.badge{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:9px;}
+.b-on{background:rgba(5,150,105,.1);color:var(--green);}
+.b-off{background:rgba(220,38,38,.1);color:var(--red);}
+button{font-family:inherit;font-size:12px;font-weight:700;border:none;border-radius:8px;padding:7px 14px;cursor:pointer;}
+.btn-p{background:var(--blue);color:#fff;}
+.btn-r{background:rgba(220,38,38,.1);color:var(--red);}
+.btn-g{background:rgba(5,150,105,.1);color:var(--green);}
+input{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:9px;font-size:14px;margin-bottom:10px;font-family:inherit;}
+#login-card{max-width:380px;margin:8vh auto;}
+.msg{font-size:12.5px;color:var(--red);margin-bottom:8px;min-height:16px;}
+.hint{font-size:11.5px;color:var(--dim);margin-top:10px;line-height:1.6;}
+@media(max-width:700px){.hide-sm{display:none;}td,th{padding:7px 5px;}}
+.tbl-scroll{overflow-x:auto;}
+</style>
+</head>
+<body>
+<div class="top"><span>🛡️</span><h1>ChemoCure Admin</h1><span class="who" id="who"></span></div>
+<div class="wrap">
+
+  <div class="card" id="login-card">
+    <h2>Admin sign in</h2>
+    <div class="msg" id="login-msg"></div>
+    <input id="email" type="email" placeholder="Email">
+    <input id="pass" type="password" placeholder="Password">
+    <button class="btn-p" style="width:100%;padding:11px;" onclick="doLogin()">Sign In →</button>
+    <div class="hint">Only the instance admin (the first registered account) can use this console. Set <b>REQUIRE_DOCTOR_APPROVAL=true</b> in the server environment to make new doctor accounts wait for approval here.</div>
+  </div>
+
+  <div id="panel" style="display:none;">
+    <div class="card">
+      <h2>👥 Accounts</h2>
+      <div class="tbl-scroll"><table>
+        <thead><tr><th>Name</th><th>Email</th><th class="hide-sm">Role</th><th>Status</th><th class="hide-sm">Last login</th><th></th></tr></thead>
+        <tbody id="users-body"></tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <h2>📜 Audit log (latest 100)</h2>
+      <div class="tbl-scroll"><table>
+        <thead><tr><th>Time</th><th>Actor</th><th>Action</th><th class="hide-sm">Target</th><th class="hide-sm">IP</th></tr></thead>
+        <tbody id="audit-body"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<script>
+async function api(path, opts){
+  const r = await fetch('/api'+path, Object.assign({credentials:'include', headers:{'Content-Type':'application/json'}}, opts));
+  const d = await r.json().catch(()=>({}));
+  if(!r.ok) throw Object.assign(new Error(d.error||r.statusText), {status:r.status});
+  return d;
+}
+async function doLogin(){
+  const msg=document.getElementById('login-msg');msg.textContent='';
+  try{
+    const r=await api('/auth/login',{method:'POST',body:JSON.stringify({email:document.getElementById('email').value.trim().toLowerCase(),password:document.getElementById('pass').value})});
+    document.getElementById('who').textContent=r.user.email;
+    await loadAll();
+    document.getElementById('login-card').style.display='none';
+    document.getElementById('panel').style.display='block';
+  }catch(e){ msg.textContent = e.status===403?'This account is not the admin.':e.message; }
+}
+async function loadAll(){
+  const [u,a]=await Promise.all([api('/admin/users'),api('/admin/audit?limit=100')]);
+  document.getElementById('users-body').innerHTML=u.users.map(x=>`
+    <tr><td><b>${x.name||'—'}</b></td><td>${x.email}</td><td class="hide-sm">${x.role}</td>
+    <td><span class="badge ${x.active?'b-on':'b-off'}">${x.active?'Active':'Awaiting approval'}</span></td>
+    <td class="hide-sm">${x.lastLogin?new Date(x.lastLogin).toLocaleString():'never'}</td>
+    <td>${x.active?`<button class="btn-r" onclick="setActive('${x.id}',false)">Deactivate</button>`:`<button class="btn-g" onclick="setActive('${x.id}',true)">Approve ✓</button>`}</td></tr>`).join('');
+  document.getElementById('audit-body').innerHTML=a.entries.map(e=>`
+    <tr><td>${new Date(e.ts).toLocaleString()}</td><td>${e.actorRole||''}</td><td><b>${e.action}</b></td>
+    <td class="hide-sm" style="font-family:monospace;font-size:11px;">${(e.targetId||'—').slice(0,14)}</td><td class="hide-sm">${e.ip||''}</td></tr>`).join('');
+}
+async function setActive(id,active){
+  try{ await api('/admin/users/'+id+'/active',{method:'POST',body:JSON.stringify({active})}); await loadAll(); }
+  catch(e){ alert(e.message); }
+}
+// auto-resume an existing session
+api('/admin/users').then(()=>{document.getElementById('login-card').style.display='none';document.getElementById('panel').style.display='block';loadAll();}).catch(()=>{});
+document.getElementById('pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+</script>
+</body>
+</html>
