@@ -3,8 +3,8 @@
 
 import crypto from 'node:crypto';
 
-function required(name, fallback) {
-  const val = process.env[name] ?? fallback;
+function required(name) {
+  const val = process.env[name];
   if (val === undefined) {
     console.error(`\n[FATAL] Missing required environment variable: ${name}`);
     console.error(`Set it in your host's environment settings and restart.\n`);
@@ -55,9 +55,6 @@ export const config = {
 
   // Path to the SQLite database file.
   dbPath: process.env.DB_PATH || './chemocure.db',
-
-  // CORS: comma-separated list of allowed origins. Empty = same-origin only.
-  allowedOrigins: (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean),
 
   // Password hashing cost (PBKDF2 iterations).
   pbkdf2Iterations: 210000,

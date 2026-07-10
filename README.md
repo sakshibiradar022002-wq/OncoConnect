@@ -128,18 +128,10 @@ server-authorized.
 
 All under /api. Session cookie is sent automatically (credentials: 'include').
 
-Auth: POST /auth/register, POST /auth/login, POST /auth/patient-login, GET /auth/me, POST /auth/logout
-Patients (doctor): GET /patients, POST /patients, GET /patients/:id, PUT /patients/:id,
-  POST /patients/:id/reset-password, DELETE /patients/:id
-Labs: POST /labs (register + auto-credentials), GET /labs, POST /labs/tasks (assign),
-  GET /labs/tasks (doctor queue), GET /labs/my-tasks (lab tech), POST /labs/submit,
-  GET /labs/submissions/:patientId
-Clinical: POST/GET /clinical/messages, POST/GET /clinical/appointments (+ PUT status),
-  POST/GET /clinical/symptom-logs
+Auth: POST /auth/register, POST /auth/login (doctor accounts)
 Sync: GET/PUT /sync (doctor keyspace), POST /sync/patient-login,
-  GET/PUT /sync/patient (MRN-scoped)
-
-The frontend talks to the structured API through public/api-client.js (window.ChemoCureAPI).
+  GET/PUT /sync/patient (MRN-scoped), POST /sync/lab-login,
+  GET/PUT /sync/lab (task/submission-scoped)
 
 ## How the HTML apps stay connected (cross-device sync)
 

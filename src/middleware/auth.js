@@ -35,15 +35,6 @@ export async function createSession(res, { subjectId, subjectType, role }) {
   return jti;
 }
 
-// ── Revoke (logout) ───────────────────────────────────────────────
-export async function revokeSession(jti) {
-  await db.prepare('UPDATE sessions SET revoked = 1 WHERE id = ?').run(jti);
-}
-
-export function clearSessionCookie(res) {
-  res.clearCookie(COOKIE_NAME, { path: '/' });
-}
-
 // ── Verify on each request ────────────────────────────────────────
 export async function authenticate(req, res, next) {
   const token = req.cookies?.[COOKIE_NAME];

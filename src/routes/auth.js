@@ -1,4 +1,5 @@
-// Authentication endpoints for doctors, patients, and lab technicians.
+// Doctor account registration and login. Patient and lab logins live in
+// routes/sync.js — they authenticate against the synced records.
 
 import { Router } from 'express';
 import { z } from 'zod';
@@ -6,9 +7,7 @@ import { db, writeAudit } from '../db/index.js';
 import {
   hashPassword, verifyPassword, encryptPHI, decryptPHI, randomToken,
 } from '../crypto.js';
-import {
-  createSession, revokeSession, clearSessionCookie, authenticate,
-} from '../middleware/auth.js';
+import { createSession } from '../middleware/auth.js';
 import { validate, asyncHandler } from '../middleware/validate.js';
 
 export const authRouter = Router();
@@ -69,48 +68,4 @@ authRouter.post('/login', validate(loginSchema), asyncHandler(async (req, res) =
       labId: user.lab_id,
     },
   });
-}));
-
-// ── Patient login (by MRN) ────────────────────────────────────────
-const patientLoginSchema = z.object({
-  mrn: z.string().min(3).toUpperCase(),
-  password: z.string().min(1),
-});
-
-authRouter.post('/patient-login', validate(patientLoginSchema), asyncHandler(async (req, res) => {
-  const { mrn, password } = req.valid;
-  const patient = await db.prepare('SELECT * FROM patients WHERE mrn = ? AND active = 1').get(mrn);
-
-  const ok = patient && verifyPassword(password, patient.password_hash);
-  if (!ok) return res.status(401).json({ error: 'Invalid MRN or password' });
-
-  await db.prepare('UPDATE patients SET last_login = ? WHERE id = ?').run(new Date().toISOString(), patient.id);
-  await createSession(res, { subjectId: patient.id, subjectType: 'patient', role: 'patient' });
-  await writeAudit({ actorId: patient.id, actorRole: 'patient', action: 'patient.login', targetId: patient.id, ip: req.ip });
-
-  const record = decryptPHI(patient.record_enc) || {};
-  res.json({ ok: true, patient: { id: patient.id, mrn: patient.mrn, name: record.name } });
-}));
-
-// ── Current session info ──────────────────────────────────────────
-authRouter.get('/me', authenticate, asyncHandler(async (req, res) => {
-  if (req.auth.subjectType === 'user') {
-    const u = await db.prepare('SELECT * FROM users WHERE id = ?').get(req.auth.subjectId);
-    if (!u) return res.status(404).json({ error: 'Not found' });
-    return res.json({
-      type: 'user', id: u.id, email: u.email, role: u.role,
-      name: decryptPHI(u.name_enc), meta: decryptPHI(u.meta_enc), labId: u.lab_id,
-    });
-  }
-  const p = await db.prepare('SELECT * FROM patients WHERE id = ?').get(req.auth.subjectId);
-  if (!p) return res.status(404).json({ error: 'Not found' });
-  const record = decryptPHI(p.record_enc) || {};
-  res.json({ type: 'patient', id: p.id, mrn: p.mrn, name: record.name });
-}));
-
-// ── Logout ────────────────────────────────────────────────────────
-authRouter.post('/logout', authenticate, asyncHandler(async (req, res) => {
-  await revokeSession(req.auth.jti);
-  clearSessionCookie(res);
-  res.json({ ok: true });
 }));

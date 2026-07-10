@@ -11,13 +11,9 @@ import rateLimit from 'express-rate-limit';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-import { config } from './config.js';
 import { initSchema } from './db/index.js';
 import { errorHandler } from './middleware/validate.js';
 import { authRouter } from './routes/auth.js';
-import { patientsRouter } from './routes/patients.js';
-import { labsRouter } from './routes/labs.js';
-import { clinicalRouter } from './routes/clinical.js';
 import { syncRouter } from './routes/sync.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -48,21 +44,6 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
 }));
 
-// ── CORS (only if explicit origins configured) ────────────────────
-if (config.allowedOrigins.length) {
-  app.use((req, res, next) => {
-    const origin = req.headers.origin;
-    if (origin && config.allowedOrigins.includes(origin)) {
-      res.header('Access-Control-Allow-Origin', origin);
-      res.header('Access-Control-Allow-Credentials', 'true');
-      res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-      res.header('Access-Control-Allow-Headers', 'Content-Type');
-    }
-    if (req.method === 'OPTIONS') return res.sendStatus(204);
-    next();
-  });
-}
-
 app.use(express.json({ limit: '8mb' })); // lab file uploads (base64) can be large
 app.use(cookieParser());
 
@@ -81,23 +62,15 @@ app.get('/health', (req, res) => res.json({ ok: true, ts: new Date().toISOString
 
 // ── API routes ────────────────────────────────────────────────────
 app.use('/api/auth', authLimiter, authRouter);
-app.use('/api/patients', apiLimiter, patientsRouter);
-app.use('/api/labs', apiLimiter, labsRouter);
-app.use('/api/clinical', apiLimiter, clinicalRouter);
 app.use('/api/sync', apiLimiter, syncRouter);
 
 // ── PWA assets: correct headers for manifests & service workers ───
-app.get('/sw-doctor.js', (req, res) => {
+// One sw.js serves both apps; it reads its own URL to pick cache + shell.
+app.get(['/sw-doctor.js', '/sw-patient.js'], (req, res) => {
   res.set('Content-Type', 'application/javascript');
-  res.set('Service-Worker-Allowed', '/');
+  res.set('Service-Worker-Allowed', req.path.includes('doctor') ? '/' : '/patient.html');
   res.set('Cache-Control', 'no-cache');
-  res.sendFile(join(__dirname, '..', 'public', 'sw-doctor.js'));
-});
-app.get('/sw-patient.js', (req, res) => {
-  res.set('Content-Type', 'application/javascript');
-  res.set('Service-Worker-Allowed', '/patient.html');
-  res.set('Cache-Control', 'no-cache');
-  res.sendFile(join(__dirname, '..', 'public', 'sw-patient.js'));
+  res.sendFile(join(__dirname, '..', 'public', 'sw.js'));
 });
 app.get('/:name.webmanifest', (req, res, next) => {
   res.set('Content-Type', 'application/manifest+json');
