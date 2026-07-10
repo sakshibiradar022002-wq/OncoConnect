@@ -7,7 +7,7 @@
 
 <!-- PWA: installable desktop/mobile software -->
 <link rel="manifest" href="/doctor.webmanifest">
-<meta name="theme-color" content="#1a56db">
+<meta name="theme-color" content="#1591DC">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="ChemoCure Pro">
@@ -18,17 +18,17 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
 :root {
-  --bg:#f0f5ff;
+  --bg:#F1F8FD;
   --surface:#ffffff;
-  --surface2:#f4f8ff;
-  --surface3:#e8f0fe;
-  --border:#dde6f7;
-  --border2:#c5d5f0;
-  --blue:#1a56db;
-  --blue2:#1e40af;
-  --blue-light:#3b82f6;
-  --blue-pale:#eff6ff;
-  --blue-mid:#2563eb;
+  --surface2:#F5FAFE;
+  --surface3:#E1F0FA;
+  --border:#C4E2F5;
+  --border2:#A5CFEC;
+  --blue:#1591DC;
+  --blue2:#2C5EAD;
+  --blue-light:#4BB8FA;
+  --blue-pale:#E3F1FB;
+  --blue-mid:#1591DC;
   --cyan:#0284c7;
   --red:#dc2626;
   --orange:#d97706;
@@ -38,8 +38,8 @@
   --text-muted:#475569;
   --text-dim:#94a3b8;
   --radius:8px;
-  --shadow:0 1px 8px rgba(26,86,219,0.08);
-  --shadow-lg:0 8px 32px rgba(26,86,219,0.14);
+  --shadow:0 1px 8px rgba(44,94,173,0.08);
+  --shadow-lg:0 8px 32px rgba(44,94,173,0.14);
   --font:'Plus Jakarta Sans',system-ui,sans-serif;
   --mono:'IBM Plex Mono',monospace;
 }
@@ -121,7 +121,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 
 /* ── BUTTONS ── */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 14px;border-radius:7px;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;border:none;transition:all 0.15s;}
-.btn-primary{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(26,86,219,0.25);}.btn-primary:hover{background:var(--blue2);}
+.btn-primary{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(44,94,173,0.25);}.btn-primary:hover{background:var(--blue2);}
 .btn-cyan{background:var(--cyan);color:#fff;box-shadow:0 2px 8px rgba(2,132,199,0.25);}.btn-cyan:hover{background:#0369a1;}
 .btn-ghost{background:var(--surface);color:var(--text);border:1px solid var(--border);}.btn-ghost:hover{border-color:var(--blue-light);color:var(--blue);}
 .btn-danger{background:rgba(220,38,38,0.08);color:var(--red);border:1px solid rgba(220,38,38,0.2);}.btn-danger:hover{background:rgba(220,38,38,0.14);}
@@ -146,12 +146,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
   border-radius:8px;border:1px solid var(--border);margin-bottom:6px;
   cursor:pointer;transition:all 0.15s;background:var(--surface);box-shadow:var(--shadow);
 }
-.patient-row:hover{border-color:var(--blue-light);box-shadow:0 2px 12px rgba(26,86,219,0.12);}
+.patient-row:hover{border-color:var(--blue-light);box-shadow:0 2px 12px rgba(44,94,173,0.12);}
 .pat-name{font-weight:600;font-size:13px;color:var(--text);}
 .pat-mrn{font-size:11px;color:var(--text-muted);font-family:var(--mono);}
 .pat-diag{font-size:11px;color:var(--text-dim);margin-top:1px;}
 .badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;}
-.badge-blue{background:rgba(26,86,219,0.1);color:var(--blue);}
+.badge-blue{background:rgba(44,94,173,0.1);color:var(--blue);}
 .badge-cyan{background:rgba(2,132,199,0.1);color:var(--cyan);}
 .badge-orange{background:rgba(217,119,6,0.1);color:var(--orange);}
 .badge-red{background:rgba(220,38,38,0.1);color:var(--red);}
@@ -238,7 +238,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 
 .med-item{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;box-shadow:var(--shadow);}
 
-.cred-box{background:var(--blue-pale);border:1px solid rgba(26,86,219,0.2);border-radius:10px;padding:16px;}
+.cred-box{background:var(--blue-pale);border:1px solid rgba(44,94,173,0.2);border-radius:10px;padding:16px;}
 .cred-label{font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--blue);margin-bottom:10px;}
 .cred-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:12.5px;}
 .cred-key{color:var(--text-muted);}
@@ -262,7 +262,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 .chat-input-row input{flex:1;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;outline:none;}
 .chat-input-row input:focus{border-color:var(--blue-light);}
 .msg-bubble{max-width:70%;padding:9px 13px;border-radius:12px;font-size:12.5px;line-height:1.5;}
-.msg-bubble.out{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;align-self:flex-end;box-shadow:0 2px 8px rgba(26,86,219,0.2);}
+.msg-bubble.out{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;align-self:flex-end;box-shadow:0 2px 8px rgba(44,94,173,0.2);}
 .msg-bubble.in{background:var(--surface2);border:1px solid var(--border);align-self:flex-start;}
 .msg-time{font-size:10px;color:var(--text-dim);margin-top:3px;}
 .msg-bubble.out .msg-time{color:rgba(255,255,255,0.6);}
@@ -271,7 +271,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 .cal-grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
 .cal-head-cell{text-align:center;font-size:10px;font-weight:700;color:var(--text-dim);padding:4px 0;letter-spacing:0.5px;}
 .cal-day{aspect-ratio:1;border-radius:7px;background:var(--surface);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:11.5px;transition:all 0.15s;position:relative;box-shadow:var(--shadow);}
-.cal-day:hover{border-color:var(--blue-light);box-shadow:0 2px 8px rgba(26,86,219,0.12);}
+.cal-day:hover{border-color:var(--blue-light);box-shadow:0 2px 8px rgba(44,94,173,0.12);}
 .cal-day.today{border-color:var(--blue);color:var(--blue);font-weight:800;background:var(--blue-pale);}
 .cal-day.has-log{background:rgba(2,132,199,0.08);border-color:rgba(2,132,199,0.3);}
 .cal-day.empty{opacity:0;pointer-events:none;}
@@ -280,16 +280,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 /* ── AUTH SCREEN ── */
 #auth-screen{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  min-height:100%;background:linear-gradient(160deg,#1e3a8a 0%,#1d4ed8 45%,#2563eb 70%,#3b82f6 100%);
+  min-height:100%;background:linear-gradient(160deg,#2C5EAD 0%,#1591DC 45%,#4BB8FA 78%,#C4E2F5 100%);
   padding:40px 20px;
 }
 .auth-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;width:100%;max-width:420px;box-shadow:0 24px 80px rgba(15,23,42,0.25);}
 .auth-logo{display:flex;align-items:center;gap:12px;margin-bottom:32px;}
-.auth-logo-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--blue2));display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 16px rgba(26,86,219,0.3);}
+.auth-logo-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--blue2));display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 16px rgba(44,94,173,0.3);}
 .auth-logo-text{font-weight:800;font-size:1.3rem;color:var(--text);letter-spacing:-0.4px;}
 .tab-switcher{display:flex;background:var(--surface2);border-radius:8px;padding:3px;margin-bottom:22px;border:1px solid var(--border);}
 .ts-btn{flex:1;padding:7px;border:none;background:transparent;color:var(--text-muted);font-family:inherit;font-size:12.5px;cursor:pointer;border-radius:6px;transition:all 0.15s;font-weight:600;}
-.ts-btn.active{background:var(--surface);color:var(--blue);box-shadow:0 1px 8px rgba(26,86,219,0.12);}
+.ts-btn.active{background:var(--surface);color:var(--blue);box-shadow:0 1px 8px rgba(44,94,173,0.12);}
 
 /* ── LAB TABS ── */
 .lab-tab-btn.active{background:var(--blue-pale);border-color:var(--blue-light);color:var(--blue);}
@@ -331,12 +331,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 .icd-filter-btn.active{background:var(--blue-pale);border-color:var(--blue-light);color:var(--blue);}
 .icd-row{display:flex;align-items:flex-start;gap:12px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:all 0.15s;border:1px solid transparent;margin-bottom:3px;}
 .icd-row:hover{background:var(--surface2);border-color:var(--border);}
-.icd-row.selected{background:var(--blue-pale);border-color:rgba(26,86,219,0.3);}
+.icd-row.selected{background:var(--blue-pale);border-color:rgba(44,94,173,0.3);}
 .icd-code{font-family:var(--mono);font-weight:700;font-size:13px;min-width:68px;color:var(--blue);}
 .icd-label{font-size:12.5px;flex:1;line-height:1.4;color:var(--text);}
 .icd-sub{font-size:10.5px;color:var(--text-muted);margin-top:2px;}
 .icd-badge{font-size:9px;padding:1px 5px;border-radius:4px;font-weight:700;letter-spacing:0.4px;white-space:nowrap;}
-.icd-badge-10{background:rgba(26,86,219,0.1);color:var(--blue);}
+.icd-badge-10{background:rgba(44,94,173,0.1);color:var(--blue);}
 .icd-badge-11{background:rgba(124,58,237,0.1);color:var(--purple);}
 .icd-group-header{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);padding:10px 12px 4px;}
 
@@ -551,7 +551,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
             <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--orange);margin-bottom:8px;">⚠ Large items eating storage</div>
             <div id="storage-large-list"></div>
           </div>
-          <div style="background:var(--blue-pale);border:1px solid rgba(26,86,219,0.15);border-radius:8px;padding:10px 12px;margin-top:10px;font-size:12px;color:var(--text-muted);line-height:1.6;">
+          <div style="background:var(--blue-pale);border:1px solid rgba(44,94,173,0.15);border-radius:8px;padding:10px 12px;margin-top:10px;font-size:12px;color:var(--text-muted);line-height:1.6;">
             💡 <strong>5MB tip:</strong> To free space, remove file attachments from large patient records — lab <em>results</em> (text values) are kept, only the PDFs are deleted. Use <strong>🗜 Remove files</strong> on large items above.
           </div>
         </div>
@@ -1832,7 +1832,7 @@ function buildRecordTabs(p){
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
               ${['Hypertension','T2 Diabetes','Hypothyroidism','CAD','COPD','Asthma','CKD','Epilepsy','Depression','Anxiety'].map(c=>{
                 const checked=(p.comorbidities||[]).includes(c);
-                return `<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:${checked?'rgba(26,86,219,0.08)':'var(--surface2)'};border:1.5px solid ${checked?'rgba(26,86,219,0.3)':'var(--border)'};border-radius:9px;cursor:pointer;font-size:12.5px;font-weight:${checked?'700':'500'};color:${checked?'var(--blue)':'var(--text)'};transition:all 0.15s;" onclick="this.querySelector('input').click();updateComorBadge();">
+                return `<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:${checked?'rgba(44,94,173,0.08)':'var(--surface2)'};border:1.5px solid ${checked?'rgba(44,94,173,0.3)':'var(--border)'};border-radius:9px;cursor:pointer;font-size:12.5px;font-weight:${checked?'700':'500'};color:${checked?'var(--blue)':'var(--text)'};transition:all 0.15s;" onclick="this.querySelector('input').click();updateComorBadge();">
                   <input type="checkbox" class="comor-cb" value="${c}" ${checked?'checked':''} style="display:none;">
                   <span style="width:16px;height:16px;border-radius:4px;border:2px solid ${checked?'var(--blue)':'var(--border2)'};background:${checked?'var(--blue)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;color:#fff;transition:all 0.15s;">${checked?'✓':''}</span>
                   ${c}
@@ -1847,8 +1847,8 @@ function buildRecordTabs(p){
 
         <!-- CLINICAL NOTES CARD -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);">
-          <div style="background:linear-gradient(135deg,rgba(26,86,219,0.06),rgba(26,86,219,0.01));padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">
-            <div style="width:28px;height:28px;background:rgba(26,86,219,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;">📝</div>
+          <div style="background:linear-gradient(135deg,rgba(44,94,173,0.06),rgba(44,94,173,0.01));padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">
+            <div style="width:28px;height:28px;background:rgba(44,94,173,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;">📝</div>
             <div>
               <div style="font-weight:800;font-size:13px;color:var(--text);">Clinical Notes</div>
               <div style="font-size:10.5px;color:var(--text-muted);">Free text — visible to doctor only</div>
@@ -1862,7 +1862,7 @@ function buildRecordTabs(p){
         </div>
 
         <!-- AI HEALTH RISK ANALYZER CARD -->
-        <div style="background:var(--surface);border:1.5px solid rgba(26,86,219,0.2);border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(26,86,219,0.08);">
+        <div style="background:var(--surface);border:1.5px solid rgba(44,94,173,0.2);border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(44,94,173,0.08);">
           <div style="background:linear-gradient(135deg,var(--blue),var(--blue2));padding:14px 16px;">
             <div style="display:flex;align-items:center;justify-content:space-between;">
               <div style="display:flex;align-items:center;gap:10px;">
@@ -1976,7 +1976,7 @@ function buildRecordTabs(p){
           <!-- Status buttons — colour coded -->
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px;">
             ${[
-              ['Stable','var(--blue)','rgba(26,86,219,0.1)'],
+              ['Stable','var(--blue)','rgba(44,94,173,0.1)'],
               ['Response','var(--green)','rgba(5,150,105,0.1)'],
               ['Progression','var(--red)','rgba(220,38,38,0.1)'],
               ['Relapse','var(--orange)','rgba(217,119,6,0.1)']
@@ -2092,7 +2092,7 @@ function buildRecordTabs(p){
               oninput="filterLabTests(this.value);autoFillRefRange(this.value)"
               onfocus="showLabTestDropdown()"
               onblur="setTimeout(()=>hideLabTestDropdown(),180)">
-            <div id="lab-test-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1.5px solid var(--blue-light);border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:999;box-shadow:0 8px 24px rgba(26,86,219,0.15);">
+            <div id="lab-test-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1.5px solid var(--blue-light);border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:999;box-shadow:0 8px 24px rgba(44,94,173,0.15);">
             </div>
           </div>
         </div>
@@ -2382,7 +2382,7 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
       </div>
     </div>
     <!-- EQD2 / BED Calculator -->
-    <div style="background:var(--blue-pale);border:1px solid rgba(26,86,219,0.15);border-radius:10px;padding:14px 16px;margin-bottom:16px;">
+    <div style="background:var(--blue-pale);border:1px solid rgba(44,94,173,0.15);border-radius:10px;padding:14px 16px;margin-bottom:16px;">
       <div style="font-weight:700;font-size:12px;color:var(--blue);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;">
         <span>🧮 Radiobiological Calculator (EQD₂ / BED)</span>
         <span style="font-weight:400;font-size:11px;color:var(--text-muted);">α/β ratio: <input id="r-eqd2-ab" type="number" value="${p.txAlphaBeta||2}" min="1" max="20" step="0.5" style="width:50px;padding:2px 5px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;text-align:center;" oninput="calcEQD2()"></span>
@@ -3029,12 +3029,12 @@ function generatePDFDownload(){
   *{margin:0;padding:0;box-sizing:border-box;}
   body{font-family:'Segoe UI',Arial,sans-serif;color:#0f172a;background:#fff;font-size:13px;line-height:1.6;}
   .page{max-width:800px;margin:0 auto;padding:32px 40px;}
-  .header{border-bottom:3px solid #1a56db;padding-bottom:16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-start;}
-  .brand{font-size:22px;font-weight:800;color:#1a56db;letter-spacing:-0.5px;}
+  .header{border-bottom:3px solid #1591DC;padding-bottom:16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-start;}
+  .brand{font-size:22px;font-weight:800;color:#1591DC;letter-spacing:-0.5px;}
   .brand span{color:#059669;}
   .meta{text-align:right;font-size:11px;color:#64748b;}
   .meta strong{font-size:14px;color:#0f172a;display:block;}
-  h2{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#1a56db;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid #e2e8f0;}
+  h2{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#1591DC;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid #e2e8f0;}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
   .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
   .box{background:#f8fafc;border-radius:6px;padding:10px 12px;}
@@ -3052,7 +3052,7 @@ function generatePDFDownload(){
     <div>
       <div class="brand">Chemo<span>Cure</span> Pro</div>
       <div style="font-size:11px;color:#64748b;margin-top:2px;">Neuro-Oncology Clinical Report</div>
-      ${facility?`<div style="font-size:11px;color:#1a56db;margin-top:2px;">${facility}</div>`:''}
+      ${facility?`<div style="font-size:11px;color:#1591DC;margin-top:2px;">${facility}</div>`:''}
     </div>
     <div class="meta">
       <strong>${p.name}</strong>
@@ -3138,7 +3138,7 @@ function generatePDFDownload(){
     <div>Dr. ${clinician} · ${new Date().toLocaleDateString()}</div>
   </div>
   <div class="no-print" style="margin-top:24px;text-align:center;">
-    <button onclick="window.print()" style="padding:12px 28px;background:#1a56db;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-right:8px;">⬇ Save as PDF</button>
+    <button onclick="window.print()" style="padding:12px 28px;background:#1591DC;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-right:8px;">⬇ Save as PDF</button>
     <button onclick="window.close()" style="padding:12px 20px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;cursor:pointer;">Close</button>
   </div>
 </div>
@@ -3153,7 +3153,7 @@ function generatePDFDownload(){
 function setDS(btn,val){
   // Update all DS buttons — new colour-coded style
   const dsColors={
-    'Stable':['var(--blue)','rgba(26,86,219,0.1)'],
+    'Stable':['var(--blue)','rgba(44,94,173,0.1)'],
     'Response':['var(--green)','rgba(5,150,105,0.1)'],
     'Progression':['var(--red)','rgba(220,38,38,0.1)'],
     'Relapse':['var(--orange)','rgba(217,119,6,0.1)']
@@ -3186,7 +3186,7 @@ function shareCredsEmail(mrn,pass,name,email){
 }
 function printCredsCard(mrn,pass,name){
   const w=window.open('','_blank','width=400,height=480');
-  w.document.write(`<!DOCTYPE html><html><head><title>Patient Card</title><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;padding:24px;}.card{border:2px solid #1a56db;border-radius:12px;padding:20px;max-width:340px;text-align:center;}.logo{font-size:28px;margin-bottom:4px;}.title{font-size:15px;font-weight:700;color:#1a56db;margin-bottom:12px;}.name{font-size:18px;font-weight:700;margin-bottom:14px;}.box{background:#f0f5ff;border-radius:8px;padding:10px 14px;text-align:left;margin-bottom:10px;}.label{font-size:10px;text-transform:uppercase;color:#475569;margin-bottom:3px;}.val{font-size:16px;font-weight:700;font-family:monospace;color:#1a56db;}.note{font-size:11px;color:#64748b;margin-top:12px;}.no-print{margin-top:16px;}@media print{.no-print{display:none;}}</style></head><body><div class="card"><div class="logo">🏥</div><div class="title">ChemoCure Patient App</div><div class="name">${name}</div><div class="box"><div class="label">Username (MRN)</div><div class="val">${mrn}</div></div><div class="box"><div class="label">Password</div><div class="val">${pass}</div></div><div class="note">Log in at ChemoCure Patient App</div><div class="no-print" style="margin-top:16px;"><button onclick="window.print()" style="padding:10px 20px;background:#1a56db;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;width:100%;">🖨 Print Card</button></div></div></body></html>`);
+  w.document.write(`<!DOCTYPE html><html><head><title>Patient Card</title><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;padding:24px;}.card{border:2px solid #1591DC;border-radius:12px;padding:20px;max-width:340px;text-align:center;}.logo{font-size:28px;margin-bottom:4px;}.title{font-size:15px;font-weight:700;color:#1591DC;margin-bottom:12px;}.name{font-size:18px;font-weight:700;margin-bottom:14px;}.box{background:#f0f5ff;border-radius:8px;padding:10px 14px;text-align:left;margin-bottom:10px;}.label{font-size:10px;text-transform:uppercase;color:#475569;margin-bottom:3px;}.val{font-size:16px;font-weight:700;font-family:monospace;color:#1591DC;}.note{font-size:11px;color:#64748b;margin-top:12px;}.no-print{margin-top:16px;}@media print{.no-print{display:none;}}</style></head><body><div class="card"><div class="logo">🏥</div><div class="title">ChemoCure Patient App</div><div class="name">${name}</div><div class="box"><div class="label">Username (MRN)</div><div class="val">${mrn}</div></div><div class="box"><div class="label">Password</div><div class="val">${pass}</div></div><div class="note">Log in at ChemoCure Patient App</div><div class="no-print" style="margin-top:16px;"><button onclick="window.print()" style="padding:10px 20px;background:#1591DC;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;width:100%;">🖨 Print Card</button></div></div></body></html>`);
   w.document.close();
 }
 function resetPatientPassword(mrn){
@@ -3338,7 +3338,7 @@ function renderMDTNotes(mrn){
   if(!notes.length){list.innerHTML='<div class="empty-card">No MDT meeting notes recorded yet.</div>';return;}
   list.innerHTML=notes.map((n,i)=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><div style="display:flex;align-items:center;gap:10px;">
-      <div style="background:rgba(26,86,219,0.1);color:var(--blue);font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;">${esc(n.type)}</div>
+      <div style="background:rgba(44,94,173,0.1);color:var(--blue);font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;">${esc(n.type)}</div>
       <strong>${esc(n.date)}</strong>${n.venue?`<span style="font-size:11.5px;color:var(--text-muted);">${esc(n.venue)}</span>`:''}
     </div><button onclick="deleteMDTNote('${mrn}',${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:11px;">✕</button></div>
     ${n.chair?`<div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Chair: ${esc(n.chair)}</div>`:''}
@@ -3366,7 +3366,7 @@ function renderImagingReports(mrn){
       <div style="background:var(--surface2);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <strong>${esc(r.date)}</strong>
-          <span style="background:rgba(26,86,219,0.1);color:var(--blue);font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;">${esc(r.modality)}</span>
+          <span style="background:rgba(44,94,173,0.1);color:var(--blue);font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;">${esc(r.modality)}</span>
           ${r.facility?`<span style="font-size:11.5px;color:var(--text-muted);">${esc(r.facility)}</span>`:''}
           ${r.compare?`<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;background:${col}18;color:${col};">${esc(r.compare)}</span>`:''}
         </div>
@@ -3437,8 +3437,8 @@ function updateComorBadge() {
     if (!label) return;
     const box = label.querySelector('span');
     if (cb.checked) {
-      label.style.background = 'rgba(26,86,219,0.08)';
-      label.style.borderColor = 'rgba(26,86,219,0.3)';
+      label.style.background = 'rgba(44,94,173,0.08)';
+      label.style.borderColor = 'rgba(44,94,173,0.3)';
       label.style.color = 'var(--blue)';
       label.style.fontWeight = '700';
       if (box) { box.style.background = 'var(--blue)'; box.style.borderColor = 'var(--blue)'; box.textContent = '✓'; }
@@ -3559,7 +3559,7 @@ function extractPDFText(dataUrl, fileName) {
   const msg = document.getElementById('r-upload-msg');
   if (msg) {
     msg.textContent = '⏳ Extracting text from PDF...';
-    msg.style.cssText = 'display:block;background:rgba(26,86,219,0.07);border:1px solid rgba(26,86,219,0.2);color:var(--blue);font-size:12px;padding:8px 12px;border-radius:6px;margin-bottom:10px;';
+    msg.style.cssText = 'display:block;background:rgba(44,94,173,0.07);border:1px solid rgba(44,94,173,0.2);color:var(--blue);font-size:12px;padding:8px 12px;border-radius:6px;margin-bottom:10px;';
   }
 
   // Load pdf.js from CDN
@@ -3610,7 +3610,7 @@ function showExtractPromptForImage(fileName) {
   const msg = document.getElementById('r-upload-msg');
   if (msg) {
     msg.innerHTML = '🖼 Image saved. To extract lab results from this image, switch to <strong>📋 Paste Report</strong> tab and type or paste the values manually.';
-    msg.style.cssText = 'display:block;background:rgba(26,86,219,0.07);border:1px solid rgba(26,86,219,0.2);color:var(--text-muted);font-size:12px;padding:8px 12px;border-radius:6px;margin-bottom:10px;';
+    msg.style.cssText = 'display:block;background:rgba(44,94,173,0.07);border:1px solid rgba(44,94,173,0.2);color:var(--text-muted);font-size:12px;padding:8px 12px;border-radius:6px;margin-bottom:10px;';
   }
 }
 
@@ -6711,13 +6711,13 @@ function goToLabsPanel() {
 
 
 <!-- PWA install prompt + service worker registration -->
-<div id="pwa-install-banner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:99999;background:#1a56db;color:#fff;padding:14px 20px;border-radius:14px;box-shadow:0 8px 30px rgba(26,86,219,0.4);display:none;align-items:center;gap:14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;max-width:90vw;">
+<div id="pwa-install-banner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:99999;background:#1591DC;color:#fff;padding:14px 20px;border-radius:14px;box-shadow:0 8px 30px rgba(44,94,173,0.4);display:none;align-items:center;gap:14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;max-width:90vw;">
   <div style="font-size:24px;">💻</div>
   <div style="flex:1;">
     <div style="font-weight:700;">Install ChemoCure Pro</div>
     <div style="font-size:12px;opacity:0.85;">Add to your desktop for quick access &amp; offline use</div>
   </div>
-  <button id="pwa-install-btn" style="background:#fff;color:#1a56db;border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-family:inherit;font-size:13px;cursor:pointer;">Install</button>
+  <button id="pwa-install-btn" style="background:#fff;color:#1591DC;border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-family:inherit;font-size:13px;cursor:pointer;">Install</button>
   <button id="pwa-dismiss-btn" style="background:none;border:none;color:rgba(255,255,255,0.7);font-size:20px;cursor:pointer;padding:0 4px;">&times;</button>
 </div>
 <script>
