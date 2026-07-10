@@ -47,6 +47,22 @@ app.use(helmet({
 app.use(express.json({ limit: '8mb' })); // lab file uploads (base64) can be large
 app.use(cookieParser());
 
+// ── CSRF guard: state-changing API calls must come from our own origin ──
+// (Hosting proxies may rewrite the session cookie to SameSite=None, which
+// would otherwise let cross-site pages fire authenticated writes.)
+app.use('/api', (req, res, next) => {
+  if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') return next();
+  const origin = req.headers.origin;
+  if (!origin) return next(); // non-browser clients (curl, tests) send no Origin
+  const host = req.headers['x-forwarded-host'] || req.headers.host;
+  try {
+    if (new URL(origin).host !== host) {
+      return res.status(403).json({ error: 'Cross-origin request rejected' });
+    }
+  } catch { return res.status(403).json({ error: 'Invalid Origin header' }); }
+  next();
+});
+
 // ── Rate limiting ─────────────────────────────────────────────────
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,

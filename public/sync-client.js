@@ -204,5 +204,14 @@
       mergeKeys(data.keys);
       return true;
     },
+
+    // Revoke the server session (fire-and-forget; local logout proceeds regardless).
+    logout: function () {
+      var wasOnline = state.online;
+      state.mode = null;
+      state.online = false;
+      state.dirty.clear();
+      if (wasOnline) { try { req('POST', '/api/auth/logout').catch(function () {}); } catch (e) {} }
+    },
   };
 })();

@@ -870,14 +870,16 @@ async function doLogin(){
   var storedPass = pat.pass || pat.password || '';
   var ok = false;
 
-  if (storedPass.startsWith('pbkdf2:')) {
-    // Hashed password (new accounts)
+  if (storedPass.startsWith('pbkdf2')) {
+    // Hashed password: "pbkdf2:<salt>:<hash>" or "pbkdf2v2:<iter>:<salt>:<hash>"
     try {
       var parts = storedPass.split(':');
-      var salt = parts[1], storedHash = parts[2];
+      var iters = parts[0] === 'pbkdf2v2' ? parseInt(parts[1], 10) : 100000;
+      var salt = parts[0] === 'pbkdf2v2' ? parts[2] : parts[1];
+      var storedHash = parts[0] === 'pbkdf2v2' ? parts[3] : parts[2];
       var enc = new TextEncoder();
       var key = await crypto.subtle.importKey('raw', enc.encode(pass), 'PBKDF2', false, ['deriveBits']);
-      var bits = await crypto.subtle.deriveBits({name:'PBKDF2', salt:enc.encode(salt), iterations:100000, hash:'SHA-256'}, key, 256);
+      var bits = await crypto.subtle.deriveBits({name:'PBKDF2', salt:enc.encode(salt), iterations:iters, hash:'SHA-256'}, key, 256);
       ok = (btoa(String.fromCharCode(...new Uint8Array(bits))) === storedHash);
     } catch(e) { ok = false; }
   } else {
@@ -897,7 +899,7 @@ async function doLogin(){
 }
 
 function showErr(msg){ var el=document.getElementById('login-err'); el.innerHTML=msg; el.style.display='block'; setTimeout(function(){el.style.display='none';},4000); }
-function doLogout(){ PAT=null; document.getElementById('app-shell').style.display='none'; document.getElementById('screen-login').style.display='flex'; switchLoginTab('patient'); updateConnectionStatus(); }
+function doLogout(){ PAT=null; if(window.CCSync) CCSync.logout(); document.getElementById('app-shell').style.display='none'; document.getElementById('screen-login').style.display='flex'; switchLoginTab('patient'); updateConnectionStatus(); }
 
 // ── Login tab switcher ──
 function switchLoginTab(tab) {
@@ -1098,6 +1100,7 @@ function checkLabAccounts() {
 }
 
 function doLabLogout() {
+  if(window.CCSync) CCSync.logout();
   LAB_SESSION = null; labFiles = []; activeTask = null;
   document.getElementById('screen-lab-shell').style.display = 'none';
   document.getElementById('screen-login').style.display = 'flex';

@@ -7,8 +7,11 @@ import { db, writeAudit } from '../db/index.js';
 import {
   hashPassword, verifyPassword, encryptPHI, decryptPHI, randomToken,
 } from '../crypto.js';
-import { createSession } from '../middleware/auth.js';
+import {
+  createSession, revokeSession, clearSessionCookie, authenticate,
+} from '../middleware/auth.js';
 import { validate, asyncHandler } from '../middleware/validate.js';
+import { config } from '../config.js';
 
 export const authRouter = Router();
 
@@ -27,18 +30,30 @@ authRouter.post('/register', validate(registerSchema), asyncHandler(async (req, 
   const existing = await db.prepare('SELECT id FROM users WHERE email = ?').get(email);
   if (existing) return res.status(409).json({ error: 'An account already exists for this email' });
 
+  // With REQUIRE_DOCTOR_APPROVAL=true, new accounts start inactive until an
+  // admin flips users.active to 1. The very first account is always approved
+  // so the instance owner can't lock themselves out.
+  let active = 1;
+  if (config.requireDoctorApproval) {
+    const anyUser = await db.prepare('SELECT id FROM users LIMIT 1').get();
+    if (anyUser) active = 0;
+  }
+
   const id = randomToken(16);
   await db.prepare(`
     INSERT INTO users (id, email, password_hash, role, name_enc, meta_enc, active, created_at)
-    VALUES (?, ?, ?, 'doctor', ?, ?, 1, ?)
+    VALUES (?, ?, ?, 'doctor', ?, ?, ?, ?)
   `).run(
     id, email, hashPassword(password),
     encryptPHI(name), encryptPHI({ specialty, institution }),
-    new Date().toISOString()
+    active, new Date().toISOString()
   );
 
   await writeAudit({ actorId: id, actorRole: 'doctor', action: 'doctor.register', targetId: id, ip: req.ip });
-  res.status(201).json({ ok: true, message: 'Account created. You can now sign in.' });
+  res.status(201).json({
+    ok: true,
+    message: active ? 'Account created. You can now sign in.' : 'Account created. An administrator must approve it before you can sign in.',
+  });
 }));
 
 // ── Doctor / admin / lab login (by email) ─────────────────────────
@@ -68,4 +83,12 @@ authRouter.post('/login', validate(loginSchema), asyncHandler(async (req, res) =
       labId: user.lab_id,
     },
   });
+}));
+
+// ── Logout: revoke the session server-side, not just client-side ──
+authRouter.post('/logout', authenticate, asyncHandler(async (req, res) => {
+  await revokeSession(req.auth.jti);
+  clearSessionCookie(res);
+  await writeAudit({ actorId: req.auth.subjectId, actorRole: req.auth.role, action: 'user.logout', ip: req.ip });
+  res.json({ ok: true });
 }));

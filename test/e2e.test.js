@@ -138,6 +138,33 @@ test('kv sync: doctor push/pull, patient login, scope enforcement', async () => 
   assert.equal(foreignWrite.data.count, 0);
 });
 
+test('cross-origin writes are rejected (CSRF guard)', async () => {
+  const res = await fetch(base + '/api/sync', {
+    method: 'PUT',
+    headers: { ...doctor.headers({ 'content-type': 'application/json' }), origin: 'https://evil.example' },
+    body: JSON.stringify({ changes: { hacked: 1 } }),
+  });
+  assert.equal(res.status, 403);
+});
+
+test('plaintext patient password is upgraded to a v2 hash on login', async () => {
+  const probe = jar();
+  await call(probe, 'POST', '/api/sync/patient-login', { mrn: 'KV-42', password: 'kv-plain-pw' });
+  const pull = await call(doctor, 'GET', '/api/sync');
+  const stored = pull.data.keys['pat_KV-42'].v.pass;
+  assert.ok(String(stored).startsWith('pbkdf2v2:'), `expected v2 hash, got: ${stored}`);
+  // and the upgraded hash still verifies
+  const again = await call(jar(), 'POST', '/api/sync/patient-login', { mrn: 'KV-42', password: 'kv-plain-pw' });
+  assert.equal(again.status, 200);
+});
+
+test('logout revokes the session server-side', async () => {
+  const out = await call(doctor, 'POST', '/api/auth/logout');
+  assert.equal(out.status, 200);
+  const after_ = await call(doctor, 'GET', '/api/sync');
+  assert.equal(after_.status, 401);
+});
+
 test('no plaintext PHI in the database file', () => {
   if (process.env.TURSO_DATABASE_URL && !process.env.TURSO_DATABASE_URL.startsWith('file:')) return;
   const path = process.env.TURSO_DATABASE_URL

@@ -58,4 +58,8 @@ export const config = {
 
   // Password hashing cost (PBKDF2 iterations).
   pbkdf2Iterations: 210000,
+
+  // When true, doctor accounts after the first one start deactivated and an
+  // admin must set users.active = 1 before they can sign in.
+  requireDoctorApproval: process.env.REQUIRE_DOCTOR_APPROVAL === 'true',
 };

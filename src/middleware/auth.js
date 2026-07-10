@@ -13,6 +13,9 @@ export async function createSession(res, { subjectId, subjectType, role }) {
   const now = new Date();
   const expires = new Date(now.getTime() + config.sessionTtlMinutes * 60 * 1000);
 
+  // Opportunistic cleanup so the table doesn't grow forever.
+  await db.prepare('DELETE FROM sessions WHERE expires_at < ?').run(now.toISOString());
+
   await db.prepare(`
     INSERT INTO sessions (id, subject_id, subject_type, role, created_at, expires_at, revoked)
     VALUES (?, ?, ?, ?, ?, ?, 0)
@@ -33,6 +36,15 @@ export async function createSession(res, { subjectId, subjectType, role }) {
   });
 
   return jti;
+}
+
+// ── Revoke (logout) ───────────────────────────────────────────────
+export async function revokeSession(jti) {
+  await db.prepare('UPDATE sessions SET revoked = 1 WHERE id = ?').run(jti);
+}
+
+export function clearSessionCookie(res) {
+  res.clearCookie(COOKIE_NAME, { path: '/' });
 }
 
 // ── Verify on each request ────────────────────────────────────────
