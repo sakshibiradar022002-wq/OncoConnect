@@ -2149,5 +2149,128 @@ if (typeof window.initApp === 'function') {
 }
 })();
 </script>
+<script>
+// ═══════════════════════════════════════════════
+// PATIENT MANAGEMENT FEATURES: visit check-in, bills, travel log.
+// ═══════════════════════════════════════════════
+(function(){
+'use strict';
+function esc3(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+function money(n){ return '₹'+Number(n||0).toLocaleString('en-IN'); }
+
+/* ── 1. VISIT CHECK-IN (top of Visits screen) ─────────────────── */
+function renderCheckin(){
+  var host=document.getElementById('checkin-card');if(!host||!window.PAT)return;
+  var c=LS.get('checkin_'+PAT.mrn);
+  var t=todayStr();
+  if(c&&c.date===t){
+    var st=c.status||'waiting';
+    host.innerHTML=
+      '<div class="info-card-title">🏥 Today\'s Visit</div>'+
+      (st==='waiting'
+        ?'<div style="font-size:13px;padding:6px 0;">✅ Checked in at <b>'+esc3(c.time)+'</b>. The clinic knows you\'re here — please wait to be called.</div>'
+        :st==='called'
+        ?'<div style="font-size:14px;font-weight:800;color:var(--green);padding:6px 0;">🔔 It\'s your turn! Please go in now.</div>'
+        :'<div style="font-size:13px;color:var(--text-muted);padding:6px 0;">Visit completed. Take care! 💚</div>');
+  } else {
+    host.innerHTML=
+      '<div class="info-card-title">🏥 Arriving for a visit?</div>'+
+      '<div style="font-size:12.5px;color:var(--text-muted);margin-bottom:10px;">Tap when you reach the clinic — your doctor\'s day board shows you in the queue instantly.</div>'+
+      '<button id="checkin-btn" style="width:100%;padding:12px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">📍 I\'ve Arrived — Check In</button>';
+    var b=document.getElementById('checkin-btn');
+    if(b)b.addEventListener('click',doCheckin);
+  }
+}
+function doCheckin(){
+  var now=new Date();
+  var time=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  LS.set('checkin_'+PAT.mrn,{date:todayStr(),time:time,status:'waiting',name:PAT.name});
+  if(PAT.docId){
+    var ak='alerts_'+PAT.docId+'_'+PAT.mrn;
+    var alerts=LS.get(ak)||[];
+    alerts.unshift({id:Date.now()+''+Math.floor(Math.random()*1e4),ts:new Date().toISOString(),type:'checkin',
+      mrn:PAT.mrn,name:PAT.name,text:'Arrived at the clinic ('+time+') and checked in.',urgent:false,read:false});
+    LS.set(ak,alerts.slice(0,50));
+  }
+  toast('Checked in! The clinic has been notified.');
+  renderCheckin();
+}
+setInterval(function(){ try{ renderCheckin(); }catch(e){} },15000); // pick up "called in" from sync
+
+/* ── 2. MY BILLS (Visits screen) ──────────────────────────────── */
+function renderBills(){
+  var host=document.getElementById('bills-card');if(!host||!window.PAT)return;
+  var invs=LS.get('invoices_'+PAT.mrn)||[];
+  var due=invs.filter(function(i){return i.status!=='Paid';}).reduce(function(s,i){return s+(i.total||0);},0);
+  var html='<div class="info-card-title">🧾 My Bills'+(due?' <span style="float:right;font-size:12px;color:var(--orange);">Due: '+money(due)+'</span>':'')+'</div>';
+  if(!invs.length){ html+='<div style="color:var(--text-dim);font-size:12.5px;padding:4px 0;">No bills yet.</div>'; }
+  else invs.forEach(function(inv){
+    html+='<div style="padding:9px 0;border-bottom:1px solid var(--border);">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;">'+
+      '<b style="font-size:13px;">'+money(inv.total)+'</b>'+
+      '<span style="font-size:10px;font-weight:800;padding:3px 9px;border-radius:99px;background:'+(inv.status==='Paid'?'var(--green-soft,#e6f6f0)':'rgba(240,160,75,0.15)')+';color:'+(inv.status==='Paid'?'var(--green)':'#c26a1b')+';">'+(inv.status||'Unpaid')+'</span></div>'+
+      '<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">'+esc3(inv.date)+' · '+(inv.items||[]).map(function(i){return esc3(i.desc);}).join(', ')+'</div></div>';
+  });
+  host.innerHTML=html;
+}
+
+/* ── 3. TRAVEL / EXPENSE LOG (Profile screen) ─────────────────── */
+function travel(){ return LS.get('travel_'+PAT.mrn)||[]; }
+function renderTravel(){
+  var host=document.getElementById('travel-card');if(!host||!window.PAT)return;
+  var list=travel();
+  var total=list.reduce(function(s,x){return s+(x.amount||0);},0);
+  var html='<div class="info-card-title">🚌 Travel & Expense Log'+(total?' <span style="float:right;font-size:12px;color:var(--blue);">Total: '+money(total)+'</span>':'')+'</div>'+
+    '<div style="font-size:11.5px;color:var(--text-muted);margin-bottom:10px;">Keep receipts — many insurance and government schemes reimburse travel to treatment.</div>';
+  list.forEach(function(x,i){
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);">'+
+      '<div><b style="font-size:12.5px;">'+esc3(x.trip)+'</b><div style="font-size:11px;color:var(--text-muted);">'+esc3(x.date)+' · '+esc3(x.mode)+'</div></div>'+
+      '<div style="display:flex;gap:8px;align-items:center;"><b style="font-size:12.5px;">'+money(x.amount)+'</b>'+
+      '<button data-i="'+i+'" class="travel-del" style="border:none;background:transparent;color:var(--text-dim);cursor:pointer;">✕</button></div></div>';
+  });
+  html+='<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">'+
+    '<input type="date" id="tv-date" value="'+todayStr()+'" style="flex:0 0 122px;padding:8px;border:1px solid var(--border);border-radius:9px;font-family:inherit;font-size:12px;">'+
+    '<input id="tv-trip" placeholder="e.g. Home → Clinic" style="flex:1;min-width:110px;padding:8px;border:1px solid var(--border);border-radius:9px;font-family:inherit;font-size:12px;">'+
+    '</div><div style="display:flex;gap:6px;margin-top:6px;">'+
+    '<select id="tv-mode" style="flex:1;padding:8px;border:1px solid var(--border);border-radius:9px;font-family:inherit;font-size:12px;"><option>Auto/Taxi</option><option>Bus</option><option>Train</option><option>Own vehicle</option><option>Ambulance</option></select>'+
+    '<input id="tv-amt" type="number" placeholder="₹ amount" style="flex:1;padding:8px;border:1px solid var(--border);border-radius:9px;font-family:inherit;font-size:12px;">'+
+    '<button id="tv-add" style="padding:8px 16px;border:none;border-radius:9px;background:var(--blue);color:#fff;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;">+ Add</button></div>';
+  host.innerHTML=html;
+  document.getElementById('tv-add').addEventListener('click',function(){
+    var trip=document.getElementById('tv-trip').value.trim();
+    var amt=parseFloat(document.getElementById('tv-amt').value);
+    if(!trip||!amt){toast('Enter the trip and the amount.');return;}
+    var all=travel();
+    all.unshift({date:document.getElementById('tv-date').value||todayStr(),trip:trip,mode:document.getElementById('tv-mode').value,amount:amt});
+    LS.set('travel_'+PAT.mrn,all);renderTravel();toast('Trip added.');
+  });
+  host.querySelectorAll('.travel-del').forEach(function(b){
+    b.addEventListener('click',function(){var all=travel();all.splice(parseInt(b.dataset.i,10),1);LS.set('travel_'+PAT.mrn,all);renderTravel();});
+  });
+}
+
+/* ── mount cards ──────────────────────────────────────────────── */
+function buildMgmtCards(){
+  var visits=document.getElementById('screen-appointments');
+  if(visits&&!document.getElementById('checkin-card')){
+    var ck=document.createElement('div');ck.className='info-card';ck.id='checkin-card';ck.style.marginBottom='12px';
+    visits.insertBefore(ck,visits.firstElementChild&&visits.firstElementChild.nextSibling);
+    var bl=document.createElement('div');bl.className='info-card';bl.id='bills-card';bl.style.marginBottom='12px';
+    visits.appendChild(bl);
+  }
+  var prof=document.getElementById('screen-profile');
+  if(prof&&!document.getElementById('travel-card')){
+    var tv=document.createElement('div');tv.className='info-card';tv.id='travel-card';tv.style.margin='0 16px 12px';
+    prof.appendChild(tv);
+  }
+  renderCheckin();renderBills();renderTravel();
+}
+if (typeof window.initApp==='function'){
+  var _initApp3=window.initApp;
+  window.initApp=function(){ _initApp3(); buildMgmtCards(); };
+}
+})();
+
+</script>
 </body>
 </html>
