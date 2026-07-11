@@ -1,14 +1,17 @@
 {
   "name": "chemocure-server",
   "version": "1.0.0",
-  "description": "ChemoCure neuro-oncology EMR — secure backend (Node + Express + SQLite)",
+  "description": "ChemoCure neuro-oncology EMR \u2014 secure backend (Node + Express + SQLite)",
   "type": "module",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "init-db": "node src/db/init.js",
-    "test": "node --test test/e2e.test.js"
+    "test": "node --test test/e2e.test.js",
+    "backup": "node scripts/backup.js",
+    "rotate-key": "node scripts/rotate-phi-key.js",
+    "make-admin": "node scripts/make-admin.js"
   },
   "engines": {
     "node": ">=20.0.0"

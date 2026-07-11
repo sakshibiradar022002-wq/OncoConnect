@@ -170,3 +170,34 @@ This is the security-first core. Still worth adding for full production:
 - PHI key-rotation script
 - HTTPS is assumed to be terminated by the host (Render/Fly/Railway all do this)
 - Formal HIPAA/GDPR compliance review before real patient use
+
+## Two-factor authentication (doctors)
+
+Dependency-free TOTP (RFC 6238), compatible with Google Authenticator/Authy:
+
+    POST /api/auth/totp/setup    → { secret, otpauthUrl }   (add to authenticator)
+    POST /api/auth/totp/enable   { code }                    (prove it works)
+    POST /api/auth/login         { email, password, totpCode }  (from then on)
+    POST /api/auth/totp/disable  { code }
+
+The doctor app prompts for the code automatically at sign-in once enabled.
+
+## Operations
+
+    npm run make-admin -- doctor@example.com   # promote an account to admin
+    npm run backup                             # WAL-safe snapshot to ./backups (keeps last 30; local SQLite only)
+    npm run rotate-key                         # re-encrypt all PHI under a new master key:
+    # PHI_ENCRYPTION_KEY=<current> NEW_PHI_ENCRYPTION_KEY=<new> npm run rotate-key
+
+Backups contain ciphertext only. Store PHI_ENCRYPTION_KEY separately from
+backups — one without the other is useless to an attacker.
+
+## Clinical extras
+
+- **Doctor: protocol templates** — Stupp, TMZ maintenance, PCV, bevacizumab,
+  and a supportive-care bundle applied to the med list in one click from the
+  patient record header (dose review still required — mg/m² needs BSA).
+- **Patient: medication reminders** — daily times with browser notifications
+  while the app is open (synced across the patient's devices).
+- **Patient: education library** — diagnosis, TMZ, radiotherapy, red-flag
+  symptoms, nutrition, fatigue, and caregiver guidance.

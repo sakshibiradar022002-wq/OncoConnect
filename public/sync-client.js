@@ -188,7 +188,16 @@
     // Doctor: authenticate on the server, pull the account keyspace, then
     // upload any local-only keys (first device migrating its prototype data).
     doctorLogin: async function (email, password) {
-      await req('POST', '/api/auth/login', { email: email, password: password });
+      try {
+        await req('POST', '/api/auth/login', { email: email, password: password });
+      } catch (e) {
+        // Account has TOTP 2FA enabled — ask for the authenticator code and retry.
+        if (e.status === 401 && /totp/i.test(e.message || '')) {
+          var code = prompt('\ud83d\udd10 Two-factor authentication is enabled.\nEnter the 6-digit code from your authenticator app:');
+          if (!code) throw e;
+          await req('POST', '/api/auth/login', { email: email, password: password, totpCode: code.trim() });
+        } else { throw e; }
+      }
       state.mode = 'doctor';
       state.online = true;
       enablePush();

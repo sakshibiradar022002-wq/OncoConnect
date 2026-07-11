@@ -27,6 +27,52 @@ export function verifyPassword(plain, stored) {
   return actual.length === expected.length && crypto.timingSafeEqual(actual, expected);
 }
 
+// ── TOTP (RFC 6238) — dependency-free, for doctor 2FA ─────────────
+
+const B32_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+
+export function generateTotpSecret(bytes = 20) {
+  const buf = crypto.randomBytes(bytes);
+  let bits = 0, value = 0, out = '';
+  for (const byte of buf) {
+    value = (value << 8) | byte; bits += 8;
+    while (bits >= 5) { out += B32_ALPHABET[(value >>> (bits - 5)) & 31]; bits -= 5; }
+  }
+  if (bits > 0) out += B32_ALPHABET[(value << (5 - bits)) & 31];
+  return out;
+}
+
+function base32Decode(str) {
+  let bits = 0, value = 0; const out = [];
+  for (const ch of str.replace(/=+$/, '').toUpperCase()) {
+    const idx = B32_ALPHABET.indexOf(ch);
+    if (idx === -1) continue;
+    value = (value << 5) | idx; bits += 5;
+    if (bits >= 8) { out.push((value >>> (bits - 8)) & 0xff); bits -= 8; }
+  }
+  return Buffer.from(out);
+}
+
+function totpCode(secret, counter) {
+  const msg = Buffer.alloc(8);
+  msg.writeBigUInt64BE(BigInt(counter));
+  const hmac = crypto.createHmac('sha1', base32Decode(secret)).update(msg).digest();
+  const offset = hmac[hmac.length - 1] & 0x0f;
+  const code = ((hmac[offset] & 0x7f) << 24 | hmac[offset + 1] << 16 | hmac[offset + 2] << 8 | hmac[offset + 3]) % 1e6;
+  return String(code).padStart(6, '0');
+}
+
+// Accepts the current 30s window ± 1 to absorb clock drift.
+export function verifyTotp(secret, code) {
+  if (!/^\d{6}$/.test(String(code || ''))) return false;
+  const counter = Math.floor(Date.now() / 30000);
+  return [counter - 1, counter, counter + 1].some(c => {
+    const expected = Buffer.from(totpCode(secret, c));
+    const given = Buffer.from(String(code));
+    return expected.length === given.length && crypto.timingSafeEqual(expected, given);
+  });
+}
+
 // ── PHI encryption at rest (AES-256-GCM) ──────────────────────────
 
 // Encrypts any JS value (object/string/number) → compact string blob.

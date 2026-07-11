@@ -2033,5 +2033,121 @@ document.getElementById('l-pass').addEventListener('keydown',function(e){if(e.ke
   }
 })();
 </script>
+<script>
+// ═══════════════════════════════════════════════
+// CARE+ FEATURES: medication reminders and an education library.
+// (Severe-symptom red-flag alerts to the doctor already ship in saveLog.)
+// ═══════════════════════════════════════════════
+(function(){
+'use strict';
+
+/* ── MEDICATION REMINDERS ──────────────────────────────────────
+   Patients set daily reminder times; while the app is open (or
+   installed) the browser Notification API fires at those times.
+   Stored under reminders_<MRN>, which contains the MRN and therefore
+   syncs to the patient's other devices. */
+function remKey(){ return 'reminders_'+PAT.mrn; }
+function getRems(){ return LS.get(remKey())||[]; }
+
+function renderReminders(){
+  var host = document.getElementById('rem-list'); if (!host || !window.PAT) return;
+  var rems = getRems();
+  host.innerHTML = rems.length ? '' : '<div style="color:var(--text-dim);font-size:12.5px;padding:4px 0;">No reminders set. Add one below.</div>';
+  rems.forEach(function(r, i){
+    var row = document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);';
+    row.innerHTML='<div><b style="font-size:14px;">'+r.time+'</b> <span style="font-size:12.5px;color:var(--text-muted);">'+r.label+'</span></div>';
+    var del=document.createElement('button');
+    del.textContent='✕'; del.style.cssText='border:none;background:transparent;color:var(--text-dim);font-size:15px;cursor:pointer;padding:4px 8px;';
+    del.addEventListener('click',function(){ var all=getRems(); all.splice(i,1); LS.set(remKey(),all); renderReminders(); });
+    row.appendChild(del); host.appendChild(row);
+  });
+}
+
+function addReminder(){
+  var t=document.getElementById('rem-time').value;
+  var l=document.getElementById('rem-label').value.trim()||'Take medication';
+  if(!t){ toast('Pick a time first.'); return; }
+  var all=getRems(); all.push({time:t,label:l,createdAt:Date.now()});
+  all.sort(function(a,b){return a.time<b.time?-1:1;});
+  LS.set(remKey(),all);
+  document.getElementById('rem-label').value='';
+  renderReminders();
+  if ('Notification' in window && Notification.permission==='default') Notification.requestPermission();
+  toast('Reminder set for '+t);
+}
+
+// fire due reminders once per day each
+setInterval(function(){
+  try {
+    if (!window.PAT) return;
+    var now=new Date();
+    var hhmm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+    var today=todayStr();
+    var firedKey='remfired_'+PAT.mrn;
+    var fired=LS.get(firedKey)||{};
+    getRems().forEach(function(r){
+      var id=r.time+'|'+r.label;
+      if (r.time!==hhmm || fired[id]===today) return;
+      fired[id]=today;
+      LS.set(firedKey,fired);
+      toast('💊 '+r.label+' — it\'s time!');
+      if ('Notification' in window && Notification.permission==='granted') {
+        new Notification('💊 ChemoCure reminder', { body:r.label, icon:'/icons/patient-192.png' });
+      }
+    });
+  } catch(e){}
+}, 30000);
+
+/* ── EDUCATION LIBRARY ─────────────────────────────────────────── */
+var EDU = [
+  ['🧠 Understanding your diagnosis','Your care team has explained your specific diagnosis. Brain tumors are graded I–IV by how the cells look and behave. Knowing your tumor type, grade, and molecular markers (like IDH and MGMT) helps predict how it responds to treatment. Write down questions between visits — no question is too small.'],
+  ['💊 About chemotherapy (TMZ)','Temozolomide (TMZ) is usually taken at home as capsules, often on a 5-days-on / 23-days-off cycle. Take it at the same time daily on an empty stomach. Anti-nausea medicine works best taken 30–60 minutes BEFORE the dose. Never double up a missed dose — record it and tell your team.'],
+  ['⚡ About radiotherapy','Radiation is painless during treatment, like having an X-ray. Fatigue builds over the weeks and peaks near the end — plan rest. Skin over the treated area may redden; use only creams your team approves. Hair loss is usually limited to the treated area.'],
+  ['🌡️ When to call your care team NOW','Call immediately for: fever 38°C/100.4°F or higher, a first or worsening seizure, sudden weakness or trouble speaking, severe headache with vomiting, uncontrolled bleeding, or confusion that is new. This app also auto-alerts your doctor if your daily log records severe symptoms.'],
+  ['🥗 Eating well during treatment','Small, frequent meals beat three large ones when nausea strikes. Protein helps healing — eggs, dal, paneer, fish, chicken. Steroids (dexamethasone) increase appetite and blood sugar; your team may monitor this. Stay hydrated: pale-yellow urine is the goal.'],
+  ['😴 Fatigue, sleep and mood','Cancer fatigue is real and not laziness. Light activity (short walks) genuinely reduces it. Keep a regular sleep schedule; steroids taken late in the day can disturb sleep, so ask about timing. Low mood and anxiety are common and treatable — tell your team; help exists.'],
+  ['👪 For family and caregivers','Caregivers need care too. Accept help when offered. Keep a shared notebook (or this app\'s log) of symptoms and questions. During seizures: protect the head, turn the person on their side, time it, and do NOT put anything in the mouth. Call emergency services if it lasts over 5 minutes.']
+];
+
+function buildFeatureCards(){
+  var screen=document.getElementById('screen-treatment'); if(!screen) return;
+  if (document.getElementById('rem-card')) return;   // already built
+
+  var rem=document.createElement('div');
+  rem.className='info-card'; rem.id='rem-card'; rem.style.marginBottom='12px';
+  rem.innerHTML='<div class="info-card-title">⏰ Medication Reminders</div>'+
+    '<div id="rem-list"></div>'+
+    '<div style="display:flex;gap:8px;margin-top:10px;">'+
+    '<input type="time" id="rem-time" style="flex:0 0 110px;padding:9px;border:1px solid var(--border);border-radius:10px;font-family:inherit;font-size:13px;">'+
+    '<input type="text" id="rem-label" placeholder="e.g. TMZ capsule" style="flex:1;min-width:0;padding:9px;border:1px solid var(--border);border-radius:10px;font-family:inherit;font-size:13px;">'+
+    '</div><button id="rem-add" style="margin-top:8px;width:100%;padding:11px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;">+ Add Reminder</button>';
+  screen.appendChild(rem);
+  document.getElementById('rem-add').addEventListener('click', addReminder);
+
+  var edu=document.createElement('div');
+  edu.className='info-card'; edu.id='edu-card'; edu.style.marginBottom='12px';
+  edu.innerHTML='<div class="info-card-title">📚 Learn About Your Care</div>';
+  EDU.forEach(function(item){
+    var d=document.createElement('details');
+    d.style.cssText='border-bottom:1px solid var(--border);padding:9px 0;';
+    d.innerHTML='<summary style="font-size:13.5px;font-weight:700;cursor:pointer;list-style-position:inside;">'+item[0]+'</summary>'+
+      '<div style="font-size:12.5px;color:var(--text-muted);line-height:1.55;padding:8px 2px 2px;">'+item[1]+'</div>';
+    edu.appendChild(d);
+  });
+  var note=document.createElement('div');
+  note.style.cssText='font-size:11px;color:var(--text-dim);margin-top:8px;line-height:1.4;';
+  note.textContent='General guidance only — always follow the specific instructions of your own care team.';
+  edu.appendChild(note);
+  screen.appendChild(edu);
+}
+
+// Build the cards once the patient is in the app.
+if (typeof window.initApp === 'function') {
+  var _initApp = window.initApp;
+  window.initApp = function(){ _initApp(); buildFeatureCards(); renderReminders(); };
+}
+})();
+</script>
 </body>
 </html>
