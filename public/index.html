@@ -2822,8 +2822,10 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
           <div class="cred-row"><span class="cred-key">Username (MRN)</span><span class="cred-val" id="cred-mrn-display">${p.mrn}</span></div>
           <div class="cred-row" style="margin-top:8px;"><span class="cred-key">Password</span>
             <div style="display:flex;align-items:center;gap:8px;">
-              <span class="cred-val" id="cred-pass-display">${p.pass}</span>
-              <button class="btn btn-ghost btn-sm" onclick="copyCreds('${p.mrn}','${p.pass}')" style="font-size:11px;">📋 Copy</button>
+              <span class="cred-val" id="cred-pass-display">${String(p.pass||'').startsWith('pbkdf2')?'••••••••  (hidden — stored encrypted)':esc(p.pass||'—')}</span>
+              ${String(p.pass||'').startsWith('pbkdf2')
+                ?`<span style="font-size:11px;color:var(--text-dim);">Passwords can't be shown after creation. Use Reset below to issue a new one.</span>`
+                :`<button class="btn btn-ghost btn-sm" onclick="copyCreds('${p.mrn}','${esc(p.pass||'')}')" style="font-size:11px;">📋 Copy</button>`}
             </div>
           </div>
           <div style="font-size:11px;color:var(--text-muted);margin-top:10px;">Share with patient for ChemoCure Patient App login.</div>
