@@ -1511,8 +1511,12 @@ function renderPendingApptsBanner(pats){
   if(!existing){
     existing=document.createElement('div');
     existing.id='pending-appts-banner';
+    // Anchor on the container's direct child that holds #ov-patients —
+    // insertBefore throws if the reference node isn't a direct child.
     const ovPat=document.getElementById('ov-patients');
-    if(ovPat)container.insertBefore(existing,ovPat.parentElement);
+    let anchor=ovPat;
+    while(anchor&&anchor.parentElement!==container)anchor=anchor.parentElement;
+    if(anchor)container.insertBefore(existing,anchor);else container.prepend(existing);
   }
   existing.innerHTML=`<div class="card" style="border-color:rgba(240,160,75,0.4);margin-bottom:16px;">
     <div class="card-header"><div class="card-title" style="color:var(--orange);">⏳ Pending Appointment Requests (${allPending.length})</div></div>
