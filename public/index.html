@@ -1679,10 +1679,14 @@ function genMRN(){return currentDoc.docId+'-'+Math.floor(100+Math.random()*900);
 
 // Cryptographically strong password — 16 chars, mixed charset
 function genPass() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz0123456789!@#$%';
-  const arr = new Uint8Array(16);
+  // Patient-friendly: short, no symbols, no look-alike characters
+  // (0/O, 1/l/I removed). 8 random chars from a 55-char set ≈ 46 bits,
+  // plenty behind the server's login rate limiting.
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  const arr = new Uint8Array(8);
   crypto.getRandomValues(arr);
-  return Array.from(arr).map(b => chars[b % chars.length]).join('');
+  const raw = Array.from(arr).map(b => chars[b % chars.length]).join('');
+  return raw.slice(0,4) + '-' + raw.slice(4);   // Xxxx-Xxxx reads and types easily
 }
 
 // Lab username: lowercase alpha + 4 digits, no collisions with word lists
@@ -3430,19 +3434,20 @@ function printCredsCard(mrn,pass,name){
   w.document.write(`<!DOCTYPE html><html><head><title>Patient Card</title><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;padding:24px;}.card{border:2px solid #1591DC;border-radius:12px;padding:20px;max-width:340px;text-align:center;}.logo{font-size:28px;margin-bottom:4px;}.title{font-size:15px;font-weight:700;color:#1591DC;margin-bottom:12px;}.name{font-size:18px;font-weight:700;margin-bottom:14px;}.box{background:#f0f5ff;border-radius:8px;padding:10px 14px;text-align:left;margin-bottom:10px;}.label{font-size:10px;text-transform:uppercase;color:#475569;margin-bottom:3px;}.val{font-size:16px;font-weight:700;font-family:monospace;color:#1591DC;}.note{font-size:11px;color:#64748b;margin-top:12px;}.no-print{margin-top:16px;}@media print{.no-print{display:none;}}</style></head><body><div class="card"><div class="logo">🏥</div><div class="title">ChemoCure Patient App</div><div class="name">${name}</div><div class="box"><div class="label">Username (MRN)</div><div class="val">${mrn}</div></div><div class="box"><div class="label">Password</div><div class="val">${pass}</div></div><div class="note">Log in at ChemoCure Patient App</div><div class="no-print" style="margin-top:16px;"><button onclick="window.print()" style="padding:10px 20px;background:#1591DC;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;width:100%;">🖨 Print Card</button></div></div></body></html>`);
   w.document.close();
 }
-function resetPatientPassword(mrn){
+async function resetPatientPassword(mrn){
   const newPass=(document.getElementById('cred-new-pass')?.value||'').trim();
   const msgEl=document.getElementById('cred-reset-msg');
   if(!newPass){if(msgEl){msgEl.textContent='Enter a new password.';msgEl.style.color='var(--red)';msgEl.style.display='block';}return;}
   const pat=LS.get('pat_'+mrn);if(!pat)return;
-  LS.set('pat_'+mrn,{...pat,pass:newPass});
+  // Store hashed, same as account creation — never plaintext.
+  LS.set('pat_'+mrn,{...pat,pass:await makePasswordHash(newPass),passPlain:undefined});
   const passEl=document.getElementById('cred-pass-display');if(passEl)passEl.textContent=newPass;
   if(document.getElementById('cred-new-pass'))document.getElementById('cred-new-pass').value='';
   if(msgEl){msgEl.textContent='✅ Password updated to: '+newPass;msgEl.style.color='var(--green)';msgEl.style.display='block';setTimeout(()=>msgEl.style.display='none',4000);}
   flash('Password reset for '+pat.name+'!');
 }
 function generateNewPassword(mrn){
-  const newPass='CC-'+Math.floor(1000+Math.random()*9000);
+  const newPass=genPass();   // same friendly, properly random format as new accounts
   const inp=document.getElementById('cred-new-pass');if(inp)inp.value=newPass;
   resetPatientPassword(mrn);
 }
