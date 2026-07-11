@@ -2652,14 +2652,16 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px;">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:10px;">Sections to include</div>
         <div class="g2" style="margin-bottom:0;">
-          <label class="export-option"><input type="checkbox" id="exp-demo" checked> Demographics &amp; Identity</label>
-          <label class="export-option"><input type="checkbox" id="exp-diag" checked> Diagnosis &amp; Molecular</label>
-          <label class="export-option"><input type="checkbox" id="exp-metrics" checked> Clinical Metrics</label>
-          <label class="export-option"><input type="checkbox" id="exp-labs" checked> Lab Results</label>
-          <label class="export-option"><input type="checkbox" id="exp-meds" checked> Medications</label>
-          <label class="export-option"><input type="checkbox" id="exp-tx" checked> Treatment Plan</label>
-          <label class="export-option"><input type="checkbox" id="exp-appts"> Appointments</label>
-          <label class="export-option"><input type="checkbox" id="exp-logs"> Patient Health Logs</label>
+          <label class="export-option"><input type="checkbox" id="exp-demo" checked> 🪪 Identity</label>
+          <label class="export-option"><input type="checkbox" id="exp-metrics" checked> 📊 Metrics</label>
+          <label class="export-option"><input type="checkbox" id="exp-diag" checked> 🔬 Diagnosis</label>
+          <label class="export-option"><input type="checkbox" id="exp-mol" checked> 🧬 Molecular</label>
+          <label class="export-option"><input type="checkbox" id="exp-labs" checked> 🧪 Labs</label>
+          <label class="export-option"><input type="checkbox" id="exp-meds" checked> 💊 Prescriptions</label>
+          <label class="export-option"><input type="checkbox" id="exp-tx" checked> ⚡ Treatment</label>
+          <label class="export-option"><input type="checkbox" id="exp-appts" checked> 🗓 Appointments</label>
+          <label class="export-option"><input type="checkbox" id="exp-imaging" checked> 🖼 Imaging</label>
+          <label class="export-option"><input type="checkbox" id="exp-logs" checked> 📋 Health Logs</label>
         </div>
       </div>
 
@@ -2680,7 +2682,7 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
       </div>
 
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn btn-ghost btn-sm" onclick="['exp-demo','exp-diag','exp-metrics','exp-labs','exp-meds','exp-tx','exp-appts','exp-logs'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=true;})">Select All</button>
+        <button class="btn btn-ghost btn-sm" onclick="['exp-demo','exp-metrics','exp-diag','exp-mol','exp-labs','exp-meds','exp-tx','exp-appts','exp-imaging','exp-logs'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=true;})">Select All</button>
         <button class="btn btn-ghost btn-sm" onclick="generateReport()" style="flex:1;">🖨 Print / Preview</button>
         <button class="btn btn-primary" style="flex:2;" onclick="generatePDFDownload()">⬇ Download PDF</button>
       </div>
@@ -3222,6 +3224,8 @@ function generatePDFDownload(){
     tx:document.getElementById('exp-tx')?.checked!==false,
     appts:document.getElementById('exp-appts')?.checked,
     logs:document.getElementById('exp-logs')?.checked,
+    mol:document.getElementById('exp-mol')?.checked!==false,
+    imaging:document.getElementById('exp-imaging')?.checked,
   };
   const fromDate=document.getElementById('exp-date-from')?.value||'';
   const toDate=document.getElementById('exp-date-to')?.value||new Date().toISOString().slice(0,10);
@@ -3268,7 +3272,7 @@ function generatePDFDownload(){
     <div class="meta">
       <strong>${p.name}</strong>
       <span>MRN: ${p.mrn}</span><br>
-      <span>Clinician: Dr. ${clinician}</span><br>
+      <span>Clinician: ${/^dr[.\s]/i.test(clinician)?clinician:'Dr. '+clinician}</span><br>
       <span>Generated: ${new Date().toLocaleString()}</span>
       ${fromDate?`<br><span>Period: ${fromDate} to ${toDate}</span>`:''}
     </div>
@@ -3299,7 +3303,9 @@ function generatePDFDownload(){
     <div class="box"><div class="label">TNM Stage</div><div class="val">T:${p.tnmT||'—'} N:${p.tnmN||'—'} M:${p.tnmM||'—'} · Stage ${p.tnmStage||'—'}</div></div>
     <div class="box"><div class="label">Target Lesions</div><div class="val">${p.targetLesions||'0'} mm · New: ${p.newLesions||'None'}</div></div>
   </div>
-  <h2 style="font-size:11px;margin-top:14px;">Molecular Profile (WHO CNS 2021)</h2>
+  `:''}
+
+  ${checkboxes.mol?`<h2>Molecular Profile (WHO CNS 2021)</h2>
   <div class="grid4">
     ${[['IDH1',p.idh1],['MGMT',p.mgmt],['1p/19q',p.codeletion],['TERT',p.tert],['ATRX',p.atrx],['EGFR',p.egfr],['BRAF',p.braf],['H3K27M',p.h3k27m],['Ki-67',p.ki67?p.ki67+'%':null],['P53',p.p53],['PTEN',p.pten],['CDKN2A/B',p.cdkn2ab]].map(([l,v])=>`<div class="box"><div class="label">${l}</div><div style="font-weight:600;font-size:12px;">${v||'Pending'}</div></div>`).join('')}
   </div>`:''}
@@ -3337,6 +3343,19 @@ function generatePDFDownload(){
   <tbody>${appts.map(a=>`<tr><td>${a.date||'—'}</td><td>${a.time||'—'}</td><td>${a.type||'—'}</td><td>${a.status||'—'}</td><td style="color:#64748b;">${a.notes||'—'}</td></tr>`).join('')}</tbody>
   </table>`:''}
 
+  ${checkboxes.imaging&&(p.imaging||[]).length?`<h2>Imaging Reports (${(p.imaging||[]).length})</h2>
+  ${(p.imaging||[]).map(r=>`<div class="box" style="margin-bottom:8px;">
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+      <div style="font-weight:700;">${r.date||'—'} · ${r.modality||'Imaging'}</div>
+      ${r.compare?`<div style="font-size:11px;font-weight:600;color:#1591DC;">${r.compare}</div>`:''}
+    </div>
+    ${r.facility?`<div style="font-size:11px;color:#64748b;">Facility: ${r.facility}</div>`:''}
+    <div class="grid4" style="margin-top:6px;">
+      ${[['T1 + Contrast',r.t1],['T2 / FLAIR',r.t2],['DWI',r.dwi],['Mass Effect',r.mass]].filter(x=>x[1]).map(([l,v])=>`<div><div class="label">${l}</div><div style="font-size:11.5px;">${v}</div></div>`).join('')}
+    </div>
+    ${r.impression?`<div style="margin-top:6px;"><span class="label">Impression</span><div style="font-size:12px;">${r.impression}</div></div>`:''}
+  </div>`).join('')}`:''}
+
   ${checkboxes.logs&&logs.length?`<h2>Patient Health Logs (${logs.length} entries)</h2>
   <table><thead><tr><th>Date</th><th>Mood</th><th>Cognition</th><th>Pain</th><th>Seizure</th><th>Notes</th></tr></thead>
   <tbody>${logs.slice().reverse().map(l=>`<tr><td>${l.date}</td><td>${l.mood||0}/5</td><td>${l.cognition||0}/10</td><td>${l.pain||0}/10</td><td>${l.seizure?'Yes':'No'}</td><td style="color:#64748b;font-size:11px;">${l.notes||'—'}</td></tr>`).join('')}</tbody>
@@ -3346,15 +3365,15 @@ function generatePDFDownload(){
 
   <div class="footer">
     <div>ChemoCure Pro · Neuro-Oncology EMR</div>
-    <div>Dr. ${clinician} · ${new Date().toLocaleDateString()}</div>
+    <div>${/^dr[.\s]/i.test(clinician)?clinician:'Dr. '+clinician} · ${new Date().toLocaleDateString()}</div>
   </div>
   <div class="no-print" style="margin-top:24px;text-align:center;">
     <button onclick="window.print()" style="padding:12px 28px;background:#1591DC;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-right:8px;">⬇ Save as PDF</button>
     <button onclick="window.close()" style="padding:12px 20px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;cursor:pointer;">Close</button>
   </div>
 </div>
-'+'<scr'+'ipt>window.onload=function(){window.print();}<\/scr'+'ipt>
-</body></html>`;
+<scr\ipt>window.onload=function(){window.print();}</scr\ipt>
+</body></html>`.replace(/scr\\ipt/g,'script');
 
   const win=window.open('','_blank','width=920,height=760');
   win.document.write(html);
@@ -4911,8 +4930,8 @@ function getPendingApptCount(){
 // ═══════════════════════════════════════════════
 function generateReport(){
   const mrn=selectedMRN;const p=LS.get('pat_'+mrn);if(!p){flash('Save the record first.');return;}
-  const checkboxes=[...document.querySelectorAll('#rt-export .export-option input')];
-  const inc={demo:checkboxes[0]?.checked,diag:checkboxes[1]?.checked,metrics:checkboxes[2]?.checked,labs:checkboxes[3]?.checked,meds:checkboxes[4]?.checked,mri:checkboxes[5]?.checked};
+  const g=id=>document.getElementById(id)?.checked;
+  const inc={demo:g('exp-demo'),diag:g('exp-diag')||g('exp-mol'),metrics:g('exp-metrics'),labs:g('exp-labs'),meds:g('exp-meds'),mri:g('exp-imaging')};
   const logs=getPatientLogs(mrn);
   const appts=LS.get('appts_'+mrn)||[];
   const printWin=window.open('','_blank','width=900,height=700');
@@ -4942,7 +4961,7 @@ function generateReport(){
   </style></head><body><div class="page">
   <div class="report-header">
     <div><div class="report-brand">Chemo<span>Cure</span> Pro</div><div style="font-size:11px;color:#6c757d;margin-top:2px;">Clinical Report · AI-Powered Neuro-Oncology Platform</div></div>
-    <div class="report-meta"><div style="font-weight:700;font-size:14px;">${p.name}</div><div>MRN: ${p.mrn}</div><div>Generated: ${new Date().toLocaleString()}</div><div>Doctor: Dr. ${currentDoc.name}</div></div>
+    <div class="report-meta"><div style="font-weight:700;font-size:14px;">${p.name}</div><div>MRN: ${p.mrn}</div><div>Generated: ${new Date().toLocaleString()}</div><div>Doctor: ${/^dr[.\s]/i.test(currentDoc.name)?currentDoc.name:'Dr. '+currentDoc.name}</div></div>
   </div>
   ${inc.demo?`<h2>Patient Demographics</h2><div class="grid2">
     <div class="info-box"><div class="info-label">Full Name</div><div class="info-val">${p.name}</div></div>
@@ -6013,7 +6032,7 @@ function printLabQRCard(lab, fileName, sourceCanvas) {
     3. Select patient &amp; upload report / PDF<br>
     4. Submit — reports go to doctor
   </div>
-  <div class="doc">Dr. ${currentDoc.name} · No internet needed</div>
+  <div class="doc">${/^dr[.\s]/i.test(currentDoc.name)?currentDoc.name:'Dr. '+currentDoc.name} · No internet needed</div>
   <button class="no-print" onclick="window.print()" style="padding:10px 20px;background:#000;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;width:100%;margin-top:14px;">🖨 Print</button>
 </div>
 </body></html>`);
