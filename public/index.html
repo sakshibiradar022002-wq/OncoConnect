@@ -1750,9 +1750,43 @@ function promptApiKey() {
 }
 
 
-async function addPatient(){
+// Duplicate guard: same normalized name, made near-certain by a matching
+// DOB, phone, or email. Stops accidental double registration while still
+// allowing two genuinely different people with the same name.
+function findLikelyDuplicates(name,dob,phone,email){
+  const norm=s=>String(s||'').toLowerCase().replace(/\s+/g,' ').trim();
+  const n=norm(name);if(!n)return [];
+  return getMyPatients().filter(x=>{
+    if(norm(x.name)!==n)return false;
+    return true;   // same name is enough to warn; details shown for judgement
+  }).map(x=>({
+    ...x,
+    strong:(dob&&x.dob===dob)||(phone&&x.phone===phone)||(email&&norm(x.email)===norm(email)),
+  }));
+}
+
+async function addPatient(force){
   const name=v('ap-name');if(!name){showMsg('ap-msg','Patient name required.');return;}
   const dob=v('ap-dob'),age=dob?Math.floor((Date.now()-new Date(dob))/(365.25*24*3600*1e3)):null;
+
+  if(!force){
+    const dupes=findLikelyDuplicates(name,dob,v('ap-phone'),v('ap-email'));
+    if(dupes.length){
+      const el=document.getElementById('ap-msg');
+      if(el){
+        el.className='msg err';el.style.display='block';
+        el.innerHTML='<b>⚠️ Possible duplicate — "'+esc(name)+'" already exists:</b>'+
+          dupes.map(d=>'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding:8px 10px;background:var(--surface2);border-radius:7px;">'+
+            '<span style="font-size:12px;"><b>'+esc(d.name)+'</b> · '+d.mrn+(d.dob?' · DOB '+esc(d.dob):'')+(d.strong?' · <b style="color:var(--red);">details match</b>':'')+'</span>'+
+            '<button class="btn btn-cyan btn-sm" onclick="document.getElementById(\'add-pat-modal\').classList.remove(\'open\');openRecord(\''+d.mrn+'\')">Open Record</button></div>').join('')+
+          '<div style="margin-top:10px;display:flex;gap:8px;">'+
+          '<button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'ap-msg\').style.display=\'none\'">Cancel</button>'+
+          '<button class="btn btn-primary btn-sm" onclick="addPatient(true)">This is a different person — create anyway</button></div>';
+      }
+      return;
+    }
+  }
+
   const mrn=genMRN(), plainPass=genPass();
   const passHash = await makePasswordHash(plainPass);
   const pat={
