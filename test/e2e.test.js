@@ -138,6 +138,48 @@ test('kv sync: doctor push/pull, patient login, scope enforcement', async () => 
   assert.equal(foreignWrite.data.count, 0);
 });
 
+test('patient scope: exact key matching blocks arbitrary and foreign keys', async () => {
+  await call(doctor, 'PUT', '/api/sync', { changes: {
+    'pat_KV-99': { name: 'Other Pt', pass: 'other-pw', docId: 'DOC-9' },
+    'msgs_KV-42': [{ from: 'doctor', text: 'hi' }],
+    'invoices_KV-42': [{ id: 'i1', total: 100 }],
+  }});
+  const pt = jar();
+  await call(pt, 'POST', '/api/sync/patient-login', { mrn: 'KV-42', password: 'kv-plain-pw' });
+  const pull = await call(pt, 'GET', '/api/sync/patient');
+  assert.ok(pull.data.keys['msgs_KV-42'], 'own message thread visible');
+  assert.ok(pull.data.keys['invoices_KV-42'], 'own invoices visible');
+  assert.ok(!pull.data.keys['pat_KV-99'], 'must not see another patient record');
+
+  const w = await call(pt, 'PUT', '/api/sync/patient', { changes: {
+    'log_KV-42_d2': { pain: 2 },       // own key family → allowed
+    'evilkey_KV-42': { x: 1 },         // contains MRN but not an allowed pattern → rejected
+    'pat_KV-99': { hijacked: true },   // foreign patient → rejected
+  }});
+  assert.equal(w.data.count, 1, 'only the own log should be written');
+  const dpull = await call(doctor, 'GET', '/api/sync');
+  assert.ok(!dpull.data.keys['evilkey_KV-42'], 'arbitrary key not injected');
+  assert.ok(dpull.data.keys['log_KV-42_d2'], 'own log persisted');
+  assert.ok(!dpull.data.keys['pat_KV-99'].v.hijacked, 'foreign record untouched');
+});
+
+test('patient scope: a prefix MRN cannot reach a longer MRN\'s keys (substring-collision fix)', async () => {
+  // 'KV-4' is a substring of 'KV-42' — the old includes()-based match leaked here.
+  await call(doctor, 'PUT', '/api/sync', { changes: {
+    'pat_KV-4': { name: 'Short Mrn', pass: 'shortpw', docId: 'DOC-9' },
+  }});
+  const shortPt = jar();
+  const login = await call(shortPt, 'POST', '/api/sync/patient-login', { mrn: 'KV-4', password: 'shortpw' });
+  assert.equal(login.status, 200);
+  const pull = await call(shortPt, 'GET', '/api/sync/patient');
+  assert.ok(!pull.data.keys['pat_KV-42'], 'prefix MRN must not read the longer MRN record');
+  assert.ok(!pull.data.keys['msgs_KV-42'], 'prefix MRN must not read the longer MRN messages');
+  const w = await call(shortPt, 'PUT', '/api/sync/patient', { changes: {
+    'pat_KV-42': { hijacked: true }, 'log_KV-42_x': { p: 1 },
+  }});
+  assert.equal(w.data.count, 0, 'prefix MRN cannot write the longer MRN keys');
+});
+
 test('cross-origin writes are rejected (CSRF guard)', async () => {
   const res = await fetch(base + '/api/sync', {
     method: 'PUT',
