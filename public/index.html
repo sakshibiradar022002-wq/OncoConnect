@@ -2682,7 +2682,7 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
 
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button class="btn btn-ghost btn-sm" onclick="['exp-demo','exp-metrics','exp-diag','exp-mol','exp-labs','exp-meds','exp-tx','exp-appts','exp-imaging','exp-logs'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=true;})">Select All</button>
-        <button class="btn btn-ghost btn-sm" onclick="generateReport()" style="flex:1;">🖨 Print / Preview</button>
+        <button class="btn btn-ghost btn-sm" onclick="generatePDFDownload()" style="flex:1;">🖨 Print / Preview</button>
         <button class="btn btn-primary" style="flex:2;" onclick="generatePDFDownload()">⬇ Download PDF</button>
       </div>
       <div style="font-size:11.5px;color:var(--text-dim);margin-top:10px;text-align:center;">PDF download uses your browser's print-to-PDF feature — works offline, no upload required</div>
@@ -5061,83 +5061,6 @@ function getPendingApptCount(){
 // ═══════════════════════════════════════════════
 // PDF REPORT GENERATION
 // ═══════════════════════════════════════════════
-function generateReport(){
-  const mrn=selectedMRN;const p=LS.get('pat_'+mrn);if(!p){flash('Save the record first.');return;}
-  const g=id=>document.getElementById(id)?.checked;
-  const inc={demo:g('exp-demo'),diag:g('exp-diag')||g('exp-mol'),metrics:g('exp-metrics'),labs:g('exp-labs'),meds:g('exp-meds'),mri:g('exp-imaging')};
-  const logs=getPatientLogs(mrn);
-  const appts=LS.get('appts_'+mrn)||[];
-  const printWin=window.open('','_blank','width=900,height=700');
-  printWin.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Clinical Report — ${esc(p.name)}</title>
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box;}
-    body{font-family:'Segoe UI',Arial,sans-serif;color:#1a1a2e;background:#fff;font-size:13px;line-height:1.6;}
-    .page{max-width:800px;margin:0 auto;padding:40px 48px;}
-    .report-header{display:flex;align-items:flex-start;justify-content:space-between;border-bottom:3px solid #0d6efd;padding-bottom:16px;margin-bottom:24px;}
-    .report-brand{font-size:22px;font-weight:800;color:#0d6efd;letter-spacing:-0.5px;}
-    .report-brand span{color:#198754;}
-    .report-meta{text-align:right;font-size:11px;color:#666;}
-    h2{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#0d6efd;margin:20px 0 10px;padding-bottom:4px;border-bottom:1px solid #dee2e6;}
-    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-    .info-box{background:#f8f9fa;border-radius:6px;padding:10px 14px;}
-    .info-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:#6c757d;margin-bottom:2px;}
-    .info-val{font-size:13.5px;font-weight:500;}
-    table{width:100%;border-collapse:collapse;margin-top:8px;}
-    th{background:#f8f9fa;padding:8px 10px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:#6c757d;border-bottom:2px solid #dee2e6;}
-    td{padding:8px 10px;border-bottom:1px solid #dee2e6;font-size:12.5px;}
-    .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:600;}
-    .badge-ok{background:#d1fae5;color:#065f46;}.badge-hi{background:#fee2e2;color:#991b1b;}.badge-lo{background:#fef3c7;color:#92400e;}
-    .mol-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
-    .mol-item{background:#f8f9fa;padding:8px 10px;border-radius:6px;}
-    .footer{margin-top:40px;padding-top:16px;border-top:1px solid #dee2e6;font-size:10px;color:#aaa;display:flex;justify-content:space-between;}
-    @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}.page{padding:20px 24px;}.no-print{display:none;}}
-  </style></head><body><div class="page">
-  <div class="report-header">
-    <div><div class="report-brand">Chemo<span>Cure</span> Pro</div><div style="font-size:11px;color:#6c757d;margin-top:2px;">Clinical Report · AI-Powered Neuro-Oncology Platform</div></div>
-    <div class="report-meta"><div style="font-weight:700;font-size:14px;">${esc(p.name)}</div><div>MRN: ${p.mrn}</div><div>Generated: ${new Date().toLocaleString()}</div><div>Doctor: ${/^dr[.\s]/i.test(currentDoc.name)?currentDoc.name:'Dr. '+currentDoc.name}</div></div>
-  </div>
-  ${inc.demo?`<h2>Patient Demographics</h2><div class="grid2">
-    <div class="info-box"><div class="info-label">Full Name</div><div class="info-val">${esc(p.name)}</div></div>
-    <div class="info-box"><div class="info-label">Date of Birth</div><div class="info-val">${p.dob||'—'} (Age: ${p.age||'—'})</div></div>
-    <div class="info-box"><div class="info-label">Gender</div><div class="info-val">${p.gender||'—'}</div></div>
-    <div class="info-box"><div class="info-label">Blood Group</div><div class="info-val">${p.blood||'—'}</div></div>
-    <div class="info-box"><div class="info-label">Treatment Phase</div><div class="info-val">${p.phase||'—'}</div></div>
-    <div class="info-box"><div class="info-label">Phone</div><div class="info-val">${p.phone||'—'}</div></div>
-  </div>`:''}
-  ${inc.diag?`<h2>Diagnosis & Disease Status</h2><div class="grid2">
-    <div class="info-box"><div class="info-label">Primary Diagnosis</div><div class="info-val">${p.diag||'—'}</div></div>
-    <div class="info-box"><div class="info-label">ICD-10 Code</div><div class="info-val">${p.icd10||'—'}</div></div>
-    <div class="info-box"><div class="info-label">WHO Grade</div><div class="info-val">${p.whoGrade||'—'}</div></div>
-    <div class="info-box"><div class="info-label">Date Diagnosed</div><div class="info-val">${p.dateDiag||'—'}</div></div>
-    <div class="info-box"><div class="info-label">Disease Status</div><div class="info-val">${p.diseaseStatus||'—'}</div></div>
-    <div class="info-box"><div class="info-label">Primary Site</div><div class="info-val">${p.primarySite||'—'} ${p.laterality?'('+p.laterality+')':''}</div></div>
-    <div class="info-box"><div class="info-label">TNM Stage</div><div class="info-val">T:${p.tnmT||'—'} N:${p.tnmN||'—'} M:${p.tnmM||'—'} · Stage ${p.tnmStage||'—'}</div></div>
-    <div class="info-box"><div class="info-label">RECIST</div><div class="info-val">${p.recist||'—'}</div></div>
-  </div>
-  <h2 style="font-size:12px;">Molecular Profile</h2>
-  <div class="mol-grid">
-    ${[['IDH1',p.idh1],['MGMT',p.mgmt],['1p/19q',p.codeletion],['TERT',p.tert],['ATRX',p.atrx],['EGFR',p.egfr],['BRAF',p.braf],['H3K27M',p.h3k27m],['Ki-67',p.ki67],['P53',p.p53],['PTEN',p.pten],['CDKN2A/B',p.cdkn2ab]].map(([lbl,val])=>`<div class="mol-item"><div class="info-label">${lbl}</div><div style="font-weight:600;font-size:12px;">${val||'Pending'}</div></div>`).join('')}
-  </div>`:''}
-  ${inc.metrics?`<h2>Clinical Metrics</h2><div class="grid2">
-    <div class="info-box"><div class="info-label">Blood Pressure</div><div class="info-val">${p.bp_sys||'—'}/${p.bp_dia||'—'} mmHg</div></div>
-    <div class="info-box"><div class="info-label">Heart Rate</div><div class="info-val">${p.hr||'—'} bpm · ${p.rhythm||'—'}</div></div>
-    <div class="info-box"><div class="info-label">BMI</div><div class="info-val">${p.bmi||'—'} (H:${p.height||'—'}cm W:${p.weight||'—'}kg)</div></div>
-    <div class="info-box"><div class="info-label">ECOG / KPS</div><div class="info-val">${p.ecog||'—'} · KPS ${p.kps||'—'}</div></div>
-    ${p.allergies?.length?`<div class="info-box" style="grid-column:span 2;"><div class="info-label">Allergies</div><div class="info-val">${p.allergies.join(', ')}</div></div>`:''}
-    ${p.comorbidities?.length?`<div class="info-box" style="grid-column:span 2;"><div class="info-label">Comorbidities</div><div class="info-val">${p.comorbidities.join(', ')}</div></div>`:''}
-  </div>`:''}
-  ${inc.labs&&rLabs.length?`<h2>Laboratory Results</h2><table><thead><tr><th>Date</th><th>Test</th><th>Value</th><th>Ref Range</th><th>Status</th></tr></thead><tbody>${rLabs.map(l=>`<tr><td>${l.date||'—'}</td><td>${esc(l.test)}</td><td>${esc(l.value)}</td><td>${l.ref||'—'}</td><td><span class="badge ${l.status==='Normal'?'badge-ok':l.status==='High'||l.status==='Critical'?'badge-hi':'badge-lo'}">${l.status}</span></td></tr>`).join('')}</tbody></table>`:''}
-  ${inc.meds&&rMeds.length?`<h2>Active Medications</h2><table><thead><tr><th>Medication</th><th>Dose</th><th>Frequency</th><th>Route</th></tr></thead><tbody>${rMeds.map(m=>`<tr><td>${esc(m.name)}</td><td>${esc(m.dose)}</td><td>${esc(m.freq)}</td><td>${esc(m.route)}</td></tr>`).join('')}</tbody></table>`:''}
-  ${logs.length?`<h2>Recent Health Logs (Last 5)</h2><table><thead><tr><th>Date</th><th>Cognitive</th><th>Seizure</th><th>Headache</th><th>Mood</th><th>Notes</th></tr></thead><tbody>${logs.slice(-5).reverse().map(l=>`<tr><td>${l.date}</td><td>${l.cognitive||0}/10</td><td>${l.seizure||0}/10</td><td>${l.headache||0}/10</td><td>${l.mood||0}/10</td><td style="max-width:200px;font-size:11px;">${l.notes||'—'}</td></tr>`).join('')}</tbody></table>`:''}
-  <div class="footer"><div>ChemoCure Pro · Neuro-Oncology Platform</div><div>Generated for ${currentDoc.name} · ${new Date().toLocaleDateString()}</div></div>
-  <div class="no-print" style="margin-top:24px;text-align:center;">
-    <button onclick="window.print()" style="padding:12px 28px;background:#0d6efd;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-right:8px;">🖨 Print / Save as PDF</button>
-    <button onclick="window.close()" style="padding:12px 20px;background:#f8f9fa;border:1px solid #dee2e6;border-radius:8px;font-size:14px;cursor:pointer;">Close</button>
-  </div>
-  </div></body></html>`);
-  printWin.document.close();
-}
-
 // ═══════════════════════════════════════════════
 // CALENDAR (doctor view)
 // ═══════════════════════════════════════════════
