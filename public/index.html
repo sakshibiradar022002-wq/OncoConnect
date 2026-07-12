@@ -7493,5 +7493,52 @@ window.initApp=function(){ _initApp2(); buildClinicPanel(); };
 })();
 
 </script>
+<script>
+// ── Accessibility enhancer (additive, runs on load) ──────────────
+(function(){
+  'use strict';
+  // Keyboard users get a clear focus ring (mouse users don't see it).
+  var st=document.createElement('style');
+  st.textContent=':focus-visible{outline:2.5px solid var(--blue,#1a56db);outline-offset:2px;border-radius:4px;}'+
+    'a.skip-link{position:absolute;left:-999px;top:0;z-index:100000;background:var(--blue,#1a56db);color:#fff;padding:8px 14px;border-radius:0 0 8px 0;}'+
+    'a.skip-link:focus{left:0;}';
+  document.head.appendChild(st);
+
+  function enhance(){
+    // Landmarks for screen-reader navigation.
+    var side=document.querySelector('.sidebar');
+    if(side && !side.getAttribute('role')){ side.setAttribute('role','navigation'); side.setAttribute('aria-label','Main navigation'); }
+    document.querySelectorAll('.rnav').forEach(function(n){ if(!n.getAttribute('role')){ n.setAttribute('role','tablist'); n.setAttribute('aria-label','Patient record sections'); }});
+
+    // Label icon-only buttons so screen readers announce them.
+    var SYM={'✕':'Close','×':'Close','⎋':'Log out','🖨':'Print','⬇':'Download','🔍':'Search',
+      '📋':'Copy','＋':'Add','+':'Add','←':'Back','→':'Next','🗑':'Delete','✓':'Confirm','▶':'Run'};
+    document.querySelectorAll('button, [onclick]').forEach(function(b){
+      if(b.getAttribute('aria-label')) return;
+      var txt=(b.textContent||'').trim();
+      // "icon-only" = no ASCII letters in the label
+      if(txt && !/[a-z]/i.test(txt)){
+        var label=b.getAttribute('title')||SYM[txt]||SYM[txt.charAt(0)];
+        if(label) b.setAttribute('aria-label',label);
+      }
+    });
+    // Buttons carrying a title but a rich label still benefit from the title as tooltip; nothing to do.
+  }
+
+  // Run now and after each panel/record render (DOM changes a lot).
+  function ready(fn){ document.readyState==='loading'?document.addEventListener('DOMContentLoaded',fn):fn(); }
+  ready(function(){
+    enhance();
+    // Skip-link to jump past the nav.
+    var main=document.getElementById('app');
+    if(main){ var sk=document.createElement('a'); sk.href='#app-main'; sk.className='skip-link'; sk.textContent='Skip to content';
+      document.body.insertBefore(sk, document.body.firstChild);
+      var content=main.querySelector('.main')||main; content.id=content.id||'app-main'; content.setAttribute('role','main'); }
+    // Re-label after dynamic renders.
+    var mo=new MutationObserver(function(){ clearTimeout(window.__a11yT); window.__a11yT=setTimeout(enhance,300); });
+    mo.observe(document.body,{childList:true,subtree:true});
+  });
+})();
+</script>
 </body>
 </html>

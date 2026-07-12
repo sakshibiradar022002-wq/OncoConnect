@@ -127,15 +127,27 @@ async function upgradeStoredPassword(ownerId, key, rec, password, passField) {
   await upsertKey(ownerId, key, upgraded, new Date().toISOString());
 }
 
-// Everything the patient app needs: keys mentioning the MRN, plus the owning
-// doctor's profile with credentials stripped.
+// A key belongs to exactly this patient — matched by precise pattern, not a
+// loose substring. Substring matching (instr / includes) was safe only while
+// every MRN was the same length; exact patterns keep patients isolated even
+// if the MRN format ever changes, and stop a patient injecting arbitrary keys.
+function patientOwnsKey(k, mrn) {
+  const exact = ['pat_', 'msgs_', 'appts_', 'lab_subs_', 'pat_tokens_',
+    'reminders_', 'invoices_', 'checkin_', 'travel_'].map(pre => pre + mrn);
+  if (exact.includes(k)) return true;
+  // date/suffix-scoped families: log_<mrn>_<date>, factbr_<mrn>...
+  return k.startsWith('log_' + mrn + '_') || k.startsWith('factbr_' + mrn);
+}
+
+// Everything the patient app needs: their own keys, plus the owning doctor's
+// profile with credentials stripped.
 async function collectPatientKeys(ownerId, mrn) {
-  const rows = await db.prepare('SELECT k, v_enc, updated_at FROM kv_store WHERE owner_id = ? AND instr(k, ?) > 0')
-    .all(ownerId, mrn);
+  const rows = await db.prepare('SELECT k, v_enc, updated_at FROM kv_store WHERE owner_id = ?')
+    .all(ownerId);
   const keys = {};
   let docId = null;
   for (const r of rows) {
-    if (r.k.startsWith('doc_')) continue;
+    if (!patientOwnsKey(r.k, mrn)) continue;
     const v = decryptPHI(r.v_enc);
     keys[r.k] = { v, ts: r.updated_at };
     if (r.k === 'pat_' + mrn && v && v.docId) docId = v.docId;
@@ -204,7 +216,7 @@ syncRouter.get('/patient', authenticate, requireRole('kv-patient'), patientScope
 // ── Patient: push changes — only keys that mention their MRN ──────
 syncRouter.put('/patient', authenticate, requireRole('kv-patient'), patientScope, validate(pushSchema), asyncHandler(async (req, res) => {
   const { ownerId, mrn } = req.patientScope;
-  const count = await applyChanges(ownerId, req.valid.changes, k => k.includes(mrn) && !k.startsWith('doc_'));
+  const count = await applyChanges(ownerId, req.valid.changes, k => patientOwnsKey(k, mrn));
   pushDoctorForChanges(ownerId, req.valid.changes);
   await writeAudit({ actorId: mrn, actorRole: 'kv-patient', action: 'sync.patient_push', targetId: ownerId, detail: { count }, ip: req.ip });
   res.json({ ok: true, count });
