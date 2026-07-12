@@ -2822,11 +2822,26 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
         </div>
 
         <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:10px;">Reset password</div>
-          <div style="display:flex;gap:8px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:6px;">Reset password</div>
+          <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:10px;line-height:1.5;">Resetting locks the patient out with their current password. Only do this at the patient's request or with their consent — every reset is recorded in the patient's history with your name, the time, and the reason.</div>
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
             <input id="cred-new-pass" placeholder="New password…" style="flex:1;padding:8px 10px;background:var(--surface);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:inherit;font-size:13px;outline:none;">
-            <button class="btn btn-ghost btn-sm" onclick="resetPatientPassword('${p.mrn}')">Reset</button>
-            <button class="btn btn-ghost btn-sm" onclick="generateNewPassword('${p.mrn}')">Auto-Generate</button>
+            <select id="cred-reset-reason" style="flex:1;padding:8px 10px;background:var(--surface);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:inherit;font-size:12.5px;">
+              <option value="">Reason for reset…</option>
+              <option>Patient requested it</option>
+              <option>Patient forgot their password</option>
+              <option>Suspected account compromise</option>
+              <option>Credentials never received by patient</option>
+              <option>Other (clinical/administrative)</option>
+            </select>
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);cursor:pointer;margin-bottom:10px;">
+            <input type="checkbox" id="cred-consent" style="width:15px;height:15px;cursor:pointer;">
+            I confirm the patient has consented to this password change.
+          </label>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary btn-sm" onclick="resetPatientPassword('${p.mrn}')">Reset Password</button>
+            <button class="btn btn-ghost btn-sm" onclick="generateNewPassword('${p.mrn}')">Auto-Generate & Reset</button>
           </div>
           <div id="cred-reset-msg" style="font-size:12px;margin-top:8px;display:none;"></div>
         </div>
@@ -3420,18 +3435,29 @@ function printCredsCard(mrn,pass,name){
 async function resetPatientPassword(mrn){
   const newPass=(document.getElementById('cred-new-pass')?.value||'').trim();
   const msgEl=document.getElementById('cred-reset-msg');
-  if(!newPass){if(msgEl){msgEl.textContent='Enter a new password.';msgEl.style.color='var(--red)';msgEl.style.display='block';}return;}
+  const showErr=t=>{if(msgEl){msgEl.textContent=t;msgEl.style.color='var(--red)';msgEl.style.display='block';}};
+  if(!newPass){showErr('Enter a new password (or use Auto-Generate).');return;}
+  // ── Consent gate: block silent resets without the patient's agreement ──
+  const reason=(document.getElementById('cred-reset-reason')?.value||'').trim();
+  if(!reason){showErr('Select a reason for the reset.');return;}
+  const consent=document.getElementById('cred-consent')?.checked;
+  if(!consent){showErr('You must confirm the patient consented before resetting their password.');return;}
   const pat=LS.get('pat_'+mrn);if(!pat)return;
+  if(!confirm('Reset password for '+pat.name+'?\n\nTheir current password will stop working immediately. This action is recorded in the patient\'s history.'))return;
   // Store hashed, same as account creation — never plaintext.
   LS.set('pat_'+mrn,{...pat,pass:await makePasswordHash(newPass),passPlain:undefined});
+  // Record who/when/why in the patient's audit trail (no password values stored).
+  try{ writeAuditLog('security',[{field:'Patient password reset',prev:'(previous password)',next:'reset by clinician',reason,consent:'Patient consent confirmed'}],mrn); }catch(e){}
   const passEl=document.getElementById('cred-pass-display');if(passEl)passEl.textContent=newPass;
   if(document.getElementById('cred-new-pass'))document.getElementById('cred-new-pass').value='';
-  if(msgEl){msgEl.textContent='✅ Password updated to: '+newPass;msgEl.style.color='var(--green)';msgEl.style.display='block';setTimeout(()=>msgEl.style.display='none',4000);}
-  flash('Password reset for '+pat.name+'!');
+  const cc=document.getElementById('cred-consent');if(cc)cc.checked=false;
+  const rr=document.getElementById('cred-reset-reason');if(rr)rr.value='';
+  if(msgEl){msgEl.innerHTML='✅ Password reset (logged to history). New password — share it with the patient now:<br><b style="font-family:var(--mono);font-size:14px;">'+esc(newPass)+'</b>';msgEl.style.color='var(--green)';msgEl.style.display='block';}
+  flash('Password reset for '+pat.name+' — recorded in history.');
 }
 function generateNewPassword(mrn){
-  const newPass=genPass();   // same friendly, properly random format as new accounts
-  const inp=document.getElementById('cred-new-pass');if(inp)inp.value=newPass;
+  // Fill a strong password; the consent gate in resetPatientPassword still applies.
+  const inp=document.getElementById('cred-new-pass');if(inp)inp.value=genPass();
   resetPatientPassword(mrn);
 }
 
