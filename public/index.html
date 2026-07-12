@@ -1823,6 +1823,10 @@ function closeRecord(){document.getElementById('record-shell').classList.remove(
 function openRecord(mrn){
   selectedMRN=mrn;
   const p=LS.get('pat_'+mrn);if(!p)return;
+  // Access logging: record that this clinician VIEWED the record (HIPAA
+  // expects read-access logging, not just edits). Throttled to once per
+  // patient per 10 min so it doesn't flood the trail.
+  try{ const vk='__viewed_'+mrn; if(!window[vk]||Date.now()-window[vk]>600000){ window[vk]=Date.now(); writeAuditLog('access',[{field:'Record opened',prev:null,next:'viewed'}],mrn); } }catch(e){}
   rLabs=[...(p.labs||[])];
   rMeds=[...(p.meds||[])];
   // Support both old string[] and new object[] allergies
@@ -5259,14 +5263,40 @@ document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{
 // ═══════════════════════════════════════════════════════════════
 
 // ── Audit Log ──
+// djb2 string hash → 8 hex chars. Not cryptographic, but chains entries so
+// a deleted, edited, or reordered audit record breaks the chain and is
+// detectable by verifyAuditChain().
+function auditHash(str){ let h=5381; for(let i=0;i<str.length;i++){ h=((h*33)^str.charCodeAt(i))>>>0; } return h.toString(16).padStart(8,'0'); }
 function writeAuditLog(section, changes, mrn) {
   try {
-    const key = 'audit_' + (mrn || 'global') + '_' + Date.now();
-    LS.set(key, { id:key, ts:Date.now(), doctor:currentDoc?currentDoc.name:'Unknown', docId:currentDoc?currentDoc.docId:'', mrn:mrn||null, section, changes });
-    const allKeys = LS.keys('audit_' + (mrn || 'global') + '_').sort();
-    if (allKeys.length > 100) allKeys.slice(0, allKeys.length - 100).forEach(k => LS.del(k));
+    const scope = mrn || 'global';
+    // Find the latest entry (highest seq) to chain onto.
+    let prevHash='00000000', maxSeq=0;
+    LS.keys('audit_'+scope+'_').forEach(k=>{ const e=LS.get(k); if(e && (e.seq||0)>maxSeq){ maxSeq=e.seq||0; prevHash=e.hash||prevHash; } });
+    const seq=maxSeq+1, ts=Date.now();
+    const doctor=currentDoc?currentDoc.name:'Unknown', docId=currentDoc?currentDoc.docId:'';
+    const entry={ id:'audit_'+scope+'_'+ts+'_'+seq, ts, seq, doctor, docId, mrn:mrn||null, section, changes, prevHash };
+    entry.hash=auditHash(JSON.stringify({ts,seq,section,changes,doctor,prevHash}));
+    LS.set(entry.id, entry);
+    const allKeys = LS.keys('audit_'+scope+'_').sort();
+    if (allKeys.length > 200) allKeys.slice(0, allKeys.length - 200).forEach(k => LS.del(k));
     updateHistBadge();
   } catch(e) {}
+}
+// Recompute the chain; returns {ok, count, brokenAt} so the History view can
+// show a "verified / tampered" badge.
+function verifyAuditChain(mrn){
+  try{
+    const scope=mrn||'global';
+    const entries=LS.keys('audit_'+scope+'_').map(k=>LS.get(k)).filter(Boolean).sort((a,b)=>(a.seq||0)-(b.seq||0));
+    let prevHash='00000000';
+    for(const e of entries){
+      const expect=auditHash(JSON.stringify({ts:e.ts,seq:e.seq,section:e.section,changes:e.changes,doctor:e.doctor,prevHash}));
+      if(e.prevHash!==prevHash || e.hash!==expect) return {ok:false,count:entries.length,brokenAt:e.seq};
+      prevHash=e.hash;
+    }
+    return {ok:true,count:entries.length};
+  }catch(e){ return {ok:false,count:0}; }
 }
 function getAuditLogs(mrn, section) {
   try {
@@ -5320,20 +5350,24 @@ function renderHistEntries() {
   const logs = getAuditLogs(histCurrentMRN, histCurrentSection);
   const c = document.getElementById('hist-body');
   if (!c) return;
-  if (!logs.length) { c.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-dim);font-size:12.5px;">No history entries yet.</div>'; return; }
-  const sectionColors = { diagnosis:'#4d9cf8', metrics:'#00d4b4', prescriptions:'#a78bfa', treatment:'#f0a04b', labs:'#ff5c5c', molecular:'#00d4b4' };
-  c.innerHTML = logs.map((entry, idx) => {
+  const chain = (typeof verifyAuditChain==='function') ? verifyAuditChain(histCurrentMRN) : {ok:true};
+  const banner = chain.ok
+    ? '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;margin-bottom:10px;background:rgba(14,159,110,0.1);border:1px solid rgba(14,159,110,0.3);border-radius:8px;font-size:11.5px;color:var(--green,#0e9f6e);font-weight:600;">🔒 Audit chain verified — '+ (chain.count||0) +' entries, none altered.</div>'
+    : '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;margin-bottom:10px;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.35);border-radius:8px;font-size:11.5px;color:var(--red,#dc2626);font-weight:700;">⚠ Audit chain broken — an entry was altered or removed'+(chain.brokenAt?(' (at #'+chain.brokenAt+')'):'')+'.</div>';
+  if (!logs.length) { c.innerHTML = banner + '<div style="text-align:center;padding:30px;color:var(--text-dim);font-size:12.5px;">No history entries yet.</div>'; return; }
+  const sectionColors = { diagnosis:'#4d9cf8', metrics:'#00d4b4', prescriptions:'#a78bfa', treatment:'#f0a04b', labs:'#ff5c5c', molecular:'#00d4b4', security:'#dc2626', access:'#6b7f99' };
+  c.innerHTML = banner + logs.map((entry, idx) => {
     const d = new Date(entry.ts);
     const dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
     const col = sectionColors[entry.section] || '#6b7f99';
     const changeCount = (entry.changes || []).length;
     return '<div class="hist-entry"><div class="hist-entry-head" onclick="toggleHistEntry(\'he-' + idx + '\')">'
-      + '<div><div style="font-weight:600;font-size:12.5px;"><span style="font-size:9.5px;padding:1px 6px;border-radius:3px;font-weight:700;background:' + col + '18;color:' + col + ';margin-right:6px;">' + entry.section.toUpperCase() + '</span>' + dateStr + '</div>'
-      + '<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">By ' + (entry.doctor||'Unknown') + ' · ' + changeCount + ' change' + (changeCount!==1?'s':'') + '</div></div>'
+      + '<div><div style="font-weight:600;font-size:12.5px;"><span style="font-size:9.5px;padding:1px 6px;border-radius:3px;font-weight:700;background:' + col + '18;color:' + col + ';margin-right:6px;">' + esc(entry.section.toUpperCase()) + '</span>' + dateStr + '</div>'
+      + '<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">By ' + esc(entry.doctor||'Unknown') + ' · ' + changeCount + ' change' + (changeCount!==1?'s':'') + '</div></div>'
       + '<span style="color:var(--text-dim);">▾</span></div>'
       + '<div id="he-' + idx + '" class="hist-entry-body">'
       + (changeCount ? '<table style="width:100%;border-collapse:collapse;font-size:11.5px;"><thead><tr><th style="padding:5px 8px;text-align:left;color:var(--text-muted);font-size:10px;border-bottom:1px solid var(--border);">Field</th><th style="padding:5px 8px;text-align:left;color:var(--red);font-size:10px;border-bottom:1px solid var(--border);">Previous</th><th style="padding:5px 8px;text-align:left;color:var(--cyan);font-size:10px;border-bottom:1px solid var(--border);">New Value</th></tr></thead><tbody>'
-      + (entry.changes||[]).map(ch => '<tr><td style="padding:5px 8px;border-bottom:1px solid var(--border);font-weight:500;">' + ch.field + '</td><td style="padding:5px 8px;border-bottom:1px solid var(--border);color:var(--red);opacity:0.8;">' + formatHistVal(ch.prev) + '</td><td style="padding:5px 8px;border-bottom:1px solid var(--border);color:var(--cyan);">' + formatHistVal(ch.next) + '</td></tr>').join('')
+      + (entry.changes||[]).map(ch => '<tr><td style="padding:5px 8px;border-bottom:1px solid var(--border);font-weight:500;">' + esc(ch.field) + '</td><td style="padding:5px 8px;border-bottom:1px solid var(--border);color:var(--red);opacity:0.8;">' + formatHistVal(ch.prev) + '</td><td style="padding:5px 8px;border-bottom:1px solid var(--border);color:var(--cyan);">' + formatHistVal(ch.next) + '</td></tr>').join('')
       + '</tbody></table>'
       : '<div style="color:var(--text-dim);font-size:11.5px;">No field changes.</div>') + '</div></div>';
   }).join('');
@@ -5344,9 +5378,9 @@ function toggleHistEntry(id) {
 }
 function formatHistVal(v) {
   if (v === null || v === undefined) return '<em style="opacity:0.4;">—</em>';
-  if (Array.isArray(v)) return v.join(', ') || '—';
-  if (typeof v === 'object') return JSON.stringify(v).slice(0, 80);
-  return String(v).slice(0, 120) || '—';
+  if (Array.isArray(v)) return esc(v.join(', ')) || '—';
+  if (typeof v === 'object') return esc(JSON.stringify(v).slice(0, 80));
+  return esc(String(v).slice(0, 120)) || '—';
 }
 
 // ── Sorted Prescriptions ──
@@ -7620,6 +7654,42 @@ window.initApp=function(){ _initApp2(); buildClinicPanel(); };
     if((e.ctrlKey||e.metaKey)&&(e.key==='k'||e.key==='K')){ e.preventDefault(); open(); }
   });
   window.openPatientSearch=open;
+})();
+</script>
+<script>
+// ── Idle auto-logout: protect an unattended record on a shared screen ──
+(function(){
+  'use strict';
+  var IDLE_MS=15*60*1000, WARN_MS=60*1000, timer, warnTimer, warnBox;
+  function loggedIn(){ var a=document.getElementById('app'); return a && a.style.display!=='none'; }
+  function clearWarn(){ if(warnBox){warnBox.remove();warnBox=null;} }
+  function doIdleLogout(){
+    clearWarn();
+    if(loggedIn() && typeof doLogout==='function'){ doLogout(); try{flash&&flash('Signed out due to inactivity.');}catch(e){} alert('You were signed out after 15 minutes of inactivity, to protect patient data.'); }
+  }
+  function warn(){
+    if(!loggedIn())return;
+    clearWarn();
+    warnBox=document.createElement('div');
+    warnBox.setAttribute('role','alert');
+    warnBox.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:100002;background:#7f1d1d;color:#fff;padding:12px 18px;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,0.4);font:600 13px system-ui;display:flex;gap:14px;align-items:center;';
+    warnBox.innerHTML='<span>You\'ll be signed out in 1 minute (inactivity).</span>';
+    var b=document.createElement('button'); b.textContent='Stay signed in';
+    b.style.cssText='background:#fff;color:#7f1d1d;border:none;border-radius:8px;padding:6px 14px;font:700 12.5px system-ui;cursor:pointer;';
+    b.addEventListener('click',reset);
+    warnBox.appendChild(b); document.body.appendChild(warnBox);
+  }
+  function reset(){
+    clearWarn(); clearTimeout(timer); clearTimeout(warnTimer);
+    if(!loggedIn())return;
+    warnTimer=setTimeout(warn, IDLE_MS-WARN_MS);
+    timer=setTimeout(doIdleLogout, IDLE_MS);
+  }
+  ['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(function(ev){
+    document.addEventListener(ev, function(){ if(loggedIn()) reset(); }, {passive:true});
+  });
+  // arm once the app is shown
+  var iv=setInterval(function(){ if(loggedIn()){ reset(); clearInterval(iv); } }, 2000);
 })();
 </script>
 </body>
