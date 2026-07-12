@@ -3764,31 +3764,7 @@ function exportApptICS(mrn){
 }
 
 // ── Wire MDT and Imaging into openRecord init ──
-function renderNewRecordTabs(mrn){
-  renderMDTNotes(mrn);
-  renderImagingReports(mrn);
-}
 
-function rSuggestKPS(){
-  const ecog=document.getElementById('r-ecog')?.value||'';
-  const hint=document.getElementById('r-kps-hint');
-  const kpsEl=document.getElementById('r-kps');
-  const map={'0':['90–100',100],'1':['80–90',80],'2':['60–70',60],'3':['40–50',40],'4':['10–30',20]};
-  const digit=ecog.charAt(0);
-  if(map[digit]){
-    if(hint)hint.textContent='suggested: '+map[digit][0];
-    if(kpsEl&&!kpsEl.value)kpsEl.value=map[digit][1];
-  }
-}
-function applyICDPreset(code){
-  if(!code)return;
-  const el=document.getElementById('r-icd');if(el)el.value=code;
-  // Also suggest site
-  const siteMap={'C71.1':'Frontal lobe','C71.2':'Temporal lobe','C71.3':'Parietal lobe','C71.4':'Occipital lobe','C71.6':'Cerebellum','C71.7':'Brainstem','C71.5':'Ventricular'};
-  const site=document.getElementById('r-site');
-  if(site&&siteMap[code])site.value=siteMap[code];
-  flash('ICD-10 '+code+' applied');
-}
 // ── ALLERGIES ──
 function updateComorBadge() {
   const checked = document.querySelectorAll('.comor-cb:checked');
@@ -3842,22 +3818,6 @@ function renderAllergyTags() {
   // Update count badge
   const badge = document.getElementById('r-allergy-count-badge');
   if (badge) { badge.textContent = rAllergies.length; badge.style.display = rAllergies.length > 0 ? '' : 'none'; }
-}
-function rRemAllergy(name){rAllergies=rAllergies.filter(a=>a.name!==name);renderAllergyTags();}
-// ── LABS ──
-// ── LAB TABS ──
-let parsedReportRows = [];
-let rLabFiles = []; // pending upload files in memory
-
-function switchLabTab(tab) {
-  document.querySelectorAll('.lab-tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('lab-tab-' + tab)?.classList.add('active');
-  document.getElementById('r-lab-form').style.display = 'none';
-  document.getElementById('r-report-form').style.display = 'none';
-  document.getElementById('r-upload-form').style.display = 'none';
-  if (tab === 'result') { showLabForm(); }
-  else if (tab === 'report') { showReportForm(); }
-  else if (tab === 'upload') { showUploadForm(); }
 }
 
 function showUploadForm() {
@@ -5048,15 +5008,6 @@ function renderRecordAppts(mrn){
 }
 
 // Show pending requests count in overview
-function getPendingApptCount(){
-  const pats=getMyPatients();
-  let count=0;
-  pats.forEach(p=>{
-    const appts=LS.get('appts_'+p.mrn)||[];
-    count+=appts.filter(a=>a.status==='Pending').length;
-  });
-  return count;
-}
 
 // ═══════════════════════════════════════════════
 // PDF REPORT GENERATION
@@ -6003,11 +5954,6 @@ function printLabQRCard(lab, fileName, sourceCanvas) {
   w.document.close();
 }
 
-function printLabCard(labId) {
-  const lab = LS.get('lab_' + currentDoc.docId + '_' + labId);
-  if (!lab) return;
-  openShareLink(labId); // redirect to new share modal
-}
 
 function openLabDetail(labId) {
   const lab = LS.get('lab_' + currentDoc.docId + '_' + labId);
@@ -6599,13 +6545,6 @@ function copyPatientLink() {
 function generatePatientLink() { sendToLabPortal(); }
 
 
-function openPatientPortal() { if (_currentPatTokenLab) openLabWindowForLab(_currentPatTokenLab.labId); }
-
-function openLabWindowForLab(labId) {
-  const lab = LS.get('lab_' + currentDoc.docId + '_' + labId);
-  if (!lab) return;
-  openLabWindow(lab);
-}
 
 function openLabWindow(lab) {
   if (!lab) { const labs=getMyLabs(); if(!labs.length){flash('Register a lab first.');return;} lab=labs[0]; }
@@ -6888,20 +6827,6 @@ function openLabWindow(lab) {
   const w = window.open('','_blank','width=740,height=820');
   w.document.write(html);
   w.document.close();
-}
-function openLabPortalModal() { goToLabsPanel(); }
-
-// ── Navigation ──
-function goToLabsPanel() {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const panel = document.getElementById('panel-labs');
-  if (panel) panel.classList.add('active');
-  const labNav = document.getElementById('nav-labs');
-  if (labNav) labNav.classList.add('active');
-  renderLabsList();
-  renderPendingLabs();
-  updateLabBadge();
 }
 
 </script>
