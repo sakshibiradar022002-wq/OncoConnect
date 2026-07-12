@@ -1730,26 +1730,6 @@ async function makePasswordHash(plaintext) {
   return 'pbkdf2:' + salt + ':' + hash;
 }
 
-// ── AI API Key — session-only, never persisted to localStorage ──
-let _sessionApiKey = null;
-
-function getApiKey() { return _sessionApiKey; }
-
-function promptApiKey() {
-  const key = prompt(
-    '🔑 Enter your Anthropic API key to run AI analysis.\n\n' +
-    'This is stored in memory for this session only — it is never saved to disk or localStorage.\n\n' +
-    'Get a key at: platform.anthropic.com/api-keys'
-  );
-  if (key && key.startsWith('sk-ant-')) {
-    _sessionApiKey = key;
-    return true;
-  }
-  if (key) { flash('⚠ Invalid key format. Should start with sk-ant-'); }
-  return false;
-}
-
-
 // Duplicate guard: same normalized name, made near-certain by a matching
 // DOB, phone, or email. Stops accidental double registration while still
 // allowing two genuinely different people with the same name.
@@ -2100,40 +2080,7 @@ function buildRecordTabs(p){
           </div>
         </div>
 
-        <!-- AI HEALTH RISK ANALYZER CARD -->
-        <div style="background:var(--surface);border:1.5px solid rgba(44,94,173,0.2);border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(44,94,173,0.08);">
-          <div style="background:linear-gradient(135deg,var(--blue),var(--blue2));padding:14px 16px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <div style="display:flex;align-items:center;gap:10px;">
-                <div style="width:32px;height:32px;background:rgba(255,255,255,0.15);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;">🤖</div>
-                <div>
-                  <div style="font-weight:800;font-size:13.5px;color:#fff;">AI Health Risk Analyzer</div>
-                  <div style="font-size:10.5px;color:rgba(255,255,255,0.65);margin-top:1px;">Powered by Claude claude-sonnet-4-6</div>
-                </div>
-              </div>
-              <button onclick="runHealthAI('${p.mrn}')"
-                style="padding:8px 16px;background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,0.3);border-radius:9px;color:#fff;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;transition:background 0.15s;white-space:nowrap;"
-                onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
-                ▶ Run
-              </button>
-            </div>
-          </div>
-          <div style="padding:12px 14px;">
-            <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;line-height:1.6;">
-              Analyzes this patient's <strong style="color:var(--text);">allergies</strong>, <strong style="color:var(--text);">comorbidities</strong>, <strong style="color:var(--text);">active medications</strong>, and clinical notes to generate a structured risk report with flagged interactions.
-            </div>
-            <div id="hai-status-${p.mrn.replace(/[^a-z0-9]/gi,'-')}"
-              style="font-size:12px;color:var(--blue);display:none;padding:8px 12px;background:var(--blue-pale);border-radius:8px;margin-bottom:8px;">
-            </div>
-            <div id="hai-result-${p.mrn.replace(/[^a-z0-9]/gi,'-')}" style="display:none;">
-              <div style="border-top:1px solid var(--border);margin:8px 0;"></div>
-              <div id="hai-content-${p.mrn.replace(/[^a-z0-9]/gi,'-')}"
-                style="font-size:12.5px;line-height:1.75;color:var(--text);max-height:340px;overflow-y:auto;padding-right:4px;">
-              </div>
-            </div>
-            <div style="font-size:10.5px;color:var(--text-dim);margin-top:8px;line-height:1.5;border-top:1px solid var(--border);padding-top:8px;">
-              ⚕ AI-generated analysis for clinical reference only. Always apply professional judgment.
-            </div>
+
           </div>
         </div>
 
@@ -5649,128 +5596,6 @@ function clearAllData() {
   flash('All ' + removed + ' ChemoCure records deleted. Reloading...');
   setTimeout(() => location.reload(), 2000);
 }
-
-// ── AI Health Risk Analyzer ──
-async function runHealthAI(mrn) {
-  const p = LS.get('pat_' + mrn); if (!p) return;
-  const safeId = mrn.replace(/[^a-z0-9]/gi, '-');
-  const statusEl = document.getElementById('hai-status-' + safeId);
-  const resultEl = document.getElementById('hai-result-' + safeId);
-  const contentEl = document.getElementById('hai-content-' + safeId);
-  if (!statusEl || !resultEl || !contentEl) return;
-
-  // Build clinical profile
-  const allergies = (p.allergies || []).map(a => (a.name || a) + (a.severity ? ' (' + a.severity + ')' : '')).join(', ') || 'None reported';
-  const comorbidities = [...(p.comorbidities || []), p.comorbiditiesOther].filter(Boolean).join(', ') || 'None reported';
-  const activeMeds = (p.meds || []).filter(m => m.status === 'Active').map(m => m.name + (m.dose ? ' ' + m.dose : '')).join(', ') || 'None';
-  const diag = p.diag || 'Not specified';
-  const grade = p.whoGrade || 'Not specified';
-  const ecog = p.ecog ? p.ecog.split(' – ')[0] : 'Not specified';
-  const kps = p.kps || 'Not specified';
-  const bp = p.bp_sys && p.bp_dia ? p.bp_sys + '/' + p.bp_dia + ' mmHg' : 'Not recorded';
-  const notes = p.clinNotes || 'None';
-  const phase = p.phase || 'Not specified';
-
-  const prompt = `You are an expert neuro-oncology clinical data analyst. Analyze this patient's health profile and generate a structured clinical risk report.
-
-PATIENT PROFILE:
-- Primary Diagnosis: ${diag} (${grade})
-- Treatment Phase: ${phase}
-- ECOG: ${ecog} | KPS: ${kps}
-- Blood Pressure: ${bp}
-- Allergies: ${allergies}
-- Comorbidities: ${comorbidities}
-- Active Medications: ${activeMeds}
-- Clinical Notes: ${notes}
-
-Generate a structured analysis with these exact sections:
-
-## Risk Stratification
-Classify overall health risk (Low / Moderate / High) and explain why based on interaction of the conditions.
-
-## Disease Cross-Talk & Contraindications
-Identify any conflicts between allergies, comorbidities, and active medications. Flag any drug-disease or drug-allergy interactions relevant to neuro-oncology treatment.
-
-## Prioritized Action Plan
-
-### 🔴 Immediate / Red Flag (Severe)
-Bullet list of urgent actions for any severe or uncontrolled conditions.
-
-### 🟡 Management / Yellow Flag (Moderate)
-Bullet list of monitoring and management steps for moderate conditions.
-
-### 🟢 Maintenance / Green Flag (Mild/Controlled)
-Bullet list of preventive and maintenance steps.
-
-## Summary Table
-| Condition | Severity | Risk Level | Priority |
-|-----------|----------|------------|----------|
-(Fill in for each listed condition/allergy)
-
----
-*Standard medical disclaimer: This AI-generated analysis is for clinical reference and decision support only. It does not replace professional medical judgment. Always verify recommendations with current clinical guidelines and individual patient assessment.*
-
-Be concise, clinical, and specific to this patient's neuro-oncology context. Use markdown formatting.`;
-
-  statusEl.textContent = '⏳ Analyzing health profile...';
-  statusEl.style.display = 'block';
-  resultEl.style.display = 'none';
-
-  // Require session key — never hardcoded, never stored in localStorage
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    const ok = promptApiKey();
-    if (!ok) { statusEl.textContent = '⚠ API key required. Click Run to try again.'; return; }
-  }
-
-  try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': getApiKey(),
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1500,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-
-    if (!response.ok) throw new Error('API error ' + response.status);
-    const data = await response.json();
-    const text = (data.content || []).find(b => b.type === 'text')?.text || 'No response.';
-
-    // Render markdown-style text as HTML
-    const html = text
-      .replace(/^## (.+)$/gm, '<h3 style="font-size:13px;font-weight:800;color:var(--blue);margin:16px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border);">$1</h3>')
-      .replace(/^### (.+)$/gm, '<h4 style="font-size:12.5px;font-weight:700;margin:12px 0 6px;">$1</h4>')
-      .replace(/^\| (.+) \|$/gm, (match) => {
-        const cells = match.split('|').filter(c=>c.trim()&&!c.includes('---')).map(c=>`<td style="padding:5px 10px;border-bottom:1px solid var(--border);">${c.trim()}</td>`);
-        return '<tr>' + cells.join('') + '</tr>';
-      })
-      .replace(/(<tr>.*<\/tr>)/gs, '<div style="overflow-x:auto;margin:8px 0;"><table style="width:100%;border-collapse:collapse;font-size:12px;background:var(--surface2);border-radius:6px;overflow:hidden;"><thead><tr style="background:var(--surface3);font-weight:700;">' + '' + '</tr></thead><tbody>$1</tbody></table></div>')
-      .replace(/^\*\*(.+?)\*\*/gm, '<strong>$1</strong>')
-      .replace(/^\* (.+)$/gm, '<li style="margin-left:16px;margin-bottom:4px;">$1</li>')
-      .replace(/^- (.+)$/gm, '<li style="margin-left:16px;margin-bottom:4px;">$1</li>')
-      .replace(/(<li.*<\/li>)/gs, '<ul style="margin:6px 0;padding:0;list-style:disc;">$1</ul>')
-      .replace(/---\n\*/g, '<hr style="margin:14px 0;border:none;border-top:1px solid var(--border);"><p style="font-size:11px;color:var(--text-dim);font-style:italic;">')
-      .replace(/\*$/g, '</p>')
-      .replace(/\n\n/g, '<br>')
-      .replace(/\n/g, ' ');
-
-    contentEl.innerHTML = html;
-    statusEl.style.display = 'none';
-    resultEl.style.display = 'block';
-
-  } catch (err) {
-    statusEl.textContent = '⚠ Analysis failed: ' + err.message + '. Make sure you are connected to the internet.';
-    statusEl.style.color = 'var(--orange)';
-  }
-}
-
 
 const EMAILJS_CONFIG = { serviceId:'', templateIdVerify:'', templateIdAppt:'', publicKey:'' };
 
