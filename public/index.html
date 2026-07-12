@@ -1519,7 +1519,7 @@ function renderPendingApptsBanner(pats){
   existing.innerHTML=`<div class="card" style="border-color:rgba(240,160,75,0.4);margin-bottom:16px;">
     <div class="card-header"><div class="card-title" style="color:var(--orange);">⏳ Pending Appointment Requests (${allPending.length})</div></div>
     ${allPending.map(a=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface2);border-radius:6px;margin-bottom:6px;">
-      <div><div style="font-weight:600;font-size:12.5px;">${a.patName}</div><div style="font-size:11px;color:var(--text-muted);">📅 ${a.date} ${a.time||''} · ${a.reason||'Visit Request'}</div></div>
+      <div><div style="font-weight:600;font-size:12.5px;">${esc(a.patName)}</div><div style="font-size:11px;color:var(--text-muted);">📅 ${a.date} ${a.time||''} · ${a.reason||'Visit Request'}</div></div>
       <div style="display:flex;gap:6px;">
         <button class="btn btn-cyan btn-sm" onclick="quickConfirmAppt('${a.mrn}','${a.id}')">Confirm</button>
         <button class="btn btn-ghost btn-sm" onclick="openRecord('${a.mrn}')">View</button>
@@ -1537,7 +1537,7 @@ function renderPatRow(p){
   return `<div class="patient-row" onclick="openRecord('${p.mrn}')">
     <div class="avatar av-blue">${p.name.charAt(0)}</div>
     <div style="flex:1;min-width:0;">
-      <div class="pat-name">${p.name}</div>
+      <div class="pat-name">${esc(p.name)}</div>
       <div class="pat-mrn">${p.mrn}</div>
       <div class="pat-diag">${p.diag||'No diagnosis'}</div>
     </div>
@@ -1598,10 +1598,10 @@ function renderDocsList(){
     <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
       <span style="font-size:20px;">${d.type.includes('pdf')?'📕':d.type.includes('image')?'🖼️':'📄'}</span>
       <div style="flex:1;min-width:0;">
-        <div style="font-weight:700;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.name}</div>
+        <div style="font-weight:700;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(d.name)}</div>
         <div style="font-size:11px;color:var(--text-dim);">${(d.size/1024).toFixed(0)} KB · ${new Date(d.ts).toLocaleDateString()} · ${d.by||''}</div>
       </div>
-      <a href="${d.data}" download="${d.name}" class="btn btn-ghost btn-sm">⬇</a>
+      <a href="${d.data}" download="${esc(d.name)}" class="btn btn-ghost btn-sm">⬇</a>
       <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="deletePatientDoc('${d.id}')">✕</button>
     </div>`).join(''):'<div style="text-align:center;padding:20px;color:var(--text-dim);font-size:12px;">No documents uploaded yet.</div>';
 }
@@ -1651,7 +1651,7 @@ function renderNotifs(){
   if(list)list.innerHTML=alerts.length?alerts.slice(0,30).map(a=>`
     <div class="notif-item${a.read?'':' unread'}${a.urgent?' urgent':''}" onclick="${a._labsubs?"toggleNotifs()":`openRecord('${a.mrn}')`}">
       <div class="notif-item-title">${a.urgent?'🚨 ':''}${a.name||a.mrn}</div>
-      <div class="notif-item-text">${a.text}</div>
+      <div class="notif-item-text">${esc(a.text)}</div>
       <div class="notif-item-ts">${new Date(a.ts).toLocaleString()}</div>
     </div>`).join(''):'<div style="padding:24px;text-align:center;color:var(--text-dim);font-size:12px;">No notifications yet</div>';
   const urgent=alerts.filter(a=>!a.read&&a.urgent);
@@ -1672,7 +1672,16 @@ setInterval(()=>{if(currentDoc)renderNotifs();},30000);
 
 // ── ADD PATIENT ──
 function openAddPat(){document.getElementById('ap-creds').style.display='none';['ap-name','ap-email','ap-phone','ap-diag'].forEach(id=>sv(id,''));sv('ap-dob','');openOverlay('add-pat-modal');}
-function genMRN(){return currentDoc.docId+'-'+Math.floor(100+Math.random()*900);}
+function genMRN(){
+  // Unique per doctor: 5-digit space (90k) + re-roll against existing records,
+  // so two patients can never collide onto the same MRN (which would overwrite
+  // one record and break login isolation).
+  const taken=new Set(LS.keys('pat_'));   // e.g. 'pat_DOC-1234-56789'
+  let mrn, tries=0;
+  do { mrn=currentDoc.docId+'-'+Math.floor(10000+Math.random()*90000); }
+  while(taken.has('pat_'+mrn) && ++tries<50);
+  return mrn;
+}
 // ══════════════════════════════════════════════
 // SECURITY — password hashing & generation
 // ══════════════════════════════════════════════
@@ -3252,7 +3261,7 @@ function generatePDFDownload(){
   const sc={Normal:'#065f46,#d1fae5',High:'#991b1b,#fee2e2',Low:'#92400e,#fef3c7',Critical:'#7f1d1d,#fecaca',Pending:'#374151,#f3f4f6'};
   const badge=(status)=>{ const [tc,bg]=(sc[status]||sc.Pending).split(','); return `<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:600;color:${tc};background:${bg};">${status}</span>`; };
 
-  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Clinical Report — ${p.name}</title>
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Clinical Report — ${esc(p.name)}</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
   body{font-family:'Segoe UI',Arial,sans-serif;color:#0f172a;background:#fff;font-size:13px;line-height:1.6;}
@@ -3283,7 +3292,7 @@ function generatePDFDownload(){
       ${facility?`<div style="font-size:11px;color:#1591DC;margin-top:2px;">${facility}</div>`:''}
     </div>
     <div class="meta">
-      <strong>${p.name}</strong>
+      <strong>${esc(p.name)}</strong>
       <span>MRN: ${p.mrn}</span><br>
       <span>Clinician: ${/^dr[.\s]/i.test(clinician)?clinician:'Dr. '+clinician}</span><br>
       <span>Generated: ${new Date().toLocaleString()}</span>
@@ -3292,14 +3301,14 @@ function generatePDFDownload(){
   </div>
 
   ${checkboxes.demo?`<h2>Patient Demographics</h2><div class="grid2">
-    <div class="box"><div class="label">Full Name</div><div class="val">${p.name}</div></div>
+    <div class="box"><div class="label">Full Name</div><div class="val">${esc(p.name)}</div></div>
     <div class="box"><div class="label">MRN</div><div class="val" style="font-family:monospace;">${p.mrn}</div></div>
     <div class="box"><div class="label">Date of Birth</div><div class="val">${p.dob||'—'} (Age: ${p.age||'—'})</div></div>
     <div class="box"><div class="label">Gender / Blood</div><div class="val">${p.gender||'—'} · ${p.blood||'—'}</div></div>
     <div class="box"><div class="label">Treatment Phase</div><div class="val">${p.phase||'—'}</div></div>
     <div class="box"><div class="label">Contact</div><div class="val">${p.phone||'—'}</div></div>
-    ${p.emergencyName?`<div class="box"><div class="label">Emergency Contact</div><div class="val">${p.emergencyName} · ${p.emergencyPhone||''}</div></div>`:''}
-    ${p.insurance?`<div class="box"><div class="label">Insurance</div><div class="val">${p.insurance} · ${p.insuranceId||''}</div></div>`:''}
+    ${p.emergencyName?`<div class="box"><div class="label">Emergency Contact</div><div class="val">${esc(p.emergencyName)} · ${p.emergencyPhone||''}</div></div>`:''}
+    ${p.insurance?`<div class="box"><div class="label">Insurance</div><div class="val">${esc(p.insurance)} · ${p.insuranceId||''}</div></div>`:''}
     ${p.comorbidities?.length?`<div class="box" style="grid-column:span 2;"><div class="label">Comorbidities</div><div class="val">${p.comorbidities.join(', ')}${p.comorbiditiesOther?' · '+p.comorbiditiesOther:''}</div></div>`:''}
     ${p.allergies?.length?`<div class="box" style="grid-column:span 2;"><div class="label">Allergies</div><div class="val">${(p.allergies||[]).map(a=>a.name+' ('+a.severity+')').join(', ')}</div></div>`:''}
   </div>`:''}
@@ -3334,12 +3343,12 @@ function generatePDFDownload(){
 
   ${checkboxes.labs&&labs.length?`<h2>Laboratory Results (${labs.length} entries)</h2>
   <table><thead><tr><th>Date</th><th>Test</th><th>Value</th><th>Ref Range</th><th>Status</th><th>Notes</th></tr></thead>
-  <tbody>${labs.map(l=>`<tr><td>${l.date||'—'}</td><td style="font-weight:500;">${l.test}</td><td style="font-family:monospace;">${l.value}</td><td style="color:#64748b;">${l.ref||'—'}</td><td>${badge(l.status)}</td><td style="color:#64748b;font-size:11px;">${l.notes||'—'}</td></tr>`).join('')}</tbody>
+  <tbody>${labs.map(l=>`<tr><td>${l.date||'—'}</td><td style="font-weight:500;">${esc(l.test)}</td><td style="font-family:monospace;">${esc(l.value)}</td><td style="color:#64748b;">${l.ref||'—'}</td><td>${badge(l.status)}</td><td style="color:#64748b;font-size:11px;">${l.notes||'—'}</td></tr>`).join('')}</tbody>
   </table>`:''}
 
   ${checkboxes.meds&&rMeds.length?`<h2>Medications</h2>
   <table><thead><tr><th>Drug</th><th>Dose</th><th>Route</th><th>Frequency</th><th>Status</th><th>Indication</th></tr></thead>
-  <tbody>${rMeds.map(m=>`<tr><td style="font-weight:500;">${m.name}</td><td style="font-family:monospace;">${m.dose||'—'}</td><td>${m.route||'—'}</td><td>${m.freq||'—'}</td><td>${m.status||'Active'}</td><td style="color:#64748b;">${m.indication||'—'}</td></tr>`).join('')}</tbody>
+  <tbody>${rMeds.map(m=>`<tr><td style="font-weight:500;">${esc(m.name)}</td><td style="font-family:monospace;">${m.dose||'—'}</td><td>${m.route||'—'}</td><td>${m.freq||'—'}</td><td>${m.status||'Active'}</td><td style="color:#64748b;">${m.indication||'—'}</td></tr>`).join('')}</tbody>
   </table>`:''}
 
   ${checkboxes.tx&&(p.txTechnique||p.txDose)?`<h2>Treatment Plan</h2><div class="grid2">
@@ -3360,13 +3369,13 @@ function generatePDFDownload(){
   ${(p.imaging||[]).map(r=>`<div class="box" style="margin-bottom:8px;">
     <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;">
       <div style="font-weight:700;">${r.date||'—'} · ${r.modality||'Imaging'}</div>
-      ${r.compare?`<div style="font-size:11px;font-weight:600;color:#1591DC;">${r.compare}</div>`:''}
+      ${r.compare?`<div style="font-size:11px;font-weight:600;color:#1591DC;">${esc(r.compare)}</div>`:''}
     </div>
-    ${r.facility?`<div style="font-size:11px;color:#64748b;">Facility: ${r.facility}</div>`:''}
+    ${r.facility?`<div style="font-size:11px;color:#64748b;">Facility: ${esc(r.facility)}</div>`:''}
     <div class="grid4" style="margin-top:6px;">
       ${[['T1 + Contrast',r.t1],['T2 / FLAIR',r.t2],['DWI',r.dwi],['Mass Effect',r.mass]].filter(x=>x[1]).map(([l,v])=>`<div><div class="label">${l}</div><div style="font-size:11.5px;">${v}</div></div>`).join('')}
     </div>
-    ${r.impression?`<div style="margin-top:6px;"><span class="label">Impression</span><div style="font-size:12px;">${r.impression}</div></div>`:''}
+    ${r.impression?`<div style="margin-top:6px;"><span class="label">Impression</span><div style="font-size:12px;">${esc(r.impression)}</div></div>`:''}
   </div>`).join('')}`:''}
 
   ${checkboxes.logs&&logs.length?`<h2>Patient Health Logs (${logs.length} entries)</h2>
@@ -4580,8 +4589,8 @@ function renderLabsTable() {
   tbody.innerHTML = rLabs.map((l, i) => `
     <tr>
       <td style="white-space:nowrap;">${l.date || '—'}</td>
-      <td style="font-weight:500;">${l.test}</td>
-      <td style="font-family:var(--mono);">${l.value}</td>
+      <td style="font-weight:500;">${esc(l.test)}</td>
+      <td style="font-family:var(--mono);">${esc(l.value)}</td>
       <td style="color:var(--text-muted);font-size:11px;">${l.ref || '—'}</td>
       <td><span style="font-size:10.5px;padding:2px 8px;border-radius:8px;font-weight:600;background:${sc[l.status]||'#6b7f99'}22;color:${sc[l.status]||'#6b7f99'};">${l.status}</span></td>
       <td style="color:var(--text-muted);font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.notes||l.specimen||'—'}</td>
@@ -4676,11 +4685,11 @@ function parseReport() {
         ${parsedReportRows.map((r, i) => `
           <tr style="border-bottom:1px solid var(--border);" id="preview-row-${i}">
             <td style="padding:7px 10px;font-weight:500;">
-              <input value="${r.test}" onchange="parsedReportRows[${i}].test=this.value"
+              <input value="${esc(r.test)}" onchange="parsedReportRows[${i}].test=this.value"
                 style="background:transparent;border:none;color:var(--text);font-family:inherit;font-size:12px;font-weight:500;width:100%;outline:none;border-bottom:1px solid var(--border);">
             </td>
             <td style="padding:7px 10px;">
-              <input value="${r.value}" onchange="parsedReportRows[${i}].value=this.value"
+              <input value="${esc(r.value)}" onchange="parsedReportRows[${i}].value=this.value"
                 style="background:transparent;border:none;color:var(--text);font-family:var(--mono);font-size:12px;width:80px;outline:none;border-bottom:1px solid var(--border);">
             </td>
             <td style="padding:7px 10px;">
@@ -4745,7 +4754,7 @@ function renderRecordLogs(mrn){
           ${log.mood?`<span class="badge badge-cyan">😊 ${log.mood}/10</span>`:''}
         </div>
       </div>
-      ${log.notes?`<div style="font-size:11px;color:var(--text-muted);margin-top:4px;">${log.notes}</div>`:''}
+      ${log.notes?`<div style="font-size:11px;color:var(--text-muted);margin-top:4px;">${esc(log.notes)}</div>`:''}
     </div>`).join('');
 }
 
@@ -5029,7 +5038,7 @@ function generateReport(){
   const logs=getPatientLogs(mrn);
   const appts=LS.get('appts_'+mrn)||[];
   const printWin=window.open('','_blank','width=900,height=700');
-  printWin.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Clinical Report — ${p.name}</title>
+  printWin.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Clinical Report — ${esc(p.name)}</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box;}
     body{font-family:'Segoe UI',Arial,sans-serif;color:#1a1a2e;background:#fff;font-size:13px;line-height:1.6;}
@@ -5055,10 +5064,10 @@ function generateReport(){
   </style></head><body><div class="page">
   <div class="report-header">
     <div><div class="report-brand">Chemo<span>Cure</span> Pro</div><div style="font-size:11px;color:#6c757d;margin-top:2px;">Clinical Report · AI-Powered Neuro-Oncology Platform</div></div>
-    <div class="report-meta"><div style="font-weight:700;font-size:14px;">${p.name}</div><div>MRN: ${p.mrn}</div><div>Generated: ${new Date().toLocaleString()}</div><div>Doctor: ${/^dr[.\s]/i.test(currentDoc.name)?currentDoc.name:'Dr. '+currentDoc.name}</div></div>
+    <div class="report-meta"><div style="font-weight:700;font-size:14px;">${esc(p.name)}</div><div>MRN: ${p.mrn}</div><div>Generated: ${new Date().toLocaleString()}</div><div>Doctor: ${/^dr[.\s]/i.test(currentDoc.name)?currentDoc.name:'Dr. '+currentDoc.name}</div></div>
   </div>
   ${inc.demo?`<h2>Patient Demographics</h2><div class="grid2">
-    <div class="info-box"><div class="info-label">Full Name</div><div class="info-val">${p.name}</div></div>
+    <div class="info-box"><div class="info-label">Full Name</div><div class="info-val">${esc(p.name)}</div></div>
     <div class="info-box"><div class="info-label">Date of Birth</div><div class="info-val">${p.dob||'—'} (Age: ${p.age||'—'})</div></div>
     <div class="info-box"><div class="info-label">Gender</div><div class="info-val">${p.gender||'—'}</div></div>
     <div class="info-box"><div class="info-label">Blood Group</div><div class="info-val">${p.blood||'—'}</div></div>
@@ -5087,8 +5096,8 @@ function generateReport(){
     ${p.allergies?.length?`<div class="info-box" style="grid-column:span 2;"><div class="info-label">Allergies</div><div class="info-val">${p.allergies.join(', ')}</div></div>`:''}
     ${p.comorbidities?.length?`<div class="info-box" style="grid-column:span 2;"><div class="info-label">Comorbidities</div><div class="info-val">${p.comorbidities.join(', ')}</div></div>`:''}
   </div>`:''}
-  ${inc.labs&&rLabs.length?`<h2>Laboratory Results</h2><table><thead><tr><th>Date</th><th>Test</th><th>Value</th><th>Ref Range</th><th>Status</th></tr></thead><tbody>${rLabs.map(l=>`<tr><td>${l.date||'—'}</td><td>${l.test}</td><td>${l.value}</td><td>${l.ref||'—'}</td><td><span class="badge ${l.status==='Normal'?'badge-ok':l.status==='High'||l.status==='Critical'?'badge-hi':'badge-lo'}">${l.status}</span></td></tr>`).join('')}</tbody></table>`:''}
-  ${inc.meds&&rMeds.length?`<h2>Active Medications</h2><table><thead><tr><th>Medication</th><th>Dose</th><th>Frequency</th><th>Route</th></tr></thead><tbody>${rMeds.map(m=>`<tr><td>${m.name}</td><td>${m.dose}</td><td>${m.freq}</td><td>${m.route}</td></tr>`).join('')}</tbody></table>`:''}
+  ${inc.labs&&rLabs.length?`<h2>Laboratory Results</h2><table><thead><tr><th>Date</th><th>Test</th><th>Value</th><th>Ref Range</th><th>Status</th></tr></thead><tbody>${rLabs.map(l=>`<tr><td>${l.date||'—'}</td><td>${esc(l.test)}</td><td>${esc(l.value)}</td><td>${l.ref||'—'}</td><td><span class="badge ${l.status==='Normal'?'badge-ok':l.status==='High'||l.status==='Critical'?'badge-hi':'badge-lo'}">${l.status}</span></td></tr>`).join('')}</tbody></table>`:''}
+  ${inc.meds&&rMeds.length?`<h2>Active Medications</h2><table><thead><tr><th>Medication</th><th>Dose</th><th>Frequency</th><th>Route</th></tr></thead><tbody>${rMeds.map(m=>`<tr><td>${esc(m.name)}</td><td>${esc(m.dose)}</td><td>${esc(m.freq)}</td><td>${esc(m.route)}</td></tr>`).join('')}</tbody></table>`:''}
   ${logs.length?`<h2>Recent Health Logs (Last 5)</h2><table><thead><tr><th>Date</th><th>Cognitive</th><th>Seizure</th><th>Headache</th><th>Mood</th><th>Notes</th></tr></thead><tbody>${logs.slice(-5).reverse().map(l=>`<tr><td>${l.date}</td><td>${l.cognitive||0}/10</td><td>${l.seizure||0}/10</td><td>${l.headache||0}/10</td><td>${l.mood||0}/10</td><td style="max-width:200px;font-size:11px;">${l.notes||'—'}</td></tr>`).join('')}</tbody></table>`:''}
   <div class="footer"><div>ChemoCure Pro · Neuro-Oncology Platform</div><div>Generated for ${currentDoc.name} · ${new Date().toLocaleDateString()}</div></div>
   <div class="no-print" style="margin-top:24px;text-align:center;">
@@ -5105,7 +5114,7 @@ function generateReport(){
 function renderCalSel(){
   const sel=document.getElementById('cal-sel');if(!sel)return;
   const pats=getMyPatients();
-  sel.innerHTML='<option value="">— Choose a patient —</option>'+pats.map(p=>`<option value="${p.mrn}">${p.name} (${p.mrn})</option>`).join('');
+  sel.innerHTML='<option value="">— Choose a patient —</option>'+pats.map(p=>`<option value="${p.mrn}">${esc(p.name)} (${p.mrn})</option>`).join('');
 }
 function renderDocCal(){
   const mrn=document.getElementById('cal-sel').value;
@@ -5116,7 +5125,7 @@ function renderDocCal(){
   const mNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
   const firstDay=new Date(year,month,1).getDay();
   const dim=new Date(year,month+1,0).getDate();
-  c.innerHTML=`<div class="card"><div class="card-header"><div class="card-title">📅 ${mNames[month]} ${year} — ${p.name}</div><span class="badge badge-cyan">${logs.length} logs</span></div>
+  c.innerHTML=`<div class="card"><div class="card-header"><div class="card-title">📅 ${mNames[month]} ${year} — ${esc(p.name)}</div><span class="badge badge-cyan">${logs.length} logs</span></div>
     <div class="cal-grid7">${['SUN','MON','TUE','WED','THU','FRI','SAT'].map(d=>`<div class="cal-head-cell">${d}</div>`).join('')}</div>
     <div class="cal-grid7" style="margin-top:4px;">
       ${Array(firstDay).fill('<div class="cal-day empty"></div>').join('')}
@@ -5145,7 +5154,7 @@ function showLogDetail(log){
     </div>
     ${log.meds?.length?`<div style="margin-bottom:10px;font-size:12px;"><span style="color:var(--text-muted);">Meds: </span>${log.meds.map(m=>`<span class="badge badge-cyan">${m}</span>`).join(' ')}</div>`:''}
     ${log.temp||log.bp_sys?`<div style="background:var(--surface2);border-radius:6px;padding:10px;margin-bottom:10px;font-size:12px;">${log.temp?`🌡 Temp: <strong>${log.temp}°C</strong>  `:''}${log.bp_sys?`💉 BP: <strong>${log.bp_sys}/${log.bp_dia}</strong>  `:''}${log.weight?`⚖ ${log.weight}kg`:''}</div>`:''}
-    ${log.notes?`<div style="background:var(--surface2);border-radius:6px;padding:10px;font-size:12px;"><strong style="color:var(--text-muted);">Notes:</strong> ${log.notes}</div>`:''}
+    ${log.notes?`<div style="background:var(--surface2);border-radius:6px;padding:10px;font-size:12px;"><strong style="color:var(--text-muted);">Notes:</strong> ${esc(log.notes)}</div>`:''}
   `;
   openOverlay('log-detail-modal');
 }
@@ -5156,7 +5165,7 @@ function showLogDetail(log){
 function renderConvos(){
   const pats=getMyPatients();
   const c=document.getElementById('chat-convos');
-  c.innerHTML=pats.length?pats.map(p=>`<div class="chat-conv${selectedChatMRN===p.mrn?' active':''}" onclick="openChat('${p.mrn}')"><div style="font-weight:500;font-size:12px;">${p.name}</div><div style="font-size:10.5px;color:var(--text-muted);">${p.mrn}</div></div>`).join(''):'<div style="padding:8px;font-size:11px;color:var(--text-dim);">No patients.</div>';
+  c.innerHTML=pats.length?pats.map(p=>`<div class="chat-conv${selectedChatMRN===p.mrn?' active':''}" onclick="openChat('${p.mrn}')"><div style="font-weight:500;font-size:12px;">${esc(p.name)}</div><div style="font-size:10.5px;color:var(--text-muted);">${esc(p.mrn)}</div></div>`).join(''):'<div style="padding:8px;font-size:11px;color:var(--text-dim);">No patients.</div>';
 }
 function openChat(mrn){
   selectedChatMRN=mrn;
@@ -5171,7 +5180,7 @@ function renderDocMsgs(){
   const msgs=LS.get('msgs_'+selectedChatMRN)||[];
   const c=document.getElementById('chat-msgs');
   if(!msgs.length){c.innerHTML='<div style="text-align:center;color:var(--text-dim);margin-top:30px;font-size:12px;">No messages yet.</div>';return;}
-  c.innerHTML=msgs.map(m=>`<div class="msg-bubble ${m.from==='doctor'?'out':'in'}">${m.text}<div class="msg-time">${m.time}</div></div>`).join('');
+  c.innerHTML=msgs.map(m=>`<div class="msg-bubble ${m.from==='doctor'?'out':'in'}">${esc(m.text)}<div class="msg-time">${esc(m.time)}</div></div>`).join('');
   c.scrollTop=c.scrollHeight;
   // Mark as read
   const updated=msgs.map(m=>({...m,read:true}));LS.set('msgs_'+selectedChatMRN,updated);
@@ -6196,8 +6205,8 @@ function _showReadPreview(rows, fileName, sub, idx, warnMsg) {
         </tr></thead>
         <tbody>${rows.map(r=>`<tr style="border-top:1px solid var(--border);">
           <td style="padding:7px 10px;font-size:11.5px;">${r.date}</td>
-          <td style="padding:7px 10px;font-weight:600;">${r.test}</td>
-          <td style="padding:7px 10px;font-family:var(--mono);">${r.value}</td>
+          <td style="padding:7px 10px;font-weight:600;">${esc(r.test)}</td>
+          <td style="padding:7px 10px;font-family:var(--mono);">${esc(r.value)}</td>
           <td style="padding:7px 10px;color:var(--text-muted);">${r.ref||'—'}</td>
           <td style="padding:7px 10px;"><span style="font-size:10.5px;padding:2px 8px;border-radius:10px;font-weight:700;background:${sc[r.status]||'var(--text-muted)'}18;color:${sc[r.status]||'var(--text-muted)'};">${r.status}</span></td>
         </tr>`).join('')}</tbody>
@@ -6458,7 +6467,7 @@ function sendToLabPortal() {
 
   const dueFmt = new Date(dueDate + 'T12:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
   if (okEl) {
-    okEl.innerHTML = `✅ Task sent to <strong>${lab.name}</strong> for <strong>${pat.name}</strong><br>
+    okEl.innerHTML = `✅ Task sent to <strong>${lab.name}</strong> for <strong>${esc(pat.name)}</strong><br>
       <span style="font-size:11.5px;color:var(--text-muted);">${desc} · Due ${dueFmt} · ${prio}</span>`;
     okEl.style.display = 'block';
     setTimeout(() => { if(okEl) okEl.style.display='none'; }, 5000);
