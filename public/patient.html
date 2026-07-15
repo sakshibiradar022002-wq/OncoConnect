@@ -588,7 +588,11 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
         </div>
       </div>
       <button onclick="exportPatientData()" style="width:100%;padding:12px;border-radius:12px;background:var(--blue-pale);border:1.5px solid rgba(62,95,68,0.25);color:var(--blue);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px;">⬇ Export My Data</button>
-      <div style="font-size:11px;color:var(--text-dim);text-align:center;">Downloads as ChemoCure_MyData_[date].json — send this to a new device to restore your data</div>
+      <div style="font-size:11px;color:var(--text-dim);text-align:center;margin-bottom:14px;">Downloads as ChemoCure_MyData_[date].json — send this to a new device to restore your data</div>
+      <button onclick="exportResearchCSV()" style="width:100%;padding:12px;border-radius:12px;background:rgba(124,58,237,0.06);border:1.5px solid rgba(124,58,237,0.25);color:var(--purple);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px;">🔬 Download Anonymised Research CSV</button>
+      <div style="font-size:11px;color:var(--text-dim);text-align:center;margin-bottom:14px;">Symptom scores only — no name, MRN or notes. Nothing is shared unless you choose to share this file.</div>
+      <button onclick="deleteMyDeviceData()" style="width:100%;padding:12px;border-radius:12px;background:rgba(220,38,38,0.05);border:1.5px solid rgba(220,38,38,0.2);color:var(--red);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px;">🗑 Delete My Data From This Device</button>
+      <div style="font-size:11px;color:var(--text-dim);text-align:center;">Removes your records from this device and signs you out. To erase the server copy too, ask your care team.</div>
     </div>
     <button class="sign-out-btn" onclick="doLogout()">Sign Out</button>
   </div>
@@ -602,14 +606,44 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
   </div>
 </div>
 
+<div class="sheet-overlay" id="consent-sheet">
+  <div class="sheet" style="max-height:80vh;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Your Data &amp; Consent</div>
+    <div class="sheet-body">
+      <div style="font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:14px;">
+        Before you start, here is exactly what ChemoCure does with your information:
+      </div>
+      <div class="info-card" style="margin-bottom:12px;">
+        <div style="font-size:12.5px;line-height:1.8;color:var(--text-muted);">
+          <div>🔐 <strong style="color:var(--text);">What is stored:</strong> your symptom logs, medications, appointments, messages and treatment details.</div>
+          <div>🏥 <strong style="color:var(--text);">Who can see it:</strong> you and your treating doctor. Severe symptoms you log raise an alert to your doctor.</div>
+          <div>🔒 <strong style="color:var(--text);">How it is protected:</strong> data synced to the server is encrypted (AES-256-GCM) before being stored.</div>
+          <div>⬇ <strong style="color:var(--text);">Your rights:</strong> you can export all your data or delete it from this device at any time from Profile → Data &amp; Backup, and ask your care team to erase the server copy.</div>
+          <div>🧪 <strong style="color:var(--text);">Research:</strong> nothing is shared for research unless you personally download and share the anonymised file.</div>
+        </div>
+      </div>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.6;cursor:pointer;margin-bottom:14px;">
+        <input type="checkbox" id="consent-check" style="width:18px;height:18px;margin-top:2px;accent-color:var(--blue);flex-shrink:0;">
+        <span>I understand and agree to my health information being stored and shared with my treating doctor as described above.</span>
+      </label>
+      <button class="big-btn" style="background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;" onclick="acceptConsent()">I Agree — Continue</button>
+      <button onclick="declineConsent()" style="width:100%;margin-top:8px;padding:12px;border-radius:12px;border:1.5px solid var(--border2);background:transparent;color:var(--text-muted);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">Not now</button>
+      <div style="height:8px;"></div>
+    </div>
+  </div>
+</div>
+
 <div class="sheet-overlay" id="log-sheet">
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">Daily Health Log <button class="sheet-x" onclick="closeSheet('log-sheet')">X</button></div>
     <div class="sheet-body">
-      <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:16px;" id="log-date-lbl">Date: ---</div>
+      <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:6px;" id="log-date-lbl">Date: ---</div>
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:16px;line-height:1.5;">Rate each symptom <strong>at its worst over the last 24 hours</strong>. Question style adapted from the NCI PRO-CTCAE&reg; severity items.</div>
       <div class="log-sec">
         <div class="log-sec-hdr"><div class="log-sec-title">Cognitive Issues</div><div class="log-sec-score" style="color:var(--orange);" id="sc-cog">0/10</div></div>
+        <div class="log-sec-q" style="font-size:11.5px;color:var(--text-muted);margin:-4px 0 8px;">In the last 24 hours, how severe were your problems with memory, concentration or speech at their worst?</div>
         <input class="slider" type="range" min="0" max="10" value="0" id="s-cog" oninput="updSlider('cog',this.value)">
         <div class="slider-ends"><span>None</span><span>Severe</span></div>
         <div class="check-grid">
@@ -625,6 +659,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
       <div class="divider"></div>
       <div class="log-sec">
         <div class="log-sec-hdr"><div class="log-sec-title">Seizure Activity</div><div class="log-sec-score" style="color:var(--red);" id="sc-sz">0/10</div></div>
+        <div class="log-sec-q" style="font-size:11.5px;color:var(--text-muted);margin:-4px 0 8px;">In the last 24 hours, how severe was any seizure activity at its worst?</div>
         <input class="slider" type="range" min="0" max="10" value="0" id="s-sz" oninput="updSlider('sz',this.value)">
         <div class="slider-ends"><span>None</span><span>Severe</span></div>
         <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-muted);margin:8px 0 4px;">Seizure Type</div>
@@ -640,6 +675,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
       <div class="divider"></div>
       <div class="log-sec">
         <div class="log-sec-hdr"><div class="log-sec-title">Vision and Balance</div><div class="log-sec-score" style="color:var(--blue);" id="sc-vis">0/10</div></div>
+        <div class="log-sec-q" style="font-size:11.5px;color:var(--text-muted);margin:-4px 0 8px;">In the last 24 hours, how severe were your vision or balance problems (blurred vision, dizziness, unsteadiness) at their worst?</div>
         <input class="slider" type="range" min="0" max="10" value="0" id="s-vis" oninput="updSlider('vis',this.value)">
         <div class="check-grid">
           <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Blurred vision</div>
@@ -654,6 +690,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
       <div class="divider"></div>
       <div class="log-sec">
         <div class="log-sec-hdr"><div class="log-sec-title">Headache Intensity</div><div class="log-sec-score" style="color:var(--orange);" id="sc-ha">0/10</div></div>
+        <div class="log-sec-q" style="font-size:11.5px;color:var(--text-muted);margin:-4px 0 8px;">In the last 24 hours, what was the severity of your headache at its worst?</div>
         <input class="slider" type="range" min="0" max="10" value="0" id="s-ha" oninput="updSlider('ha',this.value)">
         <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-muted);margin:8px 0 4px;">Location</div>
         <div class="pill-row">
@@ -673,6 +710,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
       <div class="divider"></div>
       <div class="log-sec">
         <div class="log-sec-hdr"><div class="log-sec-title">Fatigue</div><div class="log-sec-score" style="color:var(--orange);" id="sc-fatigue">0/10</div></div>
+        <div class="log-sec-q" style="font-size:11.5px;color:var(--text-muted);margin:-4px 0 8px;">In the last 24 hours, what was the severity of your fatigue, tiredness or lack of energy at its worst?</div>
         <input class="slider" type="range" min="0" max="10" value="0" id="s-fatigue" oninput="updSlider('fatigue',this.value)">
         <div class="slider-ends"><span>No fatigue</span><span>Cannot function</span></div>
         <div class="check-grid">
@@ -685,6 +723,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
       <div class="divider"></div>
       <div class="log-sec">
         <div class="log-sec-hdr"><div class="log-sec-title">Nausea / Vomiting</div><div class="log-sec-score" style="color:var(--red);" id="sc-nausea">0/10</div></div>
+        <div class="log-sec-q" style="font-size:11.5px;color:var(--text-muted);margin:-4px 0 8px;">In the last 24 hours, what was the severity of your nausea at its worst?</div>
         <input class="slider" type="range" min="0" max="10" value="0" id="s-nausea" oninput="updSlider('nausea',this.value)">
         <div class="slider-ends"><span>None</span><span>Severe/Vomiting</span></div>
         <div class="check-grid">
@@ -697,6 +736,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
       <div class="divider"></div>
       <div class="log-sec">
         <div class="log-sec-hdr"><div class="log-sec-title">Appetite</div><div class="log-sec-score" style="color:var(--blue);" id="sc-appetite">5/10</div></div>
+        <div class="log-sec-q" style="font-size:11.5px;color:var(--text-muted);margin:-4px 0 8px;">In the last 24 hours, how would you rate your appetite? (0 = no appetite, 10 = normal appetite)</div>
         <input class="slider" type="range" min="0" max="10" value="5" id="s-appetite" oninput="updSlider('appetite',this.value)">
         <div class="slider-ends"><span>No appetite</span><span>Normal appetite</span></div>
         <div class="check-grid">
@@ -709,6 +749,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
       <div class="divider"></div>
       <div class="log-sec">
         <div class="log-sec-hdr"><div class="log-sec-title">Sleep Quality</div><div class="log-sec-score" style="color:var(--blue);" id="sc-sleep">5/10</div></div>
+        <div class="log-sec-q" style="font-size:11.5px;color:var(--text-muted);margin:-4px 0 8px;">In the last 24 hours, how well did you sleep? (0 = could not sleep, 10 = slept well)</div>
         <input class="slider" type="range" min="0" max="10" value="5" id="s-sleep" oninput="updSlider('sleep',this.value)">
         <div class="slider-ends"><span>No sleep</span><span>Restful</span></div>
         <div class="check-grid">
@@ -721,6 +762,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
       <div class="divider"></div>
       <div class="log-sec">
         <div class="log-sec-hdr"><div class="log-sec-title">Mood and Wellbeing</div><div class="log-sec-score" style="color:var(--green);" id="sc-mood">5/10</div></div>
+        <div class="log-sec-q" style="font-size:11.5px;color:var(--text-muted);margin:-4px 0 8px;">In the last 24 hours, how was your overall mood? (0 = very low, 10 = very good)</div>
         <input class="slider" type="range" min="0" max="10" value="5" id="s-mood" oninput="updSlider('mood',this.value);syncMood(this.value)">
         <div class="mood-row">
           <span class="mood-f" onclick="pickMood(0)">&#128547;</span>
@@ -806,6 +848,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
 var LS={get:function(k){try{var v=localStorage.getItem('cc_'+k);return v?JSON.parse(v):null;}catch(e){return null;}},set:function(k,v){try{localStorage.setItem('cc_'+k,JSON.stringify(v));}catch(e){}},keys:function(pre){return Object.keys(localStorage).filter(function(k){return k.startsWith('cc_'+pre);}).map(function(k){return k.slice(3);});}};
 var PAT=null;
 var extraMeds=[];
+function escHTML(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 function exportPatientData() {
   if (!PAT) return;
@@ -829,6 +872,43 @@ function exportPatientData() {
   const a = document.createElement('a');
   a.href = url; a.download = 'ChemoCure_MyData_' + new Date().toISOString().slice(0,10) + '.json'; a.click();
   setTimeout(() => URL.revokeObjectURL(url), 3000);
+}
+
+// De-identified export: numeric symptom scores only — no name, MRN, notes or free text.
+function exportResearchCSV() {
+  if (!PAT) return;
+  var cols = ['date','cognitive','seizure','vision','headache','fatigue','nausea','appetite','sleep','mood'];
+  var rows = [cols.join(',')];
+  LS.keys('log_' + PAT.mrn + '_').map(function(k){ return LS.get(k); }).filter(Boolean)
+    .sort(function(a,b){ return a.date < b.date ? -1 : 1; })
+    .forEach(function(l) {
+      rows.push(cols.map(function(c){ return c === 'date' ? l.date : (typeof l[c] === 'number' ? l[c] : ''); }).join(','));
+    });
+  if (rows.length === 1) { toast('No symptom logs to export yet.'); return; }
+  var blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'ChemoCure_Research_' + new Date().toISOString().slice(0,10) + '.csv'; a.click();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
+  toast('Anonymised CSV downloaded.');
+}
+
+function deleteMyDeviceData() {
+  if (!PAT) return;
+  if (!confirm('Delete all your ChemoCure data from THIS device and sign out?\n\nYour doctor keeps the medical record. To erase the server copy too, ask your care team.')) return;
+  var mrn = PAT.mrn;
+  try {
+    var doomed = [];
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (k && k.startsWith('cc_') && k.indexOf(mrn) !== -1) doomed.push(k);
+    }
+    doomed.forEach(function(k){ localStorage.removeItem(k); });
+  } catch(e) {}
+  PAT = null;
+  if (window.CCSync) try { CCSync.logout(); } catch(e) {}
+  toast('Your data was removed from this device.');
+  setTimeout(function(){ location.reload(); }, 1200);
 }
 
 function updatePatStorageBar() {
@@ -902,10 +982,31 @@ async function doLogin(){
     errEl.style.display='block'; return;
   }
 
+  if (!LS.get('consent_'+pat.mrn)) { window.__pendingPat = pat; openSheet('consent-sheet'); return; }
+  finishLogin(pat);
+}
+
+function finishLogin(pat){
   PAT = pat;
   document.getElementById('screen-login').style.display='none';
   document.getElementById('app-shell').style.display='flex';
   initApp();
+}
+
+function acceptConsent(){
+  var cb = document.getElementById('consent-check');
+  if (!cb || !cb.checked) { toast('Please tick the consent box to continue.'); return; }
+  var pat = window.__pendingPat; if (!pat) return;
+  LS.set('consent_'+pat.mrn, { version: 1, acceptedAt: new Date().toISOString() });
+  window.__pendingPat = null;
+  closeSheet('consent-sheet');
+  finishLogin(pat);
+}
+
+function declineConsent(){
+  window.__pendingPat = null;
+  closeSheet('consent-sheet');
+  toast('Sign-in cancelled. You can come back anytime.');
 }
 
 function showErr(msg){ var el=document.getElementById('login-err'); el.innerHTML=msg; el.style.display='block'; setTimeout(function(){el.style.display='none';},4000); }
@@ -1067,17 +1168,15 @@ function checkPatientAccounts() {
   } else {
     var rows = accounts.map(function(a) {
       return '<div style="margin-bottom:6px;padding:6px 8px;background:rgba(255,255,255,0.08);border-radius:8px;">'
-        + '<strong>' + a.name + '</strong><br>'
-        + 'MRN: <code style="font-family:monospace;letter-spacing:0.5px;">' + a.mrn + '</code>'
-        + ' &nbsp; Pass: <code style="font-family:monospace;letter-spacing:0.5px;">' + (a.pass||a.password) + '</code>'
+        + '<strong>' + escHTML(a.name) + '</strong><br>'
+        + 'MRN: <code style="font-family:monospace;letter-spacing:0.5px;">' + escHTML(a.mrn) + '</code>'
         + '</div>';
     }).join('');
     box.innerHTML = '✅ Found <strong>' + accounts.length + '</strong> patient account(s):<br><br>' + rows
-      + '<br><small>Tap the MRN to copy, then paste it into the field above.</small>';
+      + '<br><small>Use the password your doctor gave you when registering you. Passwords are never shown here.</small>';
     if (accounts.length === 1) {
       document.getElementById('l-mrn').value = accounts[0].mrn;
-      document.getElementById('l-pass').value = accounts[0].pass || accounts[0].password || '';
-      box.innerHTML += '<br>✏ Credentials auto-filled above — tap Sign In.';
+      box.innerHTML += '<br>✏ MRN auto-filled above — enter your password and tap Sign In.';
     }
   }
   box.style.display = 'block';
@@ -1093,16 +1192,15 @@ function checkLabAccounts() {
     var html = '✅ <strong>' + accounts.length + ' lab account(s) found:</strong><br><br>';
     accounts.forEach(function(a) {
       html += '<div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;margin-bottom:6px;">'
-        + '<div style="font-weight:700;">' + a.name + '</div>'
-        + '<div>Username: <strong style="font-family:monospace;letter-spacing:0.5px;">' + a.username + '</strong></div>'
-        + '<div>Password: <strong style="font-family:monospace;letter-spacing:0.5px;">' + a.password + '</strong></div>'
+        + '<div style="font-weight:700;">' + escHTML(a.name) + '</div>'
+        + '<div>Username: <strong style="font-family:monospace;letter-spacing:0.5px;">' + escHTML(a.username) + '</strong></div>'
         + '</div>';
     });
-    // Auto-fill if only one
+    html += '<small>Get the password from the doctor: ChemoCure Pro → Lab Management → Share Access. Passwords are never shown here.</small>';
+    // Auto-fill username if only one
     if (accounts.length === 1) {
       document.getElementById('lab-l-user').value = accounts[0].username;
-      document.getElementById('lab-l-pass').value = accounts[0].password;
-      html += '<em>Credentials auto-filled above — tap Login.</em>';
+      html += '<br><em>Username auto-filled above — enter the password and tap Login.</em>';
     }
     dbgEl.innerHTML = html;
   }
@@ -1454,6 +1552,12 @@ function initApp(){
   updateLogCount();
   renderRecentLogs();
   renderTodayMeds();
+  // Accessibility: give screen readers real names for sliders and close buttons.
+  document.querySelectorAll('#log-sheet .log-sec').forEach(function(sec){
+    var t = sec.querySelector('.log-sec-title'), s = sec.querySelector('input.slider');
+    if (t && s) s.setAttribute('aria-label', t.textContent + ' severity, 0 to 10');
+  });
+  document.querySelectorAll('.sheet-x').forEach(function(b){ b.setAttribute('aria-label','Close'); });
   goScreen('calendar');
 }
 
@@ -1857,6 +1961,14 @@ function saveLog(){
   };
   LS.set('log_'+PAT.mrn+'_'+todayStr(),log);
   // Red-flag escalation: severe symptoms raise an alert on the doctor's dashboard.
+  // Threshold rationale (see also the education card "When to call your care team NOW"):
+  //  - fever >=38.5C: standard neutropenic-fever action threshold during chemotherapy
+  //  - any notable seizure activity (>=7/10, or >=5/10 with a seizure type selected):
+  //    new/worsening seizures are a progression red flag in neuro-oncology
+  //  - severe (>=8/10) headache, cognitive decline, vision problems or nausea map to
+  //    CTCAE grade 3-like severity, where same-day clinical review is expected.
+  // These defaults are conservative screening cutoffs, not a validated instrument —
+  // the treating clinician remains responsible for triage.
   var flags=[];
   if(log.seizure>=7||(szType&&log.seizure>=5))flags.push('seizure activity');
   if(log.headache>=8)flags.push('severe headache');
@@ -1894,7 +2006,7 @@ function showLogDetail(log){
     if(log.weight)html+='<div style="background:var(--surface2);border-radius:10px;padding:10px 12px;"><div style="font-size:10px;color:var(--text-muted);">WEIGHT</div><div style="font-size:16px;font-weight:700;">'+log.weight+' kg</div></div>';
     html+='</div></div>';
   }
-  if(log.notes)html+='<div class="ld-sec"><div class="ld-label">Notes</div><div style="background:var(--surface2);border-radius:10px;padding:12px;font-size:13px;color:var(--text-muted);">'+log.notes+'</div></div>';
+  if(log.notes)html+='<div class="ld-sec"><div class="ld-label">Notes</div><div style="background:var(--surface2);border-radius:10px;padding:12px;font-size:13px;color:var(--text-muted);">'+escHTML(log.notes)+'</div></div>';
   html+='<div style="height:20px;"></div>';
   document.getElementById('detail-body').innerHTML=html;
   openSheet('detail-sheet');
@@ -1929,7 +2041,7 @@ function renderAppts(){
     var actions='';
     if(a.status==='Pending'||a.status==='Scheduled')actions+='<button onclick="apptAction('+idx+',\'confirm\')" style="padding:6px 12px;border:none;border-radius:8px;background:var(--blue);color:#fff;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">\u2713 Confirm</button>';
     if(a.status!=='Reschedule Requested')actions+='<button onclick="apptAction('+idx+',\'reschedule\')" style="padding:6px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text-muted);font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">\u21bb Request reschedule</button>';
-    return '<div class="appt-card"><div class="appt-date">'+a.date+(a.time?' - '+a.time:'')+'</div><div class="appt-sub">'+(a.type||'Visit')+' - '+(a.doctor||'Your Doctor')+'</div>'+(a.reason?'<div class="appt-sub" style="margin-top:4px;">'+a.reason+'</div>':'')+'<div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="font-size:10.5px;padding:2px 8px;border-radius:8px;font-weight:600;background:'+( sc[a.status]||'var(--text-muted)')+'22;color:'+(sc[a.status]||'var(--text-muted)')+';">'+a.status+'</span>'+actions+'</div></div>';
+    return '<div class="appt-card"><div class="appt-date">'+escHTML(a.date)+(a.time?' - '+escHTML(a.time):'')+'</div><div class="appt-sub">'+escHTML(a.type||'Visit')+' - '+escHTML(a.doctor||'Your Doctor')+'</div>'+(a.reason?'<div class="appt-sub" style="margin-top:4px;">'+escHTML(a.reason)+'</div>':'')+'<div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="font-size:10.5px;padding:2px 8px;border-radius:8px;font-weight:600;background:'+( sc[a.status]||'var(--text-muted)')+'22;color:'+(sc[a.status]||'var(--text-muted)')+';">'+a.status+'</span>'+actions+'</div></div>';
   }).join(''):'<div class="empty-card">No upcoming appointments.</div>';
   pEl.innerHTML=past.length?past.map(function(a){return '<div class="appt-card"><div class="appt-date" style="color:var(--text-muted);">'+a.date+(a.time?' - '+a.time:'')+'</div><div class="appt-sub">'+(a.type||'Visit')+' - '+(a.doctor||'Your Doctor')+'</div></div>';}).join(''):'<div class="empty-card">No past visits.</div>';
 }
@@ -1950,7 +2062,7 @@ function renderChat(){
   var msgs=LS.get('msgs_'+PAT.mrn)||[];
   var c=document.getElementById('chat-area');
   if(!msgs.length){c.innerHTML='<div style="text-align:center;color:var(--text-dim);font-size:12.5px;margin-top:24px;">No messages yet. Say hello to your doctor!</div>';return;}
-  c.innerHTML=msgs.map(function(m){return '<div class="bubble '+(m.from==='patient'?'out':'in')+'">'+m.text+'<div class="btime">'+m.time+'</div></div>';}).join('');
+  c.innerHTML=msgs.map(function(m){return '<div class="bubble '+(m.from==='patient'?'out':'in')+'">'+escHTML(m.text)+'<div class="btime">'+escHTML(m.time)+'</div></div>';}).join('');
   c.scrollTop=c.scrollHeight;
 }
 function sendMsg(){
