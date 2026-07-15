@@ -17,6 +17,8 @@ console.log(`[db] using ${activeImpl()}`);
 export async function initSchema() {
   const schema = readFileSync(join(__dirname, 'schema.sql'), 'utf8');
   await db.exec(schema);
+  // Column additions for databases created before these features existed.
+  try { await db.exec('ALTER TABLE users ADD COLUMN totp_enc TEXT'); } catch { /* already there */ }
   console.log('[db] schema ready');
 }
 

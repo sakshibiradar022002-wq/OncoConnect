@@ -2,6 +2,9 @@
 
 import { app } from './app.js';
 import { config } from './config.js';
+import { startAppointmentReminders } from './push.js';
+
+startAppointmentReminders();
 
 app.listen(config.port, () => {
   console.log(`\n  ChemoCure server running on port ${config.port}`);

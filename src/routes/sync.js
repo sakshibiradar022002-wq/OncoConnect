@@ -7,13 +7,30 @@
 // session scoped to the keys that mention their MRN.
 
 import { Router } from 'express';
-import { pbkdf2Sync, timingSafeEqual } from 'node:crypto';
+import { pbkdf2Sync, timingSafeEqual, randomBytes } from 'node:crypto';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import { db, writeAudit } from '../db/index.js';
 import { encryptPHI, decryptPHI } from '../crypto.js';
 import { authenticate, requireRole, createSession } from '../middleware/auth.js';
 import { validate, asyncHandler } from '../middleware/validate.js';
+import { notifySubject } from '../push.js';
+
+// Fire-and-forget doctor notifications for incoming alert / lab-result keys.
+function pushDoctorForChanges(ownerId, changes) {
+  for (const [k, v] of Object.entries(changes || {})) {
+    if (k.startsWith('alerts_') && Array.isArray(v) && v[0]) {
+      const a = v[0];
+      notifySubject(ownerId, {
+        title: a.urgent ? '🚨 Urgent patient alert' : 'Patient update',
+        body: `${a.name || a.mrn}: ${a.text}`,
+        url: '/',
+      }).catch(() => {});
+    } else if (k.startsWith('lab_subs_')) {
+      notifySubject(ownerId, { title: 'New lab result', body: 'A lab uploaded new results. Tap to review.', url: '/' }).catch(() => {});
+    }
+  }
+}
 
 export const syncRouter = Router();
 
@@ -66,13 +83,30 @@ syncRouter.put('/', authenticate, requireRole('doctor', 'admin'), validate(pushS
 }));
 
 // ── Patient login against the synced records ──────────────────────
-// The UI stores patient passwords as "pbkdf2:<salt>:<base64>" hashed in the
-// browser with PBKDF2-SHA256 / 100k iterations (legacy records: plaintext).
+// Password formats, oldest to newest:
+//   plaintext                              (legacy prototype records)
+//   pbkdf2:<salt>:<b64>                    (browser, SHA-256 / 100k)
+//   pbkdf2v2:<iterations>:<salt>:<b64>     (server upgrade, SHA-256 / 210k)
+// Legacy records are re-hashed to v2 on successful login (see upgradeStoredPassword).
+const V2_ITERATIONS = 210000;
+
+function hashUiPasswordV2(password) {
+  const salt = randomBytes(16).toString('base64url');
+  const hash = pbkdf2Sync(String(password), salt, V2_ITERATIONS, 32, 'sha256').toString('base64');
+  return `pbkdf2v2:${V2_ITERATIONS}:${salt}:${hash}`;
+}
+
 function verifyUiPassword(password, stored) {
   if (!stored) return false;
   let expected = String(stored);
   let actual = String(password);
-  if (expected.startsWith('pbkdf2:')) {
+  if (expected.startsWith('pbkdf2v2:')) {
+    const [, iterStr, salt, hash] = expected.split(':');
+    const iterations = parseInt(iterStr, 10);
+    if (!salt || !hash || !iterations) return false;
+    actual = pbkdf2Sync(actual, salt, iterations, 32, 'sha256').toString('base64');
+    expected = hash;
+  } else if (expected.startsWith('pbkdf2:')) {
     const [, salt, hash] = expected.split(':');
     if (!salt || !hash) return false;
     actual = pbkdf2Sync(actual, salt, 100000, 32, 'sha256').toString('base64');
@@ -83,15 +117,37 @@ function verifyUiPassword(password, stored) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-// Everything the patient app needs: keys mentioning the MRN, plus the owning
-// doctor's profile with credentials stripped.
+// After a successful login, upgrade weak/plaintext stored credentials to v2.
+async function upgradeStoredPassword(ownerId, key, rec, password, passField) {
+  const stored = rec[passField];
+  const isWeak = !String(stored || '').startsWith('pbkdf2') || rec.passPlain;
+  if (!isWeak) return;
+  const upgraded = { ...rec, [passField]: hashUiPasswordV2(password) };
+  delete upgraded.passPlain;
+  await upsertKey(ownerId, key, upgraded, new Date().toISOString());
+}
+
+// A key belongs to exactly this patient — matched by precise pattern, not a
+// loose substring. Substring matching (instr / includes) was safe only while
+// every MRN was the same length; exact patterns keep patients isolated even
+// if the MRN format ever changes, and stop a patient injecting arbitrary keys.
+function patientOwnsKey(k, mrn) {
+  const exact = ['pat_', 'msgs_', 'appts_', 'lab_subs_', 'pat_tokens_',
+    'reminders_', 'invoices_', 'checkin_', 'travel_'].map(pre => pre + mrn);
+  if (exact.includes(k)) return true;
+  // date/suffix-scoped families: log_<mrn>_<date>, factbr_<mrn>...
+  return k.startsWith('log_' + mrn + '_') || k.startsWith('factbr_' + mrn);
+}
+
+// Everything the patient app needs: their own keys, plus the owning doctor's
+// profile with credentials stripped.
 async function collectPatientKeys(ownerId, mrn) {
-  const rows = await db.prepare('SELECT k, v_enc, updated_at FROM kv_store WHERE owner_id = ? AND instr(k, ?) > 0')
-    .all(ownerId, mrn);
+  const rows = await db.prepare('SELECT k, v_enc, updated_at FROM kv_store WHERE owner_id = ?')
+    .all(ownerId);
   const keys = {};
   let docId = null;
   for (const r of rows) {
-    if (r.k.startsWith('doc_')) continue;
+    if (!patientOwnsKey(r.k, mrn)) continue;
     const v = decryptPHI(r.v_enc);
     keys[r.k] = { v, ts: r.updated_at };
     if (r.k === 'pat_' + mrn && v && v.docId) docId = v.docId;
@@ -131,6 +187,7 @@ syncRouter.post('/patient-login', loginLimiter, validate(patientLoginSchema), as
     const rec = decryptPHI(r.v_enc);
     if (rec && (verifyUiPassword(password, rec.pass) || verifyUiPassword(password, rec.passPlain))) {
       ownerId = r.owner_id;
+      await upgradeStoredPassword(ownerId, 'pat_' + mrn, rec, password, 'pass');
       break;
     }
   }
@@ -159,7 +216,8 @@ syncRouter.get('/patient', authenticate, requireRole('kv-patient'), patientScope
 // ── Patient: push changes — only keys that mention their MRN ──────
 syncRouter.put('/patient', authenticate, requireRole('kv-patient'), patientScope, validate(pushSchema), asyncHandler(async (req, res) => {
   const { ownerId, mrn } = req.patientScope;
-  const count = await applyChanges(ownerId, req.valid.changes, k => k.includes(mrn) && !k.startsWith('doc_'));
+  const count = await applyChanges(ownerId, req.valid.changes, k => patientOwnsKey(k, mrn));
+  pushDoctorForChanges(ownerId, req.valid.changes);
   await writeAudit({ actorId: mrn, actorRole: 'kv-patient', action: 'sync.patient_push', targetId: ownerId, detail: { count }, ip: req.ip });
   res.json({ ok: true, count });
 }));
@@ -210,6 +268,7 @@ syncRouter.post('/lab-login', loginLimiter, validate(labLoginSchema), asyncHandl
     const rec = decryptPHI(r.v_enc);
     if (rec && rec.labId && rec.username === username && verifyUiPassword(password, rec.password)) {
       found = { ownerId: r.owner_id, rec };
+      await upgradeStoredPassword(r.owner_id, r.k, rec, password, 'password');
       break;
     }
   }
@@ -244,6 +303,7 @@ syncRouter.put('/lab', authenticate, requireRole('kv-lab'), labScope, validate(p
   const { ownerId, docId, labId } = req.labScope;
   const allowed = new Set([`pat_tokens_${docId}`, `lab_subs_${docId}`]);
   const count = await applyChanges(ownerId, req.valid.changes, k => allowed.has(k));
+  pushDoctorForChanges(ownerId, req.valid.changes);
   await writeAudit({ actorId: labId, actorRole: 'kv-lab', action: 'sync.lab_push', targetId: ownerId, detail: { count }, ip: req.ip });
   res.json({ ok: true, count });
 }));

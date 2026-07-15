@@ -7,7 +7,7 @@
 
 <!-- PWA: installable desktop/mobile software -->
 <link rel="manifest" href="/doctor.webmanifest">
-<meta name="theme-color" content="#1a56db">
+<meta name="theme-color" content="#1591DC">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="ChemoCure Pro">
@@ -18,17 +18,17 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
 :root {
-  --bg:#f0f5ff;
+  --bg:#F1F8FD;
   --surface:#ffffff;
-  --surface2:#f4f8ff;
-  --surface3:#e8f0fe;
-  --border:#dde6f7;
-  --border2:#c5d5f0;
-  --blue:#1a56db;
-  --blue2:#1e40af;
-  --blue-light:#3b82f6;
-  --blue-pale:#eff6ff;
-  --blue-mid:#2563eb;
+  --surface2:#F5FAFE;
+  --surface3:#E1F0FA;
+  --border:#C4E2F5;
+  --border2:#A5CFEC;
+  --blue:#1591DC;
+  --blue2:#2C5EAD;
+  --blue-light:#4BB8FA;
+  --blue-pale:#E3F1FB;
+  --blue-mid:#1591DC;
   --cyan:#0284c7;
   --red:#dc2626;
   --orange:#d97706;
@@ -38,8 +38,8 @@
   --text-muted:#475569;
   --text-dim:#94a3b8;
   --radius:8px;
-  --shadow:0 1px 8px rgba(26,86,219,0.08);
-  --shadow-lg:0 8px 32px rgba(26,86,219,0.14);
+  --shadow:0 1px 8px rgba(44,94,173,0.08);
+  --shadow-lg:0 8px 32px rgba(44,94,173,0.14);
   --font:'Plus Jakarta Sans',system-ui,sans-serif;
   --mono:'IBM Plex Mono',monospace;
 }
@@ -121,7 +121,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 
 /* ── BUTTONS ── */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 14px;border-radius:7px;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;border:none;transition:all 0.15s;}
-.btn-primary{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(26,86,219,0.25);}.btn-primary:hover{background:var(--blue2);}
+.btn-primary{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(44,94,173,0.25);}.btn-primary:hover{background:var(--blue2);}
 .btn-cyan{background:var(--cyan);color:#fff;box-shadow:0 2px 8px rgba(2,132,199,0.25);}.btn-cyan:hover{background:#0369a1;}
 .btn-ghost{background:var(--surface);color:var(--text);border:1px solid var(--border);}.btn-ghost:hover{border-color:var(--blue-light);color:var(--blue);}
 .btn-danger{background:rgba(220,38,38,0.08);color:var(--red);border:1px solid rgba(220,38,38,0.2);}.btn-danger:hover{background:rgba(220,38,38,0.14);}
@@ -146,12 +146,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
   border-radius:8px;border:1px solid var(--border);margin-bottom:6px;
   cursor:pointer;transition:all 0.15s;background:var(--surface);box-shadow:var(--shadow);
 }
-.patient-row:hover{border-color:var(--blue-light);box-shadow:0 2px 12px rgba(26,86,219,0.12);}
+.patient-row:hover{border-color:var(--blue-light);box-shadow:0 2px 12px rgba(44,94,173,0.12);}
 .pat-name{font-weight:600;font-size:13px;color:var(--text);}
 .pat-mrn{font-size:11px;color:var(--text-muted);font-family:var(--mono);}
 .pat-diag{font-size:11px;color:var(--text-dim);margin-top:1px;}
 .badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;}
-.badge-blue{background:rgba(26,86,219,0.1);color:var(--blue);}
+.badge-blue{background:rgba(44,94,173,0.1);color:var(--blue);}
 .badge-cyan{background:rgba(2,132,199,0.1);color:var(--cyan);}
 .badge-orange{background:rgba(217,119,6,0.1);color:var(--orange);}
 .badge-red{background:rgba(220,38,38,0.1);color:var(--red);}
@@ -238,7 +238,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 
 .med-item{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;box-shadow:var(--shadow);}
 
-.cred-box{background:var(--blue-pale);border:1px solid rgba(26,86,219,0.2);border-radius:10px;padding:16px;}
+.cred-box{background:var(--blue-pale);border:1px solid rgba(44,94,173,0.2);border-radius:10px;padding:16px;}
 .cred-label{font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--blue);margin-bottom:10px;}
 .cred-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:12.5px;}
 .cred-key{color:var(--text-muted);}
@@ -262,7 +262,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 .chat-input-row input{flex:1;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;outline:none;}
 .chat-input-row input:focus{border-color:var(--blue-light);}
 .msg-bubble{max-width:70%;padding:9px 13px;border-radius:12px;font-size:12.5px;line-height:1.5;}
-.msg-bubble.out{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;align-self:flex-end;box-shadow:0 2px 8px rgba(26,86,219,0.2);}
+.msg-bubble.out{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;align-self:flex-end;box-shadow:0 2px 8px rgba(44,94,173,0.2);}
 .msg-bubble.in{background:var(--surface2);border:1px solid var(--border);align-self:flex-start;}
 .msg-time{font-size:10px;color:var(--text-dim);margin-top:3px;}
 .msg-bubble.out .msg-time{color:rgba(255,255,255,0.6);}
@@ -271,7 +271,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 .cal-grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
 .cal-head-cell{text-align:center;font-size:10px;font-weight:700;color:var(--text-dim);padding:4px 0;letter-spacing:0.5px;}
 .cal-day{aspect-ratio:1;border-radius:7px;background:var(--surface);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:11.5px;transition:all 0.15s;position:relative;box-shadow:var(--shadow);}
-.cal-day:hover{border-color:var(--blue-light);box-shadow:0 2px 8px rgba(26,86,219,0.12);}
+.cal-day:hover{border-color:var(--blue-light);box-shadow:0 2px 8px rgba(44,94,173,0.12);}
 .cal-day.today{border-color:var(--blue);color:var(--blue);font-weight:800;background:var(--blue-pale);}
 .cal-day.has-log{background:rgba(2,132,199,0.08);border-color:rgba(2,132,199,0.3);}
 .cal-day.empty{opacity:0;pointer-events:none;}
@@ -280,16 +280,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 /* ── AUTH SCREEN ── */
 #auth-screen{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  min-height:100%;background:linear-gradient(160deg,#1e3a8a 0%,#1d4ed8 45%,#2563eb 70%,#3b82f6 100%);
+  min-height:100%;background:linear-gradient(160deg,#2C5EAD 0%,#1591DC 45%,#4BB8FA 78%,#C4E2F5 100%);
   padding:40px 20px;
 }
 .auth-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;width:100%;max-width:420px;box-shadow:0 24px 80px rgba(15,23,42,0.25);}
 .auth-logo{display:flex;align-items:center;gap:12px;margin-bottom:32px;}
-.auth-logo-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--blue2));display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 16px rgba(26,86,219,0.3);}
+.auth-logo-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--blue2));display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 16px rgba(44,94,173,0.3);}
 .auth-logo-text{font-weight:800;font-size:1.3rem;color:var(--text);letter-spacing:-0.4px;}
 .tab-switcher{display:flex;background:var(--surface2);border-radius:8px;padding:3px;margin-bottom:22px;border:1px solid var(--border);}
 .ts-btn{flex:1;padding:7px;border:none;background:transparent;color:var(--text-muted);font-family:inherit;font-size:12.5px;cursor:pointer;border-radius:6px;transition:all 0.15s;font-weight:600;}
-.ts-btn.active{background:var(--surface);color:var(--blue);box-shadow:0 1px 8px rgba(26,86,219,0.12);}
+.ts-btn.active{background:var(--surface);color:var(--blue);box-shadow:0 1px 8px rgba(44,94,173,0.12);}
 
 /* ── LAB TABS ── */
 .lab-tab-btn.active{background:var(--blue-pale);border-color:var(--blue-light);color:var(--blue);}
@@ -331,12 +331,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 .icd-filter-btn.active{background:var(--blue-pale);border-color:var(--blue-light);color:var(--blue);}
 .icd-row{display:flex;align-items:flex-start;gap:12px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:all 0.15s;border:1px solid transparent;margin-bottom:3px;}
 .icd-row:hover{background:var(--surface2);border-color:var(--border);}
-.icd-row.selected{background:var(--blue-pale);border-color:rgba(26,86,219,0.3);}
+.icd-row.selected{background:var(--blue-pale);border-color:rgba(44,94,173,0.3);}
 .icd-code{font-family:var(--mono);font-weight:700;font-size:13px;min-width:68px;color:var(--blue);}
 .icd-label{font-size:12.5px;flex:1;line-height:1.4;color:var(--text);}
 .icd-sub{font-size:10.5px;color:var(--text-muted);margin-top:2px;}
 .icd-badge{font-size:9px;padding:1px 5px;border-radius:4px;font-weight:700;letter-spacing:0.4px;white-space:nowrap;}
-.icd-badge-10{background:rgba(26,86,219,0.1);color:var(--blue);}
+.icd-badge-10{background:rgba(44,94,173,0.1);color:var(--blue);}
 .icd-badge-11{background:rgba(124,58,237,0.1);color:var(--purple);}
 .icd-group-header{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);padding:10px 12px 4px;}
 
@@ -370,6 +370,63 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 .sec-head{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);margin-bottom:8px;margin-top:16px;}
 .outline-btn{padding:10px 18px;border-radius:10px;border:1.5px solid var(--border2);background:transparent;color:var(--text);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;width:100%;}
 .outline-btn:hover{background:var(--surface2);}
+
+/* ═══ Notifications ═══ */
+.notif-bell{position:relative;background:none;border:none;color:rgba(255,255,255,0.8);font-size:15px;cursor:pointer;margin-left:auto;padding:4px 8px;}
+.notif-badge{position:absolute;top:-2px;right:0;background:var(--red);color:#fff;font-size:9px;font-weight:800;border-radius:8px;padding:1px 5px;min-width:15px;display:inline-flex;align-items:center;justify-content:center;}
+.notif-panel{display:none;position:fixed;top:46px;right:12px;width:340px;max-width:92vw;max-height:70vh;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-lg);z-index:500;}
+.notif-panel.open{display:block;}
+.notif-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border);font-weight:800;font-size:13px;color:var(--text);}
+.notif-markread{background:none;border:none;color:var(--blue);font-size:11.5px;cursor:pointer;font-weight:700;}
+.notif-item{padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer;}
+.notif-item:hover{background:var(--surface2);}
+.notif-item.unread{background:var(--blue-pale);}
+.notif-item.urgent .notif-item-title{color:var(--red);}
+.notif-item-title{font-weight:800;font-size:12.5px;color:var(--text);}
+.notif-item-text{font-size:12px;color:var(--text-muted);margin-top:2px;}
+.notif-item-ts{font-size:10.5px;color:var(--text-dim);margin-top:3px;}
+.urgent-banner-inner{background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.3);color:var(--red);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.urgent-banner-btn{margin-left:auto;background:var(--red);color:#fff;border:none;border-radius:7px;padding:6px 12px;font-weight:700;cursor:pointer;font-size:12px;}
+
+/* ═══ Responsive & polish layer ═══ */
+html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+::selection{background:rgba(75,184,250,.3);}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:8px;border:2px solid var(--bg);}
+::-webkit-scrollbar-thumb:hover{background:var(--blue-light);}
+button{transition:filter .15s ease,transform .12s ease,box-shadow .15s ease;}
+button:hover{filter:brightness(1.06);}
+button:active{transform:scale(.97);}
+:focus-visible{outline:2px solid var(--blue-light);outline-offset:2px;border-radius:4px;}
+input,select,textarea{transition:border-color .15s ease,box-shadow .15s ease;}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18);}
+.stat-card,.card{transition:box-shadow .2s ease,transform .2s ease;}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+#nav-backdrop{display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:390;}
+#nav-fab{display:none;position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:410;width:50px;height:50px;border-radius:15px;border:none;background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;font-size:20px;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(44,94,173,.45);cursor:pointer;}
+@media (max-width:1100px){
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  .panel{padding:22px;}
+}
+@media (max-width:900px){
+  .sidebar{position:fixed;top:0;bottom:0;left:0;z-index:400;transform:translateX(-105%);transition:transform .28s ease;box-shadow:8px 0 40px rgba(15,23,42,.3);}
+  body.nav-open .sidebar{transform:translateX(0);}
+  body.nav-open #nav-backdrop{display:block;}
+  #nav-fab{display:flex;}
+  .titlebar-sub{display:none;}
+  .modal-xl{max-width:96vw;}
+}
+@media (max-width:640px){
+  .panel{padding:16px 12px;}
+  .stats-row{gap:10px;}
+  .stat-card{padding:14px 16px;}
+  .card{padding:16px;overflow-x:auto;}
+  .modal{padding:20px 16px;border-radius:14px;max-height:94vh;}
+  .auth-card{padding:28px 20px;}
+  .page-header{flex-wrap:wrap;gap:10px;}
+  .msg-bubble{max-width:85%;}
+}
 </style>
 </head>
 <body>
@@ -487,12 +544,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
       <span class="titlebar-name">ChemoCure Pro</span>
       <span class="titlebar-badge">DOCTOR</span>
     </div>
+    <button class="notif-bell" id="notif-bell" onclick="toggleNotifs()" title="Notifications">🔔<span class="notif-badge" id="notif-badge" style="display:none;">0</span></button>
+    <div class="notif-panel" id="notif-panel">
+      <div class="notif-head"><span>Notifications</span><button onclick="markAllNotifsRead()" class="notif-markread">Mark all read</button></div>
+      <div id="notif-list"></div>
+    </div>
     <div class="titlebar-sub" id="tb-doctor-id">ID: —</div>
   </div>
 
   <div class="app-body">
     <!-- SIDEBAR -->
     <div class="sidebar">
+      <button class="nav-item" onclick="openPatientSearch()" style="margin-bottom:6px;" aria-label="Search patients"><span class="ni">🔍</span>Search patients <span style="margin-left:auto;font-size:10px;opacity:0.6;font-family:var(--mono,monospace);">Ctrl K</span></button>
       <div class="sidebar-section">Dashboard</div>
       <button class="nav-item active" onclick="showPanel('overview',this)"><span class="ni">⬡</span>Overview</button>
       <button class="nav-item" onclick="showPanel('patients',this)"><span class="ni">👥</span>Patient Records</button>
@@ -534,6 +597,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
           <div><div class="page-title">💾 Data &amp; Backup</div><div class="page-sub">Storage, export, sync, integrations</div></div>
         </div>
 
+        <!-- CSV export -->
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-title" style="margin-bottom:4px;">📈 CSV Export</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Spreadsheet-friendly exports for reporting and analysis.</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm" onclick="exportPatientsCSV()">⬇ Patients (.csv)</button>
+            <button class="btn btn-primary btn-sm" onclick="exportLogsCSV()">⬇ Symptom logs (.csv)</button>
+          </div>
+        </div>
+
         <!-- Storage meter -->
         <div class="card" style="margin-bottom:20px;">
           <div class="card-header"><div class="card-title">📊 Storage Usage</div><button class="btn btn-ghost btn-sm" onclick="refreshStorageInfo()">↻ Refresh</button></div>
@@ -551,7 +624,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
             <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--orange);margin-bottom:8px;">⚠ Large items eating storage</div>
             <div id="storage-large-list"></div>
           </div>
-          <div style="background:var(--blue-pale);border:1px solid rgba(26,86,219,0.15);border-radius:8px;padding:10px 12px;margin-top:10px;font-size:12px;color:var(--text-muted);line-height:1.6;">
+          <div style="background:var(--blue-pale);border:1px solid rgba(44,94,173,0.15);border-radius:8px;padding:10px 12px;margin-top:10px;font-size:12px;color:var(--text-muted);line-height:1.6;">
             💡 <strong>5MB tip:</strong> To free space, remove file attachments from large patient records — lab <em>results</em> (text values) are kept, only the PDFs are deleted. Use <strong>🗜 Remove files</strong> on large items above.
           </div>
         </div>
@@ -706,6 +779,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
             <button class="btn btn-primary" onclick="openAddPat()">+ Add Patient</button>
           </div>
         </div>
+        <div id="urgent-banner" style="display:none;"></div>
         <div class="stats-row">
           <div class="stat-card"><div class="stat-label">Total Patients</div><div class="stat-num blue" id="st-total">0</div></div>
           <div class="stat-card"><div class="stat-label">Active Treatment</div><div class="stat-num cyan" id="st-active">0</div></div>
@@ -737,7 +811,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
           <button class="btn btn-primary" onclick="openAddPat()">+ Add Patient</button>
         </div>
         <div class="card">
-          <input class="search-bar" id="pat-search" placeholder="Search by name, MRN, or diagnosis…" oninput="renderPatList()">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <input class="search-bar" id="pat-search" style="flex:1;min-width:200px;" placeholder="Search by name, MRN, or diagnosis…" oninput="renderPatList()">
+            <select id="pat-phase-filter" onchange="renderPatList()" style="padding:10px 12px;border:1px solid var(--border2);border-radius:8px;font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);"><option value="">All phases</option><option>Diagnosis</option><option>Pre-Treatment</option><option>Treatment Phase</option><option>Post-Treatment</option><option>Monitoring</option><option>Palliative</option></select>
+          </div>
           <div id="pat-list"></div>
         </div>
       </div>
@@ -1060,11 +1137,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
       <button class="rnav-item" onclick="showRTab('rt-labs',this)">🧪 Labs</button>
       <button class="rnav-item" onclick="showRTab('rt-prescriptions',this)">💊 Prescriptions</button>
       <button class="rnav-item" onclick="showRTab('rt-treatment',this)">⚡ Treatment</button>
-      <button class="rnav-item" onclick="showRTab('rt-export',this)">📄 Export</button>
       <button class="rnav-item" onclick="showRTab('rt-appointments',this)">🗓 Appointments</button>
-      <button class="rnav-item" onclick="showRTab('rt-mdt',this)">🧬 MDT Notes</button>
       <button class="rnav-item" onclick="showRTab('rt-imaging',this)">🖼 Imaging</button>
       <button class="rnav-item" onclick="showRTab('rt-logs',this)">📋 Health Logs</button>
+      <button class="rnav-item" onclick="showRTab('rt-export',this)">📄 Export</button>
       <button class="rnav-item" onclick="showRTab('rt-creds',this)">🔑 Credentials</button>
     </div>
     <div class="record-content" id="record-content"></div>
@@ -1368,6 +1444,7 @@ async function doLogin(){
 }
 function doLogout(){
   currentDoc=null;
+  if(window.CCSync) CCSync.logout();
   document.getElementById('app').style.display='none';
   document.getElementById('auth-screen').style.display='flex';
 }
@@ -1377,6 +1454,7 @@ function initApp(){
   document.getElementById('doc-role').textContent=currentDoc.spec;
   document.getElementById('doc-av').textContent=currentDoc.name.charAt(0).toUpperCase();
   document.getElementById('tb-doctor-id').textContent='ID: '+currentDoc.docId;
+  renderNotifs();
   updateStats();renderPatList();renderOvPatients();renderCalSel();renderConvos();
 }
 
@@ -1432,13 +1510,17 @@ function renderPendingApptsBanner(pats){
   if(!existing){
     existing=document.createElement('div');
     existing.id='pending-appts-banner';
+    // Anchor on the container's direct child that holds #ov-patients —
+    // insertBefore throws if the reference node isn't a direct child.
     const ovPat=document.getElementById('ov-patients');
-    if(ovPat)container.insertBefore(existing,ovPat.parentElement);
+    let anchor=ovPat;
+    while(anchor&&anchor.parentElement!==container)anchor=anchor.parentElement;
+    if(anchor)container.insertBefore(existing,anchor);else container.prepend(existing);
   }
   existing.innerHTML=`<div class="card" style="border-color:rgba(240,160,75,0.4);margin-bottom:16px;">
     <div class="card-header"><div class="card-title" style="color:var(--orange);">⏳ Pending Appointment Requests (${allPending.length})</div></div>
     ${allPending.map(a=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface2);border-radius:6px;margin-bottom:6px;">
-      <div><div style="font-weight:600;font-size:12.5px;">${a.patName}</div><div style="font-size:11px;color:var(--text-muted);">📅 ${a.date} ${a.time||''} · ${a.reason||'Visit Request'}</div></div>
+      <div><div style="font-weight:600;font-size:12.5px;">${esc(a.patName)}</div><div style="font-size:11px;color:var(--text-muted);">📅 ${a.date} ${a.time||''} · ${a.reason||'Visit Request'}</div></div>
       <div style="display:flex;gap:6px;">
         <button class="btn btn-cyan btn-sm" onclick="quickConfirmAppt('${a.mrn}','${a.id}')">Confirm</button>
         <button class="btn btn-ghost btn-sm" onclick="openRecord('${a.mrn}')">View</button>
@@ -1456,7 +1538,7 @@ function renderPatRow(p){
   return `<div class="patient-row" onclick="openRecord('${p.mrn}')">
     <div class="avatar av-blue">${p.name.charAt(0)}</div>
     <div style="flex:1;min-width:0;">
-      <div class="pat-name">${p.name}</div>
+      <div class="pat-name">${esc(p.name)}</div>
       <div class="pat-mrn">${p.mrn}</div>
       <div class="pat-diag">${p.diag||'No diagnosis'}</div>
     </div>
@@ -1465,7 +1547,8 @@ function renderPatRow(p){
 }
 function renderPatList(){
   const pats=getMyPatients();const q=(v('pat-search')||'').toLowerCase();
-  const f=pats.filter(p=>p.name.toLowerCase().includes(q)||p.mrn.toLowerCase().includes(q)||(p.diag||'').toLowerCase().includes(q));
+  const ph=v('pat-phase-filter')||'';
+  const f=pats.filter(p=>(p.name.toLowerCase().includes(q)||p.mrn.toLowerCase().includes(q)||(p.diag||'').toLowerCase().includes(q))&&(!ph||(p.phase||'')===ph));
   const c=document.getElementById('pat-list');
   c.innerHTML=f.length?f.map(renderPatRow).join(''):`<div style="text-align:center;padding:32px;color:var(--text-dim);">No patients found. Add your first patient.</div>`;
 }
@@ -1474,19 +1557,146 @@ function renderOvPatients(){
   document.getElementById('ov-patients').innerHTML=pats.length?pats.map(renderPatRow).join(''):`<div style="text-align:center;padding:24px;color:var(--text-dim);">No patients yet.</div>`;
 }
 
+// ── CSV EXPORT ──
+function csvCell(v){v=v==null?'':String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
+function downloadCSV(name,rows){
+  const csv=rows.map(r=>r.map(csvCell).join(',')).join('\r\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download=name;a.click();URL.revokeObjectURL(a.href);
+}
+function exportPatientsCSV(){
+  const rows=[['MRN','Name','Age','Sex','Diagnosis','WHO Grade','Phase','ECOG','Active Meds','Created']];
+  getMyPatients().forEach(p=>rows.push([p.mrn,p.name,p.age||'',p.sex||'',p.diag||'',p.grade||'',p.phase||'',p.ecog||'',(p.meds||[]).filter(m=>(m.status||'Active')==='Active').map(m=>m.name).join('; '),p.createdAt||'']));
+  downloadCSV('chemocure-patients-'+new Date().toISOString().slice(0,10)+'.csv',rows);
+}
+function exportLogsCSV(){
+  const rows=[['MRN','Patient','Date','Cognitive','Seizure','Vision','Headache','Mood','Fatigue','Nausea','Appetite','Sleep','Temp','BP sys','BP dia','Weight','Meds taken','Notes']];
+  getMyPatients().forEach(p=>{
+    LS.keys('log_'+p.mrn+'_').map(k=>LS.get(k)).filter(Boolean).forEach(l=>rows.push([p.mrn,p.name,l.date,l.cognitive,l.seizure,l.vision,l.headache,l.mood,l.fatigue,l.nausea,l.appetite,l.sleep,l.temp||'',l.bp_sys||'',l.bp_dia||'',l.weight||'',(l.meds||[]).join('; '),l.notes||'']));
+  });
+  downloadCSV('chemocure-symptom-logs-'+new Date().toISOString().slice(0,10)+'.csv',rows);
+}
+
+// ── PATIENT DOCUMENTS LOCKER ──
+function uploadPatientDoc(input){
+  const f=input.files[0];if(!f)return;
+  if(f.size>2*1024*1024){alert('File too large — max 2 MB.');input.value='';return;}
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const docs=LS.get('docs_'+selectedMRN)||[];
+    docs.unshift({id:Date.now()+''+Math.floor(Math.random()*1e4),name:f.name,type:f.type||'file',size:f.size,ts:new Date().toISOString(),by:currentDoc.name,data:reader.result});
+    LS.set('docs_'+selectedMRN,docs.slice(0,20));
+    renderDocsList();
+  };
+  reader.readAsDataURL(f);
+  input.value='';
+}
+function renderDocsList(){
+  const c=document.getElementById('r-docs-list');if(!c)return;
+  const docs=LS.get('docs_'+selectedMRN)||[];
+  c.innerHTML=docs.length?docs.map(d=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:20px;">${d.type.includes('pdf')?'📕':d.type.includes('image')?'🖼️':'📄'}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(d.name)}</div>
+        <div style="font-size:11px;color:var(--text-dim);">${(d.size/1024).toFixed(0)} KB · ${new Date(d.ts).toLocaleDateString()} · ${d.by||''}</div>
+      </div>
+      <a href="${d.data}" download="${esc(d.name)}" class="btn btn-ghost btn-sm">⬇</a>
+      <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="deletePatientDoc('${d.id}')">✕</button>
+    </div>`).join(''):'<div style="text-align:center;padding:20px;color:var(--text-dim);font-size:12px;">No documents uploaded yet.</div>';
+}
+function deletePatientDoc(id){
+  if(!confirm('Delete this document?'))return;
+  LS.set('docs_'+selectedMRN,(LS.get('docs_'+selectedMRN)||[]).filter(d=>d.id!==id));
+  renderDocsList();
+}
+
+// ── MEDICATION ADHERENCE (from patient medlog_ keys) ──
+function medAdherence7d(mrn){
+  const p=LS.get('pat_'+mrn);if(!p)return null;
+  const active=(p.meds||[]).filter(m=>(m.status||'Active')==='Active');
+  if(!active.length)return null;
+  const slotsPerDay=active.reduce((n,m)=>{
+    const f=(m.freq||'').toUpperCase();
+    return n+(f.startsWith('BID')?2:f.startsWith('TID')?3:f.startsWith('QID')?4:1);
+  },0);
+  let taken=0,days=0;
+  for(let i=0;i<7;i++){
+    const d=new Date(Date.now()-i*86400000).toISOString().slice(0,10);
+    const log=LS.get('medlog_'+mrn+'_'+d);
+    if(!log)continue;
+    days++;taken+=Object.values(log.taken||{}).filter(Boolean).length;
+  }
+  if(!days)return null;
+  return Math.min(100,Math.round(100*taken/(slotsPerDay*days)));
+}
+
+// ── NOTIFICATIONS ──
+function getDocAlerts(){
+  let out=[];
+  LS.keys('alerts_'+currentDoc.docId+'_').forEach(k=>{(LS.get(k)||[]).forEach(a=>out.push({...a,_key:k}));});
+  const subs=LS.get('lab_subs_'+currentDoc.docId)||[];
+  const seen=LS.get('seen_subs_'+currentDoc.docId)||0;
+  if(subs.length>seen)out.push({id:'labsubs',ts:new Date().toISOString(),type:'lab',text:(subs.length-seen)+' new lab result'+(subs.length-seen>1?'s':'')+' uploaded',name:'Lab results',urgent:false,read:false,_labsubs:true});
+  out.sort((a,b)=>(b.ts||'').localeCompare(a.ts||''));
+  return out;
+}
+function renderNotifs(){
+  if(!currentDoc)return;
+  const alerts=getDocAlerts();
+  const unread=alerts.filter(a=>!a.read).length;
+  const badge=document.getElementById('notif-badge');
+  if(badge){badge.style.display=unread?'inline-flex':'none';badge.textContent=unread;}
+  const list=document.getElementById('notif-list');
+  if(list)list.innerHTML=alerts.length?alerts.slice(0,30).map(a=>`
+    <div class="notif-item${a.read?'':' unread'}${a.urgent?' urgent':''}" onclick="${a._labsubs?"toggleNotifs()":`openRecord('${a.mrn}')`}">
+      <div class="notif-item-title">${a.urgent?'🚨 ':''}${a.name||a.mrn}</div>
+      <div class="notif-item-text">${esc(a.text)}</div>
+      <div class="notif-item-ts">${new Date(a.ts).toLocaleString()}</div>
+    </div>`).join(''):'<div style="padding:24px;text-align:center;color:var(--text-dim);font-size:12px;">No notifications yet</div>';
+  const urgent=alerts.filter(a=>!a.read&&a.urgent);
+  const b=document.getElementById('urgent-banner');
+  if(b){
+    b.style.display=urgent.length?'block':'none';
+    if(urgent.length)b.innerHTML=`<div class="urgent-banner-inner">🚨 <strong>${urgent.length} urgent alert${urgent.length>1?'s':''}</strong><span>${urgent.slice(0,2).map(a=>(a.name||a.mrn)+' — '+a.text).join(' · ')}</span><button onclick="toggleNotifs()" class="urgent-banner-btn">Review</button></div>`;
+  }
+}
+function toggleNotifs(){const p=document.getElementById('notif-panel');p.classList.toggle('open');if(p.classList.contains('open'))renderNotifs();}
+function markAllNotifsRead(){
+  LS.keys('alerts_'+currentDoc.docId+'_').forEach(k=>{LS.set(k,(LS.get(k)||[]).map(a=>({...a,read:true})));});
+  LS.set('seen_subs_'+currentDoc.docId,(LS.get('lab_subs_'+currentDoc.docId)||[]).length);
+  renderNotifs();
+}
+window.refreshDoctorNotifs=function(){try{renderNotifs();}catch(e){}};
+setInterval(()=>{if(currentDoc)renderNotifs();},30000);
+
 // ── ADD PATIENT ──
 function openAddPat(){document.getElementById('ap-creds').style.display='none';['ap-name','ap-email','ap-phone','ap-diag'].forEach(id=>sv(id,''));sv('ap-dob','');openOverlay('add-pat-modal');}
-function genMRN(){return currentDoc.docId+'-'+Math.floor(100+Math.random()*900);}
+function genMRN(){
+  // Unique per doctor: 5-digit space (90k) + re-roll against existing records,
+  // so two patients can never collide onto the same MRN (which would overwrite
+  // one record and break login isolation).
+  const taken=new Set(LS.keys('pat_'));   // e.g. 'pat_DOC-1234-56789'
+  let mrn, tries=0;
+  do { mrn=currentDoc.docId+'-'+Math.floor(10000+Math.random()*90000); }
+  while(taken.has('pat_'+mrn) && ++tries<50);
+  return mrn;
+}
 // ══════════════════════════════════════════════
 // SECURITY — password hashing & generation
 // ══════════════════════════════════════════════
 
 // Cryptographically strong password — 16 chars, mixed charset
 function genPass() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz0123456789!@#$%';
-  const arr = new Uint8Array(16);
+  // Patient-friendly: short, no symbols, no look-alike characters
+  // (0/O, 1/l/I removed). 8 random chars from a 55-char set ≈ 46 bits,
+  // plenty behind the server's login rate limiting.
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  const arr = new Uint8Array(8);
   crypto.getRandomValues(arr);
-  return Array.from(arr).map(b => chars[b % chars.length]).join('');
+  const raw = Array.from(arr).map(b => chars[b % chars.length]).join('');
+  return raw.slice(0,4) + '-' + raw.slice(4);   // Xxxx-Xxxx reads and types easily
 }
 
 // Lab username: lowercase alpha + 4 digits, no collisions with word lists
@@ -1498,11 +1708,11 @@ function genLabUser(labName) {
 }
 
 // PBKDF2 hash — returns base64 string
-async function hashPassword(password, salt) {
+async function hashPassword(password, salt, iterations) {
   const enc = new TextEncoder();
   const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
   const bits = await crypto.subtle.deriveBits(
-    { name:'PBKDF2', salt:enc.encode(salt), iterations:100000, hash:'SHA-256' },
+    { name:'PBKDF2', salt:enc.encode(salt), iterations:(iterations||100000), hash:'SHA-256' },
     key, 256
   );
   return btoa(String.fromCharCode(...new Uint8Array(bits)));
@@ -1511,6 +1721,11 @@ async function hashPassword(password, salt) {
 // Verify password against stored hash (with legacy plaintext fallback for migration)
 async function verifyPassword(input, stored) {
   if (!stored) return false;
+  // v2 format: "pbkdf2v2:<iterations>:<salt>:<hash>" (server-upgraded records)
+  if (stored.startsWith('pbkdf2v2:')) {
+    const [, iter, salt, hash] = stored.split(':');
+    return (await hashPassword(input, salt, parseInt(iter, 10))) === hash;
+  }
   // Legacy plaintext — migrate on success
   if (!stored.startsWith('pbkdf2:')) return input === stored;
   // PBKDF2 format: "pbkdf2:<salt>:<hash>"
@@ -1525,29 +1740,43 @@ async function makePasswordHash(plaintext) {
   return 'pbkdf2:' + salt + ':' + hash;
 }
 
-// ── AI API Key — session-only, never persisted to localStorage ──
-let _sessionApiKey = null;
-
-function getApiKey() { return _sessionApiKey; }
-
-function promptApiKey() {
-  const key = prompt(
-    '🔑 Enter your Anthropic API key to run AI analysis.\n\n' +
-    'This is stored in memory for this session only — it is never saved to disk or localStorage.\n\n' +
-    'Get a key at: platform.anthropic.com/api-keys'
-  );
-  if (key && key.startsWith('sk-ant-')) {
-    _sessionApiKey = key;
-    return true;
-  }
-  if (key) { flash('⚠ Invalid key format. Should start with sk-ant-'); }
-  return false;
+// Duplicate guard: same normalized name, made near-certain by a matching
+// DOB, phone, or email. Stops accidental double registration while still
+// allowing two genuinely different people with the same name.
+function findLikelyDuplicates(name,dob,phone,email){
+  const norm=s=>String(s||'').toLowerCase().replace(/\s+/g,' ').trim();
+  const n=norm(name);if(!n)return [];
+  return getMyPatients().filter(x=>{
+    if(norm(x.name)!==n)return false;
+    return true;   // same name is enough to warn; details shown for judgement
+  }).map(x=>({
+    ...x,
+    strong:(dob&&x.dob===dob)||(phone&&x.phone===phone)||(email&&norm(x.email)===norm(email)),
+  }));
 }
 
-
-async function addPatient(){
+async function addPatient(force){
   const name=v('ap-name');if(!name){showMsg('ap-msg','Patient name required.');return;}
   const dob=v('ap-dob'),age=dob?Math.floor((Date.now()-new Date(dob))/(365.25*24*3600*1e3)):null;
+
+  if(!force){
+    const dupes=findLikelyDuplicates(name,dob,v('ap-phone'),v('ap-email'));
+    if(dupes.length){
+      const el=document.getElementById('ap-msg');
+      if(el){
+        el.className='msg err';el.style.display='block';
+        el.innerHTML='<b>⚠️ Possible duplicate — "'+esc(name)+'" already exists:</b>'+
+          dupes.map(d=>'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding:8px 10px;background:var(--surface2);border-radius:7px;">'+
+            '<span style="font-size:12px;"><b>'+esc(d.name)+'</b> · '+d.mrn+(d.dob?' · DOB '+esc(d.dob):'')+(d.strong?' · <b style="color:var(--red);">details match</b>':'')+'</span>'+
+            '<button class="btn btn-cyan btn-sm" onclick="document.getElementById(\'add-pat-modal\').classList.remove(\'open\');openRecord(\''+d.mrn+'\')">Open Record</button></div>').join('')+
+          '<div style="margin-top:10px;display:flex;gap:8px;">'+
+          '<button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'ap-msg\').style.display=\'none\'">Cancel</button>'+
+          '<button class="btn btn-primary btn-sm" onclick="addPatient(true)">This is a different person — create anyway</button></div>';
+      }
+      return;
+    }
+  }
+
   const mrn=genMRN(), plainPass=genPass();
   const passHash = await makePasswordHash(plainPass);
   const pat={
@@ -1594,6 +1823,10 @@ function closeRecord(){document.getElementById('record-shell').classList.remove(
 function openRecord(mrn){
   selectedMRN=mrn;
   const p=LS.get('pat_'+mrn);if(!p)return;
+  // Access logging: record that this clinician VIEWED the record (HIPAA
+  // expects read-access logging, not just edits). Throttled to once per
+  // patient per 10 min so it doesn't flood the trail.
+  try{ const vk='__viewed_'+mrn; if(!window[vk]||Date.now()-window[vk]>600000){ window[vk]=Date.now(); writeAuditLog('access',[{field:'Record opened',prev:null,next:'viewed'}],mrn); } }catch(e){}
   rLabs=[...(p.labs||[])];
   rMeds=[...(p.meds||[])];
   // Support both old string[] and new object[] allergies
@@ -1608,7 +1841,7 @@ function openRecord(mrn){
   document.querySelector('.rnav-item').classList.add('active');
   document.getElementById('rt-identity').classList.add('active');
   // Render uploaded files after DOM is ready
-  setTimeout(() => renderLabFilesList(), 50);
+  setTimeout(() => { renderLabFilesList(); renderDocsList(); }, 50);
 }
 
 function buildRecordTabs(p){
@@ -1832,7 +2065,7 @@ function buildRecordTabs(p){
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
               ${['Hypertension','T2 Diabetes','Hypothyroidism','CAD','COPD','Asthma','CKD','Epilepsy','Depression','Anxiety'].map(c=>{
                 const checked=(p.comorbidities||[]).includes(c);
-                return `<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:${checked?'rgba(26,86,219,0.08)':'var(--surface2)'};border:1.5px solid ${checked?'rgba(26,86,219,0.3)':'var(--border)'};border-radius:9px;cursor:pointer;font-size:12.5px;font-weight:${checked?'700':'500'};color:${checked?'var(--blue)':'var(--text)'};transition:all 0.15s;" onclick="this.querySelector('input').click();updateComorBadge();">
+                return `<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:${checked?'rgba(44,94,173,0.08)':'var(--surface2)'};border:1.5px solid ${checked?'rgba(44,94,173,0.3)':'var(--border)'};border-radius:9px;cursor:pointer;font-size:12.5px;font-weight:${checked?'700':'500'};color:${checked?'var(--blue)':'var(--text)'};transition:all 0.15s;" onclick="this.querySelector('input').click();updateComorBadge();">
                   <input type="checkbox" class="comor-cb" value="${c}" ${checked?'checked':''} style="display:none;">
                   <span style="width:16px;height:16px;border-radius:4px;border:2px solid ${checked?'var(--blue)':'var(--border2)'};background:${checked?'var(--blue)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;color:#fff;transition:all 0.15s;">${checked?'✓':''}</span>
                   ${c}
@@ -1847,8 +2080,8 @@ function buildRecordTabs(p){
 
         <!-- CLINICAL NOTES CARD -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);">
-          <div style="background:linear-gradient(135deg,rgba(26,86,219,0.06),rgba(26,86,219,0.01));padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">
-            <div style="width:28px;height:28px;background:rgba(26,86,219,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;">📝</div>
+          <div style="background:linear-gradient(135deg,rgba(44,94,173,0.06),rgba(44,94,173,0.01));padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">
+            <div style="width:28px;height:28px;background:rgba(44,94,173,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;">📝</div>
             <div>
               <div style="font-weight:800;font-size:13px;color:var(--text);">Clinical Notes</div>
               <div style="font-size:10.5px;color:var(--text-muted);">Free text — visible to doctor only</div>
@@ -1861,40 +2094,7 @@ function buildRecordTabs(p){
           </div>
         </div>
 
-        <!-- AI HEALTH RISK ANALYZER CARD -->
-        <div style="background:var(--surface);border:1.5px solid rgba(26,86,219,0.2);border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(26,86,219,0.08);">
-          <div style="background:linear-gradient(135deg,var(--blue),var(--blue2));padding:14px 16px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <div style="display:flex;align-items:center;gap:10px;">
-                <div style="width:32px;height:32px;background:rgba(255,255,255,0.15);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;">🤖</div>
-                <div>
-                  <div style="font-weight:800;font-size:13.5px;color:#fff;">AI Health Risk Analyzer</div>
-                  <div style="font-size:10.5px;color:rgba(255,255,255,0.65);margin-top:1px;">Powered by Claude claude-sonnet-4-6</div>
-                </div>
-              </div>
-              <button onclick="runHealthAI('${p.mrn}')"
-                style="padding:8px 16px;background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,0.3);border-radius:9px;color:#fff;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;transition:background 0.15s;white-space:nowrap;"
-                onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
-                ▶ Run
-              </button>
-            </div>
-          </div>
-          <div style="padding:12px 14px;">
-            <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;line-height:1.6;">
-              Analyzes this patient's <strong style="color:var(--text);">allergies</strong>, <strong style="color:var(--text);">comorbidities</strong>, <strong style="color:var(--text);">active medications</strong>, and clinical notes to generate a structured risk report with flagged interactions.
-            </div>
-            <div id="hai-status-${p.mrn.replace(/[^a-z0-9]/gi,'-')}"
-              style="font-size:12px;color:var(--blue);display:none;padding:8px 12px;background:var(--blue-pale);border-radius:8px;margin-bottom:8px;">
-            </div>
-            <div id="hai-result-${p.mrn.replace(/[^a-z0-9]/gi,'-')}" style="display:none;">
-              <div style="border-top:1px solid var(--border);margin:8px 0;"></div>
-              <div id="hai-content-${p.mrn.replace(/[^a-z0-9]/gi,'-')}"
-                style="font-size:12.5px;line-height:1.75;color:var(--text);max-height:340px;overflow-y:auto;padding-right:4px;">
-              </div>
-            </div>
-            <div style="font-size:10.5px;color:var(--text-dim);margin-top:8px;line-height:1.5;border-top:1px solid var(--border);padding-top:8px;">
-              ⚕ AI-generated analysis for clinical reference only. Always apply professional judgment.
-            </div>
+
           </div>
         </div>
 
@@ -1976,7 +2176,7 @@ function buildRecordTabs(p){
           <!-- Status buttons — colour coded -->
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px;">
             ${[
-              ['Stable','var(--blue)','rgba(26,86,219,0.1)'],
+              ['Stable','var(--blue)','rgba(44,94,173,0.1)'],
               ['Response','var(--green)','rgba(5,150,105,0.1)'],
               ['Progression','var(--red)','rgba(220,38,38,0.1)'],
               ['Relapse','var(--orange)','rgba(217,119,6,0.1)']
@@ -2092,7 +2292,7 @@ function buildRecordTabs(p){
               oninput="filterLabTests(this.value);autoFillRefRange(this.value)"
               onfocus="showLabTestDropdown()"
               onblur="setTimeout(()=>hideLabTestDropdown(),180)">
-            <div id="lab-test-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1.5px solid var(--blue-light);border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:999;box-shadow:0 8px 24px rgba(26,86,219,0.15);">
+            <div id="lab-test-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1.5px solid var(--blue-light);border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:999;box-shadow:0 8px 24px rgba(44,94,173,0.15);">
             </div>
           </div>
         </div>
@@ -2382,7 +2582,7 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
       </div>
     </div>
     <!-- EQD2 / BED Calculator -->
-    <div style="background:var(--blue-pale);border:1px solid rgba(26,86,219,0.15);border-radius:10px;padding:14px 16px;margin-bottom:16px;">
+    <div style="background:var(--blue-pale);border:1px solid rgba(44,94,173,0.15);border-radius:10px;padding:14px 16px;margin-bottom:16px;">
       <div style="font-weight:700;font-size:12px;color:var(--blue);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;">
         <span>🧮 Radiobiological Calculator (EQD₂ / BED)</span>
         <span style="font-weight:400;font-size:11px;color:var(--text-muted);">α/β ratio: <input id="r-eqd2-ab" type="number" value="${p.txAlphaBeta||2}" min="1" max="20" step="0.5" style="width:50px;padding:2px 5px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;text-align:center;" oninput="calcEQD2()"></span>
@@ -2433,6 +2633,16 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
   </div>
 
   <!-- EXPORT -->
+  <!-- DOCUMENTS -->
+  <div id="rt-documents" class="rtab">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:4px;">📁 Patient Documents</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;">MRI reports, discharge summaries, prescriptions — visible to the patient in their app.</div>
+      <label class="btn btn-primary btn-sm" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;">⬆ Upload document<input type="file" style="display:none;" onchange="uploadPatientDoc(this)" accept=".pdf,.png,.jpg,.jpeg,.txt,.doc,.docx"></label>
+      <span style="font-size:11px;color:var(--text-dim);margin-left:10px;">Max 2 MB per file</span>
+      <div id="r-docs-list" style="margin-top:14px;"></div>
+    </div>
+  </div>
   <div id="rt-export" class="rtab">
     <div style="max-width:560px;">
       <div class="rt-title" style="border:none;padding:0 0 6px;">Generate Clinical Report</div>
@@ -2441,14 +2651,16 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px;">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:10px;">Sections to include</div>
         <div class="g2" style="margin-bottom:0;">
-          <label class="export-option"><input type="checkbox" id="exp-demo" checked> Demographics &amp; Identity</label>
-          <label class="export-option"><input type="checkbox" id="exp-diag" checked> Diagnosis &amp; Molecular</label>
-          <label class="export-option"><input type="checkbox" id="exp-metrics" checked> Clinical Metrics</label>
-          <label class="export-option"><input type="checkbox" id="exp-labs" checked> Lab Results</label>
-          <label class="export-option"><input type="checkbox" id="exp-meds" checked> Medications</label>
-          <label class="export-option"><input type="checkbox" id="exp-tx" checked> Treatment Plan</label>
-          <label class="export-option"><input type="checkbox" id="exp-appts"> Appointments</label>
-          <label class="export-option"><input type="checkbox" id="exp-logs"> Patient Health Logs</label>
+          <label class="export-option"><input type="checkbox" id="exp-demo" checked> 🪪 Identity</label>
+          <label class="export-option"><input type="checkbox" id="exp-metrics" checked> 📊 Metrics</label>
+          <label class="export-option"><input type="checkbox" id="exp-diag" checked> 🔬 Diagnosis</label>
+          <label class="export-option"><input type="checkbox" id="exp-mol" checked> 🧬 Molecular</label>
+          <label class="export-option"><input type="checkbox" id="exp-labs" checked> 🧪 Labs</label>
+          <label class="export-option"><input type="checkbox" id="exp-meds" checked> 💊 Prescriptions</label>
+          <label class="export-option"><input type="checkbox" id="exp-tx" checked> ⚡ Treatment</label>
+          <label class="export-option"><input type="checkbox" id="exp-appts" checked> 🗓 Appointments</label>
+          <label class="export-option"><input type="checkbox" id="exp-imaging" checked> 🖼 Imaging</label>
+          <label class="export-option"><input type="checkbox" id="exp-logs" checked> 📋 Health Logs</label>
         </div>
       </div>
 
@@ -2469,8 +2681,8 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
       </div>
 
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn btn-ghost btn-sm" onclick="['exp-demo','exp-diag','exp-metrics','exp-labs','exp-meds','exp-tx','exp-appts','exp-logs'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=true;})">Select All</button>
-        <button class="btn btn-ghost btn-sm" onclick="generateReport()" style="flex:1;">🖨 Print / Preview</button>
+        <button class="btn btn-ghost btn-sm" onclick="['exp-demo','exp-metrics','exp-diag','exp-mol','exp-labs','exp-meds','exp-tx','exp-appts','exp-imaging','exp-logs'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=true;})">Select All</button>
+        <button class="btn btn-ghost btn-sm" onclick="generatePDFDownload()" style="flex:1;">🖨 Print / Preview</button>
         <button class="btn btn-primary" style="flex:2;" onclick="generatePDFDownload()">⬇ Download PDF</button>
       </div>
       <div style="font-size:11.5px;color:var(--text-dim);margin-top:10px;text-align:center;">PDF download uses your browser's print-to-PDF feature — works offline, no upload required</div>
@@ -2551,6 +2763,17 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
         <div class="fg" style="margin:0 0 10px;"><label>Compared to Previous</label><select id="img-compare">${['First study','Stable','Decreased enhancement','Increased enhancement — possible progression','New lesion detected','Post-operative change','Pseudo-progression likely','Radiation necrosis likely'].map(o=>`<option>${o}</option>`).join('')}</select></div>
       </div>
       <div class="fg" style="margin-bottom:10px;"><label>Radiological Impression</label><textarea id="img-impression" rows="2" style="width:100%;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:inherit;font-size:13px;font-weight:600;outline:none;resize:vertical;" placeholder="Overall impression and conclusion"></textarea></div>
+      <div class="g3">
+        <div class="fg" style="margin:0 0 10px;"><label>Target Lesion Size (cm)</label>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <input type="number" step="0.1" min="0" id="img-dim1" placeholder="e.g. 2.8" style="flex:1;">
+            <span style="color:var(--text-muted);">×</span>
+            <input type="number" step="0.1" min="0" id="img-dim2" placeholder="e.g. 2.1" style="flex:1;">
+          </div></div>
+        <div class="fg" style="margin:0 0 10px;"><label>Next Scan Due</label><input type="date" id="img-next"></div>
+        <div class="fg" style="margin:0 0 10px;"><label>Scan Photos (film / CD screenshot)</label><input type="file" id="img-photos" accept="image/*" multiple style="font-size:11.5px;"></div>
+      </div>
+      <div id="img-photo-note" style="font-size:11px;color:var(--text-dim);margin-bottom:10px;">Up to 3 photos, compressed in your browser before saving — a phone photo of the film works fine. No DICOM needed.</div>
       <div style="display:flex;gap:8px;">
         <button class="btn btn-ghost btn-sm" onclick="document.getElementById('r-imaging-form').style.display='none'">Cancel</button>
         <button class="btn btn-primary" onclick="saveImagingReport('${p.mrn}')">Save Report</button>
@@ -2594,8 +2817,10 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
           <div class="cred-row"><span class="cred-key">Username (MRN)</span><span class="cred-val" id="cred-mrn-display">${p.mrn}</span></div>
           <div class="cred-row" style="margin-top:8px;"><span class="cred-key">Password</span>
             <div style="display:flex;align-items:center;gap:8px;">
-              <span class="cred-val" id="cred-pass-display">${p.pass}</span>
-              <button class="btn btn-ghost btn-sm" onclick="copyCreds('${p.mrn}','${p.pass}')" style="font-size:11px;">📋 Copy</button>
+              <span class="cred-val" id="cred-pass-display">${String(p.pass||'').startsWith('pbkdf2')?'••••••••  (hidden — stored encrypted)':esc(p.pass||'—')}</span>
+              ${String(p.pass||'').startsWith('pbkdf2')
+                ?`<span style="font-size:11px;color:var(--text-dim);">Passwords can't be shown after creation. Use Reset below to issue a new one.</span>`
+                :`<button class="btn btn-ghost btn-sm" onclick="copyCreds('${p.mrn}','${esc(p.pass||'')}')" style="font-size:11px;">📋 Copy</button>`}
             </div>
           </div>
           <div style="font-size:11px;color:var(--text-muted);margin-top:10px;">Share with patient for ChemoCure Patient App login.</div>
@@ -2611,11 +2836,26 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
         </div>
 
         <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:10px;">Reset password</div>
-          <div style="display:flex;gap:8px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:6px;">Reset password</div>
+          <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:10px;line-height:1.5;">Resetting locks the patient out with their current password. Only do this at the patient's request or with their consent — every reset is recorded in the patient's history with your name, the time, and the reason.</div>
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
             <input id="cred-new-pass" placeholder="New password…" style="flex:1;padding:8px 10px;background:var(--surface);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:inherit;font-size:13px;outline:none;">
-            <button class="btn btn-ghost btn-sm" onclick="resetPatientPassword('${p.mrn}')">Reset</button>
-            <button class="btn btn-ghost btn-sm" onclick="generateNewPassword('${p.mrn}')">Auto-Generate</button>
+            <select id="cred-reset-reason" style="flex:1;padding:8px 10px;background:var(--surface);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:inherit;font-size:12.5px;">
+              <option value="">Reason for reset…</option>
+              <option>Patient requested it</option>
+              <option>Patient forgot their password</option>
+              <option>Suspected account compromise</option>
+              <option>Credentials never received by patient</option>
+              <option>Other (clinical/administrative)</option>
+            </select>
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);cursor:pointer;margin-bottom:10px;">
+            <input type="checkbox" id="cred-consent" style="width:15px;height:15px;cursor:pointer;">
+            I confirm the patient has consented to this password change.
+          </label>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary btn-sm" onclick="resetPatientPassword('${p.mrn}')">Reset Password</button>
+            <button class="btn btn-ghost btn-sm" onclick="generateNewPassword('${p.mrn}')">Auto-Generate & Reset</button>
           </div>
           <div id="cred-reset-msg" style="font-size:12px;margin-top:8px;display:none;"></div>
         </div>
@@ -3011,6 +3251,8 @@ function generatePDFDownload(){
     tx:document.getElementById('exp-tx')?.checked!==false,
     appts:document.getElementById('exp-appts')?.checked,
     logs:document.getElementById('exp-logs')?.checked,
+    mol:document.getElementById('exp-mol')?.checked!==false,
+    imaging:document.getElementById('exp-imaging')?.checked,
   };
   const fromDate=document.getElementById('exp-date-from')?.value||'';
   const toDate=document.getElementById('exp-date-to')?.value||new Date().toISOString().slice(0,10);
@@ -3024,17 +3266,17 @@ function generatePDFDownload(){
   const sc={Normal:'#065f46,#d1fae5',High:'#991b1b,#fee2e2',Low:'#92400e,#fef3c7',Critical:'#7f1d1d,#fecaca',Pending:'#374151,#f3f4f6'};
   const badge=(status)=>{ const [tc,bg]=(sc[status]||sc.Pending).split(','); return `<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:600;color:${tc};background:${bg};">${status}</span>`; };
 
-  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Clinical Report — ${p.name}</title>
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Clinical Report — ${esc(p.name)}</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
   body{font-family:'Segoe UI',Arial,sans-serif;color:#0f172a;background:#fff;font-size:13px;line-height:1.6;}
   .page{max-width:800px;margin:0 auto;padding:32px 40px;}
-  .header{border-bottom:3px solid #1a56db;padding-bottom:16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-start;}
-  .brand{font-size:22px;font-weight:800;color:#1a56db;letter-spacing:-0.5px;}
+  .header{border-bottom:3px solid #1591DC;padding-bottom:16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-start;}
+  .brand{font-size:22px;font-weight:800;color:#1591DC;letter-spacing:-0.5px;}
   .brand span{color:#059669;}
   .meta{text-align:right;font-size:11px;color:#64748b;}
   .meta strong{font-size:14px;color:#0f172a;display:block;}
-  h2{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#1a56db;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid #e2e8f0;}
+  h2{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#1591DC;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid #e2e8f0;}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
   .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
   .box{background:#f8fafc;border-radius:6px;padding:10px 12px;}
@@ -3052,26 +3294,26 @@ function generatePDFDownload(){
     <div>
       <div class="brand">Chemo<span>Cure</span> Pro</div>
       <div style="font-size:11px;color:#64748b;margin-top:2px;">Neuro-Oncology Clinical Report</div>
-      ${facility?`<div style="font-size:11px;color:#1a56db;margin-top:2px;">${facility}</div>`:''}
+      ${facility?`<div style="font-size:11px;color:#1591DC;margin-top:2px;">${facility}</div>`:''}
     </div>
     <div class="meta">
-      <strong>${p.name}</strong>
+      <strong>${esc(p.name)}</strong>
       <span>MRN: ${p.mrn}</span><br>
-      <span>Clinician: Dr. ${clinician}</span><br>
+      <span>Clinician: ${/^dr[.\s]/i.test(clinician)?clinician:'Dr. '+clinician}</span><br>
       <span>Generated: ${new Date().toLocaleString()}</span>
       ${fromDate?`<br><span>Period: ${fromDate} to ${toDate}</span>`:''}
     </div>
   </div>
 
   ${checkboxes.demo?`<h2>Patient Demographics</h2><div class="grid2">
-    <div class="box"><div class="label">Full Name</div><div class="val">${p.name}</div></div>
+    <div class="box"><div class="label">Full Name</div><div class="val">${esc(p.name)}</div></div>
     <div class="box"><div class="label">MRN</div><div class="val" style="font-family:monospace;">${p.mrn}</div></div>
     <div class="box"><div class="label">Date of Birth</div><div class="val">${p.dob||'—'} (Age: ${p.age||'—'})</div></div>
     <div class="box"><div class="label">Gender / Blood</div><div class="val">${p.gender||'—'} · ${p.blood||'—'}</div></div>
     <div class="box"><div class="label">Treatment Phase</div><div class="val">${p.phase||'—'}</div></div>
     <div class="box"><div class="label">Contact</div><div class="val">${p.phone||'—'}</div></div>
-    ${p.emergencyName?`<div class="box"><div class="label">Emergency Contact</div><div class="val">${p.emergencyName} · ${p.emergencyPhone||''}</div></div>`:''}
-    ${p.insurance?`<div class="box"><div class="label">Insurance</div><div class="val">${p.insurance} · ${p.insuranceId||''}</div></div>`:''}
+    ${p.emergencyName?`<div class="box"><div class="label">Emergency Contact</div><div class="val">${esc(p.emergencyName)} · ${p.emergencyPhone||''}</div></div>`:''}
+    ${p.insurance?`<div class="box"><div class="label">Insurance</div><div class="val">${esc(p.insurance)} · ${p.insuranceId||''}</div></div>`:''}
     ${p.comorbidities?.length?`<div class="box" style="grid-column:span 2;"><div class="label">Comorbidities</div><div class="val">${p.comorbidities.join(', ')}${p.comorbiditiesOther?' · '+p.comorbiditiesOther:''}</div></div>`:''}
     ${p.allergies?.length?`<div class="box" style="grid-column:span 2;"><div class="label">Allergies</div><div class="val">${(p.allergies||[]).map(a=>a.name+' ('+a.severity+')').join(', ')}</div></div>`:''}
   </div>`:''}
@@ -3088,7 +3330,9 @@ function generatePDFDownload(){
     <div class="box"><div class="label">TNM Stage</div><div class="val">T:${p.tnmT||'—'} N:${p.tnmN||'—'} M:${p.tnmM||'—'} · Stage ${p.tnmStage||'—'}</div></div>
     <div class="box"><div class="label">Target Lesions</div><div class="val">${p.targetLesions||'0'} mm · New: ${p.newLesions||'None'}</div></div>
   </div>
-  <h2 style="font-size:11px;margin-top:14px;">Molecular Profile (WHO CNS 2021)</h2>
+  `:''}
+
+  ${checkboxes.mol?`<h2>Molecular Profile (WHO CNS 2021)</h2>
   <div class="grid4">
     ${[['IDH1',p.idh1],['MGMT',p.mgmt],['1p/19q',p.codeletion],['TERT',p.tert],['ATRX',p.atrx],['EGFR',p.egfr],['BRAF',p.braf],['H3K27M',p.h3k27m],['Ki-67',p.ki67?p.ki67+'%':null],['P53',p.p53],['PTEN',p.pten],['CDKN2A/B',p.cdkn2ab]].map(([l,v])=>`<div class="box"><div class="label">${l}</div><div style="font-weight:600;font-size:12px;">${v||'Pending'}</div></div>`).join('')}
   </div>`:''}
@@ -3104,12 +3348,12 @@ function generatePDFDownload(){
 
   ${checkboxes.labs&&labs.length?`<h2>Laboratory Results (${labs.length} entries)</h2>
   <table><thead><tr><th>Date</th><th>Test</th><th>Value</th><th>Ref Range</th><th>Status</th><th>Notes</th></tr></thead>
-  <tbody>${labs.map(l=>`<tr><td>${l.date||'—'}</td><td style="font-weight:500;">${l.test}</td><td style="font-family:monospace;">${l.value}</td><td style="color:#64748b;">${l.ref||'—'}</td><td>${badge(l.status)}</td><td style="color:#64748b;font-size:11px;">${l.notes||'—'}</td></tr>`).join('')}</tbody>
+  <tbody>${labs.map(l=>`<tr><td>${l.date||'—'}</td><td style="font-weight:500;">${esc(l.test)}</td><td style="font-family:monospace;">${esc(l.value)}</td><td style="color:#64748b;">${l.ref||'—'}</td><td>${badge(l.status)}</td><td style="color:#64748b;font-size:11px;">${l.notes||'—'}</td></tr>`).join('')}</tbody>
   </table>`:''}
 
   ${checkboxes.meds&&rMeds.length?`<h2>Medications</h2>
   <table><thead><tr><th>Drug</th><th>Dose</th><th>Route</th><th>Frequency</th><th>Status</th><th>Indication</th></tr></thead>
-  <tbody>${rMeds.map(m=>`<tr><td style="font-weight:500;">${m.name}</td><td style="font-family:monospace;">${m.dose||'—'}</td><td>${m.route||'—'}</td><td>${m.freq||'—'}</td><td>${m.status||'Active'}</td><td style="color:#64748b;">${m.indication||'—'}</td></tr>`).join('')}</tbody>
+  <tbody>${rMeds.map(m=>`<tr><td style="font-weight:500;">${esc(m.name)}</td><td style="font-family:monospace;">${m.dose||'—'}</td><td>${m.route||'—'}</td><td>${m.freq||'—'}</td><td>${m.status||'Active'}</td><td style="color:#64748b;">${m.indication||'—'}</td></tr>`).join('')}</tbody>
   </table>`:''}
 
   ${checkboxes.tx&&(p.txTechnique||p.txDose)?`<h2>Treatment Plan</h2><div class="grid2">
@@ -3126,6 +3370,19 @@ function generatePDFDownload(){
   <tbody>${appts.map(a=>`<tr><td>${a.date||'—'}</td><td>${a.time||'—'}</td><td>${a.type||'—'}</td><td>${a.status||'—'}</td><td style="color:#64748b;">${a.notes||'—'}</td></tr>`).join('')}</tbody>
   </table>`:''}
 
+  ${checkboxes.imaging&&(p.imaging||[]).length?`<h2>Imaging Reports (${(p.imaging||[]).length})</h2>
+  ${(p.imaging||[]).map(r=>`<div class="box" style="margin-bottom:8px;">
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+      <div style="font-weight:700;">${r.date||'—'} · ${r.modality||'Imaging'}</div>
+      ${r.compare?`<div style="font-size:11px;font-weight:600;color:#1591DC;">${esc(r.compare)}</div>`:''}
+    </div>
+    ${r.facility?`<div style="font-size:11px;color:#64748b;">Facility: ${esc(r.facility)}</div>`:''}
+    <div class="grid4" style="margin-top:6px;">
+      ${[['T1 + Contrast',r.t1],['T2 / FLAIR',r.t2],['DWI',r.dwi],['Mass Effect',r.mass]].filter(x=>x[1]).map(([l,v])=>`<div><div class="label">${l}</div><div style="font-size:11.5px;">${v}</div></div>`).join('')}
+    </div>
+    ${r.impression?`<div style="margin-top:6px;"><span class="label">Impression</span><div style="font-size:12px;">${esc(r.impression)}</div></div>`:''}
+  </div>`).join('')}`:''}
+
   ${checkboxes.logs&&logs.length?`<h2>Patient Health Logs (${logs.length} entries)</h2>
   <table><thead><tr><th>Date</th><th>Mood</th><th>Cognition</th><th>Pain</th><th>Seizure</th><th>Notes</th></tr></thead>
   <tbody>${logs.slice().reverse().map(l=>`<tr><td>${l.date}</td><td>${l.mood||0}/5</td><td>${l.cognition||0}/10</td><td>${l.pain||0}/10</td><td>${l.seizure?'Yes':'No'}</td><td style="color:#64748b;font-size:11px;">${l.notes||'—'}</td></tr>`).join('')}</tbody>
@@ -3135,15 +3392,15 @@ function generatePDFDownload(){
 
   <div class="footer">
     <div>ChemoCure Pro · Neuro-Oncology EMR</div>
-    <div>Dr. ${clinician} · ${new Date().toLocaleDateString()}</div>
+    <div>${/^dr[.\s]/i.test(clinician)?clinician:'Dr. '+clinician} · ${new Date().toLocaleDateString()}</div>
   </div>
   <div class="no-print" style="margin-top:24px;text-align:center;">
-    <button onclick="window.print()" style="padding:12px 28px;background:#1a56db;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-right:8px;">⬇ Save as PDF</button>
+    <button onclick="window.print()" style="padding:12px 28px;background:#1591DC;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-right:8px;">⬇ Save as PDF</button>
     <button onclick="window.close()" style="padding:12px 20px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;cursor:pointer;">Close</button>
   </div>
 </div>
-'+'<scr'+'ipt>window.onload=function(){window.print();}<\/scr'+'ipt>
-</body></html>`;
+<scr\ipt>window.onload=function(){window.print();}</scr\ipt>
+</body></html>`.replace(/scr\\ipt/g,'script');
 
   const win=window.open('','_blank','width=920,height=760');
   win.document.write(html);
@@ -3153,7 +3410,7 @@ function generatePDFDownload(){
 function setDS(btn,val){
   // Update all DS buttons — new colour-coded style
   const dsColors={
-    'Stable':['var(--blue)','rgba(26,86,219,0.1)'],
+    'Stable':['var(--blue)','rgba(44,94,173,0.1)'],
     'Response':['var(--green)','rgba(5,150,105,0.1)'],
     'Progression':['var(--red)','rgba(220,38,38,0.1)'],
     'Relapse':['var(--orange)','rgba(217,119,6,0.1)']
@@ -3186,23 +3443,35 @@ function shareCredsEmail(mrn,pass,name,email){
 }
 function printCredsCard(mrn,pass,name){
   const w=window.open('','_blank','width=400,height=480');
-  w.document.write(`<!DOCTYPE html><html><head><title>Patient Card</title><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;padding:24px;}.card{border:2px solid #1a56db;border-radius:12px;padding:20px;max-width:340px;text-align:center;}.logo{font-size:28px;margin-bottom:4px;}.title{font-size:15px;font-weight:700;color:#1a56db;margin-bottom:12px;}.name{font-size:18px;font-weight:700;margin-bottom:14px;}.box{background:#f0f5ff;border-radius:8px;padding:10px 14px;text-align:left;margin-bottom:10px;}.label{font-size:10px;text-transform:uppercase;color:#475569;margin-bottom:3px;}.val{font-size:16px;font-weight:700;font-family:monospace;color:#1a56db;}.note{font-size:11px;color:#64748b;margin-top:12px;}.no-print{margin-top:16px;}@media print{.no-print{display:none;}}</style></head><body><div class="card"><div class="logo">🏥</div><div class="title">ChemoCure Patient App</div><div class="name">${name}</div><div class="box"><div class="label">Username (MRN)</div><div class="val">${mrn}</div></div><div class="box"><div class="label">Password</div><div class="val">${pass}</div></div><div class="note">Log in at ChemoCure Patient App</div><div class="no-print" style="margin-top:16px;"><button onclick="window.print()" style="padding:10px 20px;background:#1a56db;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;width:100%;">🖨 Print Card</button></div></div></body></html>`);
+  w.document.write(`<!DOCTYPE html><html><head><title>Patient Card</title><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;padding:24px;}.card{border:2px solid #1591DC;border-radius:12px;padding:20px;max-width:340px;text-align:center;}.logo{font-size:28px;margin-bottom:4px;}.title{font-size:15px;font-weight:700;color:#1591DC;margin-bottom:12px;}.name{font-size:18px;font-weight:700;margin-bottom:14px;}.box{background:#f0f5ff;border-radius:8px;padding:10px 14px;text-align:left;margin-bottom:10px;}.label{font-size:10px;text-transform:uppercase;color:#475569;margin-bottom:3px;}.val{font-size:16px;font-weight:700;font-family:monospace;color:#1591DC;}.note{font-size:11px;color:#64748b;margin-top:12px;}.no-print{margin-top:16px;}@media print{.no-print{display:none;}}</style></head><body><div class="card"><div class="logo">🏥</div><div class="title">ChemoCure Patient App</div><div class="name">${name}</div><div class="box"><div class="label">Username (MRN)</div><div class="val">${mrn}</div></div><div class="box"><div class="label">Password</div><div class="val">${pass}</div></div><div class="note">Log in at ChemoCure Patient App</div><div class="no-print" style="margin-top:16px;"><button onclick="window.print()" style="padding:10px 20px;background:#1591DC;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;width:100%;">🖨 Print Card</button></div></div></body></html>`);
   w.document.close();
 }
-function resetPatientPassword(mrn){
+async function resetPatientPassword(mrn){
   const newPass=(document.getElementById('cred-new-pass')?.value||'').trim();
   const msgEl=document.getElementById('cred-reset-msg');
-  if(!newPass){if(msgEl){msgEl.textContent='Enter a new password.';msgEl.style.color='var(--red)';msgEl.style.display='block';}return;}
+  const showErr=t=>{if(msgEl){msgEl.textContent=t;msgEl.style.color='var(--red)';msgEl.style.display='block';}};
+  if(!newPass){showErr('Enter a new password (or use Auto-Generate).');return;}
+  // ── Consent gate: block silent resets without the patient's agreement ──
+  const reason=(document.getElementById('cred-reset-reason')?.value||'').trim();
+  if(!reason){showErr('Select a reason for the reset.');return;}
+  const consent=document.getElementById('cred-consent')?.checked;
+  if(!consent){showErr('You must confirm the patient consented before resetting their password.');return;}
   const pat=LS.get('pat_'+mrn);if(!pat)return;
-  LS.set('pat_'+mrn,{...pat,pass:newPass});
+  if(!confirm('Reset password for '+pat.name+'?\n\nTheir current password will stop working immediately. This action is recorded in the patient\'s history.'))return;
+  // Store hashed, same as account creation — never plaintext.
+  LS.set('pat_'+mrn,{...pat,pass:await makePasswordHash(newPass),passPlain:undefined});
+  // Record who/when/why in the patient's audit trail (no password values stored).
+  try{ writeAuditLog('security',[{field:'Patient password reset',prev:'(previous password)',next:'reset by clinician',reason,consent:'Patient consent confirmed'}],mrn); }catch(e){}
   const passEl=document.getElementById('cred-pass-display');if(passEl)passEl.textContent=newPass;
   if(document.getElementById('cred-new-pass'))document.getElementById('cred-new-pass').value='';
-  if(msgEl){msgEl.textContent='✅ Password updated to: '+newPass;msgEl.style.color='var(--green)';msgEl.style.display='block';setTimeout(()=>msgEl.style.display='none',4000);}
-  flash('Password reset for '+pat.name+'!');
+  const cc=document.getElementById('cred-consent');if(cc)cc.checked=false;
+  const rr=document.getElementById('cred-reset-reason');if(rr)rr.value='';
+  if(msgEl){msgEl.innerHTML='✅ Password reset (logged to history). New password — share it with the patient now:<br><b style="font-family:var(--mono);font-size:14px;">'+esc(newPass)+'</b>';msgEl.style.color='var(--green)';msgEl.style.display='block';}
+  flash('Password reset for '+pat.name+' — recorded in history.');
 }
 function generateNewPassword(mrn){
-  const newPass='CC-'+Math.floor(1000+Math.random()*9000);
-  const inp=document.getElementById('cred-new-pass');if(inp)inp.value=newPass;
+  // Fill a strong password; the consent gate in resetPatientPassword still applies.
+  const inp=document.getElementById('cred-new-pass');if(inp)inp.value=genPass();
   resetPatientPassword(mrn);
 }
 
@@ -3260,9 +3529,34 @@ function saveRecord(){
 }
 
 function deletePatient(){
-  if(!confirm('Remove this patient?'))return;
-  LS.del('pat_'+selectedMRN);
+  const mrn=selectedMRN;const snapshot=LS.get('pat_'+mrn);
+  if(!snapshot)return;
+  if(!confirm('Remove '+(snapshot.name||'this patient')+'?\n\nYou can undo this for a few seconds afterwards.'))return;
+  LS.del('pat_'+mrn);
   closeRecord();renderPatList();renderOvPatients();updateStats();renderCalSel();renderConvos();
+  try{ writeAuditLog('security',[{field:'Patient record removed',prev:snapshot.name||mrn,next:'deleted'}],mrn); }catch(e){}
+  showUndoToast(mrn, snapshot);
+}
+function showUndoToast(mrn, snapshot){
+  var old=document.getElementById('undo-toast'); if(old)old.remove();
+  var t=document.createElement('div'); t.id='undo-toast';
+  t.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:100000;'+
+    'background:#16223a;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,0.35);'+
+    'display:flex;align-items:center;gap:14px;font:600 13px system-ui;';
+  t.innerHTML='<span>Removed '+esc(snapshot.name||mrn)+'</span>';
+  var btn=document.createElement('button');
+  btn.textContent='Undo';
+  btn.style.cssText='background:var(--blue,#1a56db);color:#fff;border:none;border-radius:8px;padding:6px 14px;font:700 12.5px system-ui;cursor:pointer;';
+  btn.setAttribute('aria-label','Undo delete');
+  var timer=setTimeout(function(){ t.remove(); }, 8000);
+  btn.addEventListener('click',function(){
+    clearTimeout(timer);
+    LS.set('pat_'+mrn, snapshot);
+    try{ writeAuditLog('security',[{field:'Patient deletion undone',prev:'deleted',next:snapshot.name||mrn}],mrn); }catch(e){}
+    renderPatList();renderOvPatients();updateStats();renderCalSel();renderConvos();
+    t.remove(); flash('Patient restored.');
+  });
+  t.appendChild(btn); document.body.appendChild(t);
 }
 
 // ── INLINE CALCS ──
@@ -3338,7 +3632,7 @@ function renderMDTNotes(mrn){
   if(!notes.length){list.innerHTML='<div class="empty-card">No MDT meeting notes recorded yet.</div>';return;}
   list.innerHTML=notes.map((n,i)=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><div style="display:flex;align-items:center;gap:10px;">
-      <div style="background:rgba(26,86,219,0.1);color:var(--blue);font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;">${esc(n.type)}</div>
+      <div style="background:rgba(44,94,173,0.1);color:var(--blue);font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;">${esc(n.type)}</div>
       <strong>${esc(n.date)}</strong>${n.venue?`<span style="font-size:11.5px;color:var(--text-muted);">${esc(n.venue)}</span>`:''}
     </div><button onclick="deleteMDTNote('${mrn}',${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:11px;">✕</button></div>
     ${n.chair?`<div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Chair: ${esc(n.chair)}</div>`:''}
@@ -3350,25 +3644,90 @@ function renderMDTNotes(mrn){
 function deleteMDTNote(mrn,idx){if(!confirm('Delete this MDT note?'))return;const p=LS.get('pat_'+mrn)||{};p.mdtNotes=(p.mdtNotes||[]).filter((_,i)=>i!==idx);LS.set('pat_'+mrn,p);renderMDTNotes(mrn);}
 
 // ── Imaging Reports ──
-function saveImagingReport(mrn){
+// Compress a photo in the browser (max 900px, JPEG) so scan photos stay
+// small enough to live in the synced record — no DICOM required.
+function compressImageFile(file){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    img.onload=()=>{
+      const max=900;const scale=Math.min(1,max/Math.max(img.width,img.height));
+      const c=document.createElement('canvas');
+      c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      URL.revokeObjectURL(img.src);
+      resolve(c.toDataURL('image/jpeg',0.68));
+    };
+    img.onerror=reject;
+    img.src=URL.createObjectURL(file);
+  });
+}
+
+async function saveImagingReport(mrn){
   const report={date:document.getElementById('img-date')?.value||'',modality:document.getElementById('img-modality')?.value||'',facility:document.getElementById('img-facility')?.value||'',t1:document.getElementById('img-t1')?.value||'',t2:document.getElementById('img-t2')?.value||'',dwi:document.getElementById('img-dwi')?.value||'',mass:document.getElementById('img-mass')?.value||'',compare:document.getElementById('img-compare')?.value||'',impression:document.getElementById('img-impression')?.value||'',addedAt:Date.now(),addedBy:currentDoc?.name||''};
+  const d1=parseFloat(document.getElementById('img-dim1')?.value),d2=parseFloat(document.getElementById('img-dim2')?.value);
+  if(d1)report.dim1=d1;if(d2)report.dim2=d2;
+  report.nextDue=document.getElementById('img-next')?.value||'';
+  const files=[...(document.getElementById('img-photos')?.files||[])].slice(0,3);
+  if(files.length){
+    flash('Compressing '+files.length+' photo(s)…');
+    try{ report.photos=await Promise.all(files.map(compressImageFile)); }
+    catch(e){ console.warn('photo compression failed',e); flash('One photo could not be read — saved without it.'); }
+  }
   const p=LS.get('pat_'+mrn)||{};if(!p.imaging)p.imaging=[];p.imaging.unshift(report);LS.set('pat_'+mrn,p);
   document.getElementById('r-imaging-form').style.display='none';
-  ['img-facility','img-t1','img-t2','img-dwi','img-mass','img-impression'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['img-facility','img-t1','img-t2','img-dwi','img-mass','img-impression','img-dim1','img-dim2','img-next','img-photos'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   renderImagingReports(mrn);flash('Imaging report saved');
+}
+
+// Pure-SVG lesion size trend (works offline, no chart library needed).
+function imagingTrendSVG(reports){
+  const pts=reports.filter(r=>r.dim1&&r.dim2&&r.date).map(r=>({date:r.date,v:+(r.dim1*r.dim2).toFixed(2)}))
+    .sort((a,b)=>a.date.localeCompare(b.date));
+  if(pts.length<2)return '';
+  const W=640,H=150,P=34;
+  const vs=pts.map(p=>p.v),min=Math.min(...vs),max=Math.max(...vs),span=(max-min)||1;
+  const x=i=>P+i*(W-2*P)/(pts.length-1);
+  const y=v=>H-P-((v-min)/span)*(H-2*P);
+  const line=pts.map((p,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(p.v).toFixed(1)).join(' ');
+  const rising=vs[vs.length-1]>vs[0];
+  const col=rising?'var(--red)':'var(--green)';
+  return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:12px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+      <div style="font-size:12px;font-weight:700;">📈 Target Lesion Size Trend (cm², bidimensional product)</div>
+      <div style="font-size:11.5px;font-weight:700;color:${col};">${vs[0]} → ${vs[vs.length-1]} cm² ${rising?'↑':'↓'}</div>
+    </div>
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;">
+      <line x1="${P}" y1="${H-P}" x2="${W-P}" y2="${H-P}" stroke="var(--border)" stroke-width="1"/>
+      <path d="${line}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round"/>
+      ${pts.map((p,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="${i===pts.length-1?5:3.5}" fill="${col}"/>
+        <text x="${x(i).toFixed(1)}" y="${(y(p.v)-9).toFixed(1)}" text-anchor="middle" font-size="10" fill="var(--text-muted)">${p.v}</text>
+        <text x="${x(i).toFixed(1)}" y="${H-P+14}" text-anchor="middle" font-size="9" fill="var(--text-dim)">${p.date.slice(5)}</text>`).join('')}
+    </svg>
+  </div>`;
+}
+
+function viewImagingPhoto(src){
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:10001;background:rgba(5,10,25,0.9);display:flex;align-items:center;justify-content:center;padding:24px;cursor:zoom-out;';
+  ov.innerHTML='<img src="'+src+'" style="max-width:96%;max-height:92%;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,0.6);">';
+  ov.addEventListener('click',()=>ov.remove());
+  document.body.appendChild(ov);
 }
 function renderImagingReports(mrn){
   const p=LS.get('pat_'+mrn)||{};const list=document.getElementById('r-imaging-list');if(!list)return;const reports=p.imaging||[];
   if(!reports.length){list.innerHTML='<div class="empty-card">No imaging reports recorded. Add the first MRI/CT report above.</div>';return;}
   const compareCol={'Stable':'var(--blue)','Increased enhancement — possible progression':'var(--red)','New lesion detected':'var(--red)','Decreased enhancement':'var(--green)','Pseudo-progression likely':'var(--orange)','Radiation necrosis likely':'var(--orange)'};
-  list.innerHTML=reports.map((r,i)=>{const col=compareCol[r.compare]||'var(--text-muted)';
+  const todayStr2=new Date().toISOString().slice(0,10);
+  list.innerHTML=imagingTrendSVG(reports)+reports.map((r,i)=>{const col=compareCol[r.compare]||'var(--text-muted)';
     return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:10px;">
       <div style="background:var(--surface2);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <strong>${esc(r.date)}</strong>
-          <span style="background:rgba(26,86,219,0.1);color:var(--blue);font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;">${esc(r.modality)}</span>
+          <span style="background:rgba(44,94,173,0.1);color:var(--blue);font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;">${esc(r.modality)}</span>
           ${r.facility?`<span style="font-size:11.5px;color:var(--text-muted);">${esc(r.facility)}</span>`:''}
           ${r.compare?`<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;background:${col}18;color:${col};">${esc(r.compare)}</span>`:''}
+          ${r.dim1&&r.dim2?`<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(0,200,180,0.12);color:var(--cyan);">📐 ${r.dim1} × ${r.dim2} cm</span>`:''}
+          ${r.nextDue?`<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;${r.nextDue<todayStr2?'background:rgba(255,92,92,0.14);color:var(--red);':'background:rgba(240,160,75,0.13);color:var(--orange);'}">📅 next scan ${esc(r.nextDue)}${r.nextDue<todayStr2?' — OVERDUE':''}</span>`:''}
         </div>
         <button onclick="deleteImagingReport('${mrn}',${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:11px;">✕</button>
       </div>
@@ -3378,6 +3737,10 @@ function renderImagingReports(mrn){
         ${r.t2?`<div class="irow"><span class="ikey">T2/FLAIR</span><span class="ival">${esc(r.t2)}</span></div>`:''}
         ${r.dwi?`<div class="irow"><span class="ikey">DWI/ADC</span><span class="ival">${esc(r.dwi)}</span></div>`:''}
         ${r.mass?`<div class="irow"><span class="ikey">Mass Effect</span><span class="ival">${esc(r.mass)}</span></div>`:''}
+        ${(r.photos||[]).length?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+          ${r.photos.map((ph,pi)=>`<img src="${ph}" onclick="viewImagingPhoto(this.src)" title="Click to enlarge"
+            style="width:110px;height:82px;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:zoom-in;">`).join('')}
+        </div>`:''}
       </div></div>`;}).join('');
 }
 function deleteImagingReport(mrn,idx){if(!confirm('Delete this imaging report?'))return;const p=LS.get('pat_'+mrn)||{};p.imaging=(p.imaging||[]).filter((_,i)=>i!==idx);LS.set('pat_'+mrn,p);renderImagingReports(mrn);}
@@ -3401,31 +3764,7 @@ function exportApptICS(mrn){
 }
 
 // ── Wire MDT and Imaging into openRecord init ──
-function renderNewRecordTabs(mrn){
-  renderMDTNotes(mrn);
-  renderImagingReports(mrn);
-}
 
-function rSuggestKPS(){
-  const ecog=document.getElementById('r-ecog')?.value||'';
-  const hint=document.getElementById('r-kps-hint');
-  const kpsEl=document.getElementById('r-kps');
-  const map={'0':['90–100',100],'1':['80–90',80],'2':['60–70',60],'3':['40–50',40],'4':['10–30',20]};
-  const digit=ecog.charAt(0);
-  if(map[digit]){
-    if(hint)hint.textContent='suggested: '+map[digit][0];
-    if(kpsEl&&!kpsEl.value)kpsEl.value=map[digit][1];
-  }
-}
-function applyICDPreset(code){
-  if(!code)return;
-  const el=document.getElementById('r-icd');if(el)el.value=code;
-  // Also suggest site
-  const siteMap={'C71.1':'Frontal lobe','C71.2':'Temporal lobe','C71.3':'Parietal lobe','C71.4':'Occipital lobe','C71.6':'Cerebellum','C71.7':'Brainstem','C71.5':'Ventricular'};
-  const site=document.getElementById('r-site');
-  if(site&&siteMap[code])site.value=siteMap[code];
-  flash('ICD-10 '+code+' applied');
-}
 // ── ALLERGIES ──
 function updateComorBadge() {
   const checked = document.querySelectorAll('.comor-cb:checked');
@@ -3437,8 +3776,8 @@ function updateComorBadge() {
     if (!label) return;
     const box = label.querySelector('span');
     if (cb.checked) {
-      label.style.background = 'rgba(26,86,219,0.08)';
-      label.style.borderColor = 'rgba(26,86,219,0.3)';
+      label.style.background = 'rgba(44,94,173,0.08)';
+      label.style.borderColor = 'rgba(44,94,173,0.3)';
       label.style.color = 'var(--blue)';
       label.style.fontWeight = '700';
       if (box) { box.style.background = 'var(--blue)'; box.style.borderColor = 'var(--blue)'; box.textContent = '✓'; }
@@ -3479,22 +3818,6 @@ function renderAllergyTags() {
   // Update count badge
   const badge = document.getElementById('r-allergy-count-badge');
   if (badge) { badge.textContent = rAllergies.length; badge.style.display = rAllergies.length > 0 ? '' : 'none'; }
-}
-function rRemAllergy(name){rAllergies=rAllergies.filter(a=>a.name!==name);renderAllergyTags();}
-// ── LABS ──
-// ── LAB TABS ──
-let parsedReportRows = [];
-let rLabFiles = []; // pending upload files in memory
-
-function switchLabTab(tab) {
-  document.querySelectorAll('.lab-tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('lab-tab-' + tab)?.classList.add('active');
-  document.getElementById('r-lab-form').style.display = 'none';
-  document.getElementById('r-report-form').style.display = 'none';
-  document.getElementById('r-upload-form').style.display = 'none';
-  if (tab === 'result') { showLabForm(); }
-  else if (tab === 'report') { showReportForm(); }
-  else if (tab === 'upload') { showUploadForm(); }
 }
 
 function showUploadForm() {
@@ -3559,7 +3882,7 @@ function extractPDFText(dataUrl, fileName) {
   const msg = document.getElementById('r-upload-msg');
   if (msg) {
     msg.textContent = '⏳ Extracting text from PDF...';
-    msg.style.cssText = 'display:block;background:rgba(26,86,219,0.07);border:1px solid rgba(26,86,219,0.2);color:var(--blue);font-size:12px;padding:8px 12px;border-radius:6px;margin-bottom:10px;';
+    msg.style.cssText = 'display:block;background:rgba(44,94,173,0.07);border:1px solid rgba(44,94,173,0.2);color:var(--blue);font-size:12px;padding:8px 12px;border-radius:6px;margin-bottom:10px;';
   }
 
   // Load pdf.js from CDN
@@ -3610,7 +3933,7 @@ function showExtractPromptForImage(fileName) {
   const msg = document.getElementById('r-upload-msg');
   if (msg) {
     msg.innerHTML = '🖼 Image saved. To extract lab results from this image, switch to <strong>📋 Paste Report</strong> tab and type or paste the values manually.';
-    msg.style.cssText = 'display:block;background:rgba(26,86,219,0.07);border:1px solid rgba(26,86,219,0.2);color:var(--text-muted);font-size:12px;padding:8px 12px;border-radius:6px;margin-bottom:10px;';
+    msg.style.cssText = 'display:block;background:rgba(44,94,173,0.07);border:1px solid rgba(44,94,173,0.2);color:var(--text-muted);font-size:12px;padding:8px 12px;border-radius:6px;margin-bottom:10px;';
   }
 }
 
@@ -4134,8 +4457,9 @@ function delLab(idx) { rLabs.splice(idx, 1); renderLabsTable(); }
 // ── eGFR (CKD-EPI 2021) + BSA (Mosteller) ──
 function rCalcEGFR(){
   const creat=parseFloat(document.getElementById('r-creat')?.value);
-  const age=parseInt(document.getElementById('r-age')?.value)||parseInt(selectedPatient?.age)||0;
-  const gender=(document.getElementById('r-gender')?.value||selectedPatient?.gender||'Male');
+  const openPat=(selectedMRN&&LS.get('pat_'+selectedMRN))||{};
+  const age=parseInt(document.getElementById('r-age')?.value)||parseInt(openPat.age)||0;
+  const gender=(document.getElementById('r-gender')?.value||openPat.gender||'Male');
   const egfrEl=document.getElementById('r-egfr');
   const stageEl=document.getElementById('r-egfr-stage');
   if(creat&&age&&egfrEl){
@@ -4255,8 +4579,8 @@ function renderLabsTable() {
   tbody.innerHTML = rLabs.map((l, i) => `
     <tr>
       <td style="white-space:nowrap;">${l.date || '—'}</td>
-      <td style="font-weight:500;">${l.test}</td>
-      <td style="font-family:var(--mono);">${l.value}</td>
+      <td style="font-weight:500;">${esc(l.test)}</td>
+      <td style="font-family:var(--mono);">${esc(l.value)}</td>
       <td style="color:var(--text-muted);font-size:11px;">${l.ref || '—'}</td>
       <td><span style="font-size:10.5px;padding:2px 8px;border-radius:8px;font-weight:600;background:${sc[l.status]||'#6b7f99'}22;color:${sc[l.status]||'#6b7f99'};">${l.status}</span></td>
       <td style="color:var(--text-muted);font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.notes||l.specimen||'—'}</td>
@@ -4351,11 +4675,11 @@ function parseReport() {
         ${parsedReportRows.map((r, i) => `
           <tr style="border-bottom:1px solid var(--border);" id="preview-row-${i}">
             <td style="padding:7px 10px;font-weight:500;">
-              <input value="${r.test}" onchange="parsedReportRows[${i}].test=this.value"
+              <input value="${esc(r.test)}" onchange="parsedReportRows[${i}].test=this.value"
                 style="background:transparent;border:none;color:var(--text);font-family:inherit;font-size:12px;font-weight:500;width:100%;outline:none;border-bottom:1px solid var(--border);">
             </td>
             <td style="padding:7px 10px;">
-              <input value="${r.value}" onchange="parsedReportRows[${i}].value=this.value"
+              <input value="${esc(r.value)}" onchange="parsedReportRows[${i}].value=this.value"
                 style="background:transparent;border:none;color:var(--text);font-family:var(--mono);font-size:12px;width:80px;outline:none;border-bottom:1px solid var(--border);">
             </td>
             <td style="padding:7px 10px;">
@@ -4420,7 +4744,7 @@ function renderRecordLogs(mrn){
           ${log.mood?`<span class="badge badge-cyan">😊 ${log.mood}/10</span>`:''}
         </div>
       </div>
-      ${log.notes?`<div style="font-size:11px;color:var(--text-muted);margin-top:4px;">${log.notes}</div>`:''}
+      ${log.notes?`<div style="font-size:11px;color:var(--text-muted);margin-top:4px;">${esc(log.notes)}</div>`:''}
     </div>`).join('');
 }
 
@@ -4684,103 +5008,17 @@ function renderRecordAppts(mrn){
 }
 
 // Show pending requests count in overview
-function getPendingApptCount(){
-  const pats=getMyPatients();
-  let count=0;
-  pats.forEach(p=>{
-    const appts=LS.get('appts_'+p.mrn)||[];
-    count+=appts.filter(a=>a.status==='Pending').length;
-  });
-  return count;
-}
 
 // ═══════════════════════════════════════════════
 // PDF REPORT GENERATION
 // ═══════════════════════════════════════════════
-function generateReport(){
-  const mrn=selectedMRN;const p=LS.get('pat_'+mrn);if(!p){flash('Save the record first.');return;}
-  const checkboxes=[...document.querySelectorAll('#rt-export .export-option input')];
-  const inc={demo:checkboxes[0]?.checked,diag:checkboxes[1]?.checked,metrics:checkboxes[2]?.checked,labs:checkboxes[3]?.checked,meds:checkboxes[4]?.checked,mri:checkboxes[5]?.checked};
-  const logs=getPatientLogs(mrn);
-  const appts=LS.get('appts_'+mrn)||[];
-  const printWin=window.open('','_blank','width=900,height=700');
-  printWin.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Clinical Report — ${p.name}</title>
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box;}
-    body{font-family:'Segoe UI',Arial,sans-serif;color:#1a1a2e;background:#fff;font-size:13px;line-height:1.6;}
-    .page{max-width:800px;margin:0 auto;padding:40px 48px;}
-    .report-header{display:flex;align-items:flex-start;justify-content:space-between;border-bottom:3px solid #0d6efd;padding-bottom:16px;margin-bottom:24px;}
-    .report-brand{font-size:22px;font-weight:800;color:#0d6efd;letter-spacing:-0.5px;}
-    .report-brand span{color:#198754;}
-    .report-meta{text-align:right;font-size:11px;color:#666;}
-    h2{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#0d6efd;margin:20px 0 10px;padding-bottom:4px;border-bottom:1px solid #dee2e6;}
-    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-    .info-box{background:#f8f9fa;border-radius:6px;padding:10px 14px;}
-    .info-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:#6c757d;margin-bottom:2px;}
-    .info-val{font-size:13.5px;font-weight:500;}
-    table{width:100%;border-collapse:collapse;margin-top:8px;}
-    th{background:#f8f9fa;padding:8px 10px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:#6c757d;border-bottom:2px solid #dee2e6;}
-    td{padding:8px 10px;border-bottom:1px solid #dee2e6;font-size:12.5px;}
-    .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:600;}
-    .badge-ok{background:#d1fae5;color:#065f46;}.badge-hi{background:#fee2e2;color:#991b1b;}.badge-lo{background:#fef3c7;color:#92400e;}
-    .mol-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
-    .mol-item{background:#f8f9fa;padding:8px 10px;border-radius:6px;}
-    .footer{margin-top:40px;padding-top:16px;border-top:1px solid #dee2e6;font-size:10px;color:#aaa;display:flex;justify-content:space-between;}
-    @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}.page{padding:20px 24px;}.no-print{display:none;}}
-  </style></head><body><div class="page">
-  <div class="report-header">
-    <div><div class="report-brand">Chemo<span>Cure</span> Pro</div><div style="font-size:11px;color:#6c757d;margin-top:2px;">Clinical Report · AI-Powered Neuro-Oncology Platform</div></div>
-    <div class="report-meta"><div style="font-weight:700;font-size:14px;">${p.name}</div><div>MRN: ${p.mrn}</div><div>Generated: ${new Date().toLocaleString()}</div><div>Doctor: Dr. ${currentDoc.name}</div></div>
-  </div>
-  ${inc.demo?`<h2>Patient Demographics</h2><div class="grid2">
-    <div class="info-box"><div class="info-label">Full Name</div><div class="info-val">${p.name}</div></div>
-    <div class="info-box"><div class="info-label">Date of Birth</div><div class="info-val">${p.dob||'—'} (Age: ${p.age||'—'})</div></div>
-    <div class="info-box"><div class="info-label">Gender</div><div class="info-val">${p.gender||'—'}</div></div>
-    <div class="info-box"><div class="info-label">Blood Group</div><div class="info-val">${p.blood||'—'}</div></div>
-    <div class="info-box"><div class="info-label">Treatment Phase</div><div class="info-val">${p.phase||'—'}</div></div>
-    <div class="info-box"><div class="info-label">Phone</div><div class="info-val">${p.phone||'—'}</div></div>
-  </div>`:''}
-  ${inc.diag?`<h2>Diagnosis & Disease Status</h2><div class="grid2">
-    <div class="info-box"><div class="info-label">Primary Diagnosis</div><div class="info-val">${p.diag||'—'}</div></div>
-    <div class="info-box"><div class="info-label">ICD-10 Code</div><div class="info-val">${p.icd10||'—'}</div></div>
-    <div class="info-box"><div class="info-label">WHO Grade</div><div class="info-val">${p.whoGrade||'—'}</div></div>
-    <div class="info-box"><div class="info-label">Date Diagnosed</div><div class="info-val">${p.dateDiag||'—'}</div></div>
-    <div class="info-box"><div class="info-label">Disease Status</div><div class="info-val">${p.diseaseStatus||'—'}</div></div>
-    <div class="info-box"><div class="info-label">Primary Site</div><div class="info-val">${p.primarySite||'—'} ${p.laterality?'('+p.laterality+')':''}</div></div>
-    <div class="info-box"><div class="info-label">TNM Stage</div><div class="info-val">T:${p.tnmT||'—'} N:${p.tnmN||'—'} M:${p.tnmM||'—'} · Stage ${p.tnmStage||'—'}</div></div>
-    <div class="info-box"><div class="info-label">RECIST</div><div class="info-val">${p.recist||'—'}</div></div>
-  </div>
-  <h2 style="font-size:12px;">Molecular Profile</h2>
-  <div class="mol-grid">
-    ${[['IDH1',p.idh1],['MGMT',p.mgmt],['1p/19q',p.codeletion],['TERT',p.tert],['ATRX',p.atrx],['EGFR',p.egfr],['BRAF',p.braf],['H3K27M',p.h3k27m],['Ki-67',p.ki67],['P53',p.p53],['PTEN',p.pten],['CDKN2A/B',p.cdkn2ab]].map(([lbl,val])=>`<div class="mol-item"><div class="info-label">${lbl}</div><div style="font-weight:600;font-size:12px;">${val||'Pending'}</div></div>`).join('')}
-  </div>`:''}
-  ${inc.metrics?`<h2>Clinical Metrics</h2><div class="grid2">
-    <div class="info-box"><div class="info-label">Blood Pressure</div><div class="info-val">${p.bp_sys||'—'}/${p.bp_dia||'—'} mmHg</div></div>
-    <div class="info-box"><div class="info-label">Heart Rate</div><div class="info-val">${p.hr||'—'} bpm · ${p.rhythm||'—'}</div></div>
-    <div class="info-box"><div class="info-label">BMI</div><div class="info-val">${p.bmi||'—'} (H:${p.height||'—'}cm W:${p.weight||'—'}kg)</div></div>
-    <div class="info-box"><div class="info-label">ECOG / KPS</div><div class="info-val">${p.ecog||'—'} · KPS ${p.kps||'—'}</div></div>
-    ${p.allergies?.length?`<div class="info-box" style="grid-column:span 2;"><div class="info-label">Allergies</div><div class="info-val">${p.allergies.join(', ')}</div></div>`:''}
-    ${p.comorbidities?.length?`<div class="info-box" style="grid-column:span 2;"><div class="info-label">Comorbidities</div><div class="info-val">${p.comorbidities.join(', ')}</div></div>`:''}
-  </div>`:''}
-  ${inc.labs&&rLabs.length?`<h2>Laboratory Results</h2><table><thead><tr><th>Date</th><th>Test</th><th>Value</th><th>Ref Range</th><th>Status</th></tr></thead><tbody>${rLabs.map(l=>`<tr><td>${l.date||'—'}</td><td>${l.test}</td><td>${l.value}</td><td>${l.ref||'—'}</td><td><span class="badge ${l.status==='Normal'?'badge-ok':l.status==='High'||l.status==='Critical'?'badge-hi':'badge-lo'}">${l.status}</span></td></tr>`).join('')}</tbody></table>`:''}
-  ${inc.meds&&rMeds.length?`<h2>Active Medications</h2><table><thead><tr><th>Medication</th><th>Dose</th><th>Frequency</th><th>Route</th></tr></thead><tbody>${rMeds.map(m=>`<tr><td>${m.name}</td><td>${m.dose}</td><td>${m.freq}</td><td>${m.route}</td></tr>`).join('')}</tbody></table>`:''}
-  ${logs.length?`<h2>Recent Health Logs (Last 5)</h2><table><thead><tr><th>Date</th><th>Cognitive</th><th>Seizure</th><th>Headache</th><th>Mood</th><th>Notes</th></tr></thead><tbody>${logs.slice(-5).reverse().map(l=>`<tr><td>${l.date}</td><td>${l.cognitive||0}/10</td><td>${l.seizure||0}/10</td><td>${l.headache||0}/10</td><td>${l.mood||0}/10</td><td style="max-width:200px;font-size:11px;">${l.notes||'—'}</td></tr>`).join('')}</tbody></table>`:''}
-  <div class="footer"><div>ChemoCure Pro · Neuro-Oncology Platform</div><div>Generated for ${currentDoc.name} · ${new Date().toLocaleDateString()}</div></div>
-  <div class="no-print" style="margin-top:24px;text-align:center;">
-    <button onclick="window.print()" style="padding:12px 28px;background:#0d6efd;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-right:8px;">🖨 Print / Save as PDF</button>
-    <button onclick="window.close()" style="padding:12px 20px;background:#f8f9fa;border:1px solid #dee2e6;border-radius:8px;font-size:14px;cursor:pointer;">Close</button>
-  </div>
-  </div></body></html>`);
-  printWin.document.close();
-}
-
 // ═══════════════════════════════════════════════
 // CALENDAR (doctor view)
 // ═══════════════════════════════════════════════
 function renderCalSel(){
   const sel=document.getElementById('cal-sel');if(!sel)return;
   const pats=getMyPatients();
-  sel.innerHTML='<option value="">— Choose a patient —</option>'+pats.map(p=>`<option value="${p.mrn}">${p.name} (${p.mrn})</option>`).join('');
+  sel.innerHTML='<option value="">— Choose a patient —</option>'+pats.map(p=>`<option value="${p.mrn}">${esc(p.name)} (${p.mrn})</option>`).join('');
 }
 function renderDocCal(){
   const mrn=document.getElementById('cal-sel').value;
@@ -4791,7 +5029,7 @@ function renderDocCal(){
   const mNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
   const firstDay=new Date(year,month,1).getDay();
   const dim=new Date(year,month+1,0).getDate();
-  c.innerHTML=`<div class="card"><div class="card-header"><div class="card-title">📅 ${mNames[month]} ${year} — ${p.name}</div><span class="badge badge-cyan">${logs.length} logs</span></div>
+  c.innerHTML=`<div class="card"><div class="card-header"><div class="card-title">📅 ${mNames[month]} ${year} — ${esc(p.name)}</div><span class="badge badge-cyan">${logs.length} logs</span></div>
     <div class="cal-grid7">${['SUN','MON','TUE','WED','THU','FRI','SAT'].map(d=>`<div class="cal-head-cell">${d}</div>`).join('')}</div>
     <div class="cal-grid7" style="margin-top:4px;">
       ${Array(firstDay).fill('<div class="cal-day empty"></div>').join('')}
@@ -4820,7 +5058,7 @@ function showLogDetail(log){
     </div>
     ${log.meds?.length?`<div style="margin-bottom:10px;font-size:12px;"><span style="color:var(--text-muted);">Meds: </span>${log.meds.map(m=>`<span class="badge badge-cyan">${m}</span>`).join(' ')}</div>`:''}
     ${log.temp||log.bp_sys?`<div style="background:var(--surface2);border-radius:6px;padding:10px;margin-bottom:10px;font-size:12px;">${log.temp?`🌡 Temp: <strong>${log.temp}°C</strong>  `:''}${log.bp_sys?`💉 BP: <strong>${log.bp_sys}/${log.bp_dia}</strong>  `:''}${log.weight?`⚖ ${log.weight}kg`:''}</div>`:''}
-    ${log.notes?`<div style="background:var(--surface2);border-radius:6px;padding:10px;font-size:12px;"><strong style="color:var(--text-muted);">Notes:</strong> ${log.notes}</div>`:''}
+    ${log.notes?`<div style="background:var(--surface2);border-radius:6px;padding:10px;font-size:12px;"><strong style="color:var(--text-muted);">Notes:</strong> ${esc(log.notes)}</div>`:''}
   `;
   openOverlay('log-detail-modal');
 }
@@ -4831,7 +5069,7 @@ function showLogDetail(log){
 function renderConvos(){
   const pats=getMyPatients();
   const c=document.getElementById('chat-convos');
-  c.innerHTML=pats.length?pats.map(p=>`<div class="chat-conv${selectedChatMRN===p.mrn?' active':''}" onclick="openChat('${p.mrn}')"><div style="font-weight:500;font-size:12px;">${p.name}</div><div style="font-size:10.5px;color:var(--text-muted);">${p.mrn}</div></div>`).join(''):'<div style="padding:8px;font-size:11px;color:var(--text-dim);">No patients.</div>';
+  c.innerHTML=pats.length?pats.map(p=>`<div class="chat-conv${selectedChatMRN===p.mrn?' active':''}" onclick="openChat('${p.mrn}')"><div style="font-weight:500;font-size:12px;">${esc(p.name)}</div><div style="font-size:10.5px;color:var(--text-muted);">${esc(p.mrn)}</div></div>`).join(''):'<div style="padding:8px;font-size:11px;color:var(--text-dim);">No patients.</div>';
 }
 function openChat(mrn){
   selectedChatMRN=mrn;
@@ -4846,7 +5084,7 @@ function renderDocMsgs(){
   const msgs=LS.get('msgs_'+selectedChatMRN)||[];
   const c=document.getElementById('chat-msgs');
   if(!msgs.length){c.innerHTML='<div style="text-align:center;color:var(--text-dim);margin-top:30px;font-size:12px;">No messages yet.</div>';return;}
-  c.innerHTML=msgs.map(m=>`<div class="msg-bubble ${m.from==='doctor'?'out':'in'}">${m.text}<div class="msg-time">${m.time}</div></div>`).join('');
+  c.innerHTML=msgs.map(m=>`<div class="msg-bubble ${m.from==='doctor'?'out':'in'}">${esc(m.text)}<div class="msg-time">${esc(m.time)}</div></div>`).join('');
   c.scrollTop=c.scrollHeight;
   // Mark as read
   const updated=msgs.map(m=>({...m,read:true}));LS.set('msgs_'+selectedChatMRN,updated);
@@ -4899,14 +5137,40 @@ document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{
 // ═══════════════════════════════════════════════════════════════
 
 // ── Audit Log ──
+// djb2 string hash → 8 hex chars. Not cryptographic, but chains entries so
+// a deleted, edited, or reordered audit record breaks the chain and is
+// detectable by verifyAuditChain().
+function auditHash(str){ let h=5381; for(let i=0;i<str.length;i++){ h=((h*33)^str.charCodeAt(i))>>>0; } return h.toString(16).padStart(8,'0'); }
 function writeAuditLog(section, changes, mrn) {
   try {
-    const key = 'audit_' + (mrn || 'global') + '_' + Date.now();
-    LS.set(key, { id:key, ts:Date.now(), doctor:currentDoc?currentDoc.name:'Unknown', docId:currentDoc?currentDoc.docId:'', mrn:mrn||null, section, changes });
-    const allKeys = LS.keys('audit_' + (mrn || 'global') + '_').sort();
-    if (allKeys.length > 100) allKeys.slice(0, allKeys.length - 100).forEach(k => LS.del(k));
+    const scope = mrn || 'global';
+    // Find the latest entry (highest seq) to chain onto.
+    let prevHash='00000000', maxSeq=0;
+    LS.keys('audit_'+scope+'_').forEach(k=>{ const e=LS.get(k); if(e && (e.seq||0)>maxSeq){ maxSeq=e.seq||0; prevHash=e.hash||prevHash; } });
+    const seq=maxSeq+1, ts=Date.now();
+    const doctor=currentDoc?currentDoc.name:'Unknown', docId=currentDoc?currentDoc.docId:'';
+    const entry={ id:'audit_'+scope+'_'+ts+'_'+seq, ts, seq, doctor, docId, mrn:mrn||null, section, changes, prevHash };
+    entry.hash=auditHash(JSON.stringify({ts,seq,section,changes,doctor,prevHash}));
+    LS.set(entry.id, entry);
+    const allKeys = LS.keys('audit_'+scope+'_').sort();
+    if (allKeys.length > 200) allKeys.slice(0, allKeys.length - 200).forEach(k => LS.del(k));
     updateHistBadge();
   } catch(e) {}
+}
+// Recompute the chain; returns {ok, count, brokenAt} so the History view can
+// show a "verified / tampered" badge.
+function verifyAuditChain(mrn){
+  try{
+    const scope=mrn||'global';
+    const entries=LS.keys('audit_'+scope+'_').map(k=>LS.get(k)).filter(Boolean).sort((a,b)=>(a.seq||0)-(b.seq||0));
+    let prevHash='00000000';
+    for(const e of entries){
+      const expect=auditHash(JSON.stringify({ts:e.ts,seq:e.seq,section:e.section,changes:e.changes,doctor:e.doctor,prevHash}));
+      if(e.prevHash!==prevHash || e.hash!==expect) return {ok:false,count:entries.length,brokenAt:e.seq};
+      prevHash=e.hash;
+    }
+    return {ok:true,count:entries.length};
+  }catch(e){ return {ok:false,count:0}; }
 }
 function getAuditLogs(mrn, section) {
   try {
@@ -4960,20 +5224,24 @@ function renderHistEntries() {
   const logs = getAuditLogs(histCurrentMRN, histCurrentSection);
   const c = document.getElementById('hist-body');
   if (!c) return;
-  if (!logs.length) { c.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-dim);font-size:12.5px;">No history entries yet.</div>'; return; }
-  const sectionColors = { diagnosis:'#4d9cf8', metrics:'#00d4b4', prescriptions:'#a78bfa', treatment:'#f0a04b', labs:'#ff5c5c', molecular:'#00d4b4' };
-  c.innerHTML = logs.map((entry, idx) => {
+  const chain = (typeof verifyAuditChain==='function') ? verifyAuditChain(histCurrentMRN) : {ok:true};
+  const banner = chain.ok
+    ? '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;margin-bottom:10px;background:rgba(14,159,110,0.1);border:1px solid rgba(14,159,110,0.3);border-radius:8px;font-size:11.5px;color:var(--green,#0e9f6e);font-weight:600;">🔒 Audit chain verified — '+ (chain.count||0) +' entries, none altered.</div>'
+    : '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;margin-bottom:10px;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.35);border-radius:8px;font-size:11.5px;color:var(--red,#dc2626);font-weight:700;">⚠ Audit chain broken — an entry was altered or removed'+(chain.brokenAt?(' (at #'+chain.brokenAt+')'):'')+'.</div>';
+  if (!logs.length) { c.innerHTML = banner + '<div style="text-align:center;padding:30px;color:var(--text-dim);font-size:12.5px;">No history entries yet.</div>'; return; }
+  const sectionColors = { diagnosis:'#4d9cf8', metrics:'#00d4b4', prescriptions:'#a78bfa', treatment:'#f0a04b', labs:'#ff5c5c', molecular:'#00d4b4', security:'#dc2626', access:'#6b7f99' };
+  c.innerHTML = banner + logs.map((entry, idx) => {
     const d = new Date(entry.ts);
     const dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
     const col = sectionColors[entry.section] || '#6b7f99';
     const changeCount = (entry.changes || []).length;
     return '<div class="hist-entry"><div class="hist-entry-head" onclick="toggleHistEntry(\'he-' + idx + '\')">'
-      + '<div><div style="font-weight:600;font-size:12.5px;"><span style="font-size:9.5px;padding:1px 6px;border-radius:3px;font-weight:700;background:' + col + '18;color:' + col + ';margin-right:6px;">' + entry.section.toUpperCase() + '</span>' + dateStr + '</div>'
-      + '<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">By ' + (entry.doctor||'Unknown') + ' · ' + changeCount + ' change' + (changeCount!==1?'s':'') + '</div></div>'
+      + '<div><div style="font-weight:600;font-size:12.5px;"><span style="font-size:9.5px;padding:1px 6px;border-radius:3px;font-weight:700;background:' + col + '18;color:' + col + ';margin-right:6px;">' + esc(entry.section.toUpperCase()) + '</span>' + dateStr + '</div>'
+      + '<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">By ' + esc(entry.doctor||'Unknown') + ' · ' + changeCount + ' change' + (changeCount!==1?'s':'') + '</div></div>'
       + '<span style="color:var(--text-dim);">▾</span></div>'
       + '<div id="he-' + idx + '" class="hist-entry-body">'
       + (changeCount ? '<table style="width:100%;border-collapse:collapse;font-size:11.5px;"><thead><tr><th style="padding:5px 8px;text-align:left;color:var(--text-muted);font-size:10px;border-bottom:1px solid var(--border);">Field</th><th style="padding:5px 8px;text-align:left;color:var(--red);font-size:10px;border-bottom:1px solid var(--border);">Previous</th><th style="padding:5px 8px;text-align:left;color:var(--cyan);font-size:10px;border-bottom:1px solid var(--border);">New Value</th></tr></thead><tbody>'
-      + (entry.changes||[]).map(ch => '<tr><td style="padding:5px 8px;border-bottom:1px solid var(--border);font-weight:500;">' + ch.field + '</td><td style="padding:5px 8px;border-bottom:1px solid var(--border);color:var(--red);opacity:0.8;">' + formatHistVal(ch.prev) + '</td><td style="padding:5px 8px;border-bottom:1px solid var(--border);color:var(--cyan);">' + formatHistVal(ch.next) + '</td></tr>').join('')
+      + (entry.changes||[]).map(ch => '<tr><td style="padding:5px 8px;border-bottom:1px solid var(--border);font-weight:500;">' + esc(ch.field) + '</td><td style="padding:5px 8px;border-bottom:1px solid var(--border);color:var(--red);opacity:0.8;">' + formatHistVal(ch.prev) + '</td><td style="padding:5px 8px;border-bottom:1px solid var(--border);color:var(--cyan);">' + formatHistVal(ch.next) + '</td></tr>').join('')
       + '</tbody></table>'
       : '<div style="color:var(--text-dim);font-size:11.5px;">No field changes.</div>') + '</div></div>';
   }).join('');
@@ -4984,9 +5252,9 @@ function toggleHistEntry(id) {
 }
 function formatHistVal(v) {
   if (v === null || v === undefined) return '<em style="opacity:0.4;">—</em>';
-  if (Array.isArray(v)) return v.join(', ') || '—';
-  if (typeof v === 'object') return JSON.stringify(v).slice(0, 80);
-  return String(v).slice(0, 120) || '—';
+  if (Array.isArray(v)) return esc(v.join(', ')) || '—';
+  if (typeof v === 'object') return esc(JSON.stringify(v).slice(0, 80));
+  return esc(String(v).slice(0, 120)) || '—';
 }
 
 // ── Sorted Prescriptions ──
@@ -4994,6 +5262,8 @@ function renderMedList() {
   const c = document.getElementById('r-med-list');
   if (!c) return;
   if (!rMeds.length) { c.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-dim);">No medications yet.</div>'; return; }
+  const adh = medAdherence7d(selectedMRN);
+  const adhHtml = adh===null ? '' : `<div style="margin:0 0 10px;padding:9px 14px;border-radius:9px;background:${adh>=80?'rgba(5,150,105,0.08)':adh>=50?'rgba(217,119,6,0.08)':'rgba(220,38,38,0.08)'};color:${adh>=80?'var(--green)':adh>=50?'var(--orange)':'var(--red)'};font-size:12.5px;font-weight:700;">Patient-reported adherence (7 days): ${adh}%</div>`;
   const statusOrder = { Active:0, 'On Hold':1, Discontinued:2 };
   const scColor = { Active:'#00d4b4', 'On Hold':'#f0a04b', Discontinued:'#ff5c5c' };
   const sorted = [...rMeds].map((m,i) => ({...m, _orig:i})).sort((a,b) => {
@@ -5019,7 +5289,7 @@ function renderMedList() {
         + '</div>';
     });
   });
-  c.innerHTML = html;
+  c.innerHTML = adhHtml + html;
 }
 
 // ── Save Record + Audit ──
@@ -5295,128 +5565,6 @@ function clearAllData() {
   flash('All ' + removed + ' ChemoCure records deleted. Reloading...');
   setTimeout(() => location.reload(), 2000);
 }
-
-// ── AI Health Risk Analyzer ──
-async function runHealthAI(mrn) {
-  const p = LS.get('pat_' + mrn); if (!p) return;
-  const safeId = mrn.replace(/[^a-z0-9]/gi, '-');
-  const statusEl = document.getElementById('hai-status-' + safeId);
-  const resultEl = document.getElementById('hai-result-' + safeId);
-  const contentEl = document.getElementById('hai-content-' + safeId);
-  if (!statusEl || !resultEl || !contentEl) return;
-
-  // Build clinical profile
-  const allergies = (p.allergies || []).map(a => (a.name || a) + (a.severity ? ' (' + a.severity + ')' : '')).join(', ') || 'None reported';
-  const comorbidities = [...(p.comorbidities || []), p.comorbiditiesOther].filter(Boolean).join(', ') || 'None reported';
-  const activeMeds = (p.meds || []).filter(m => m.status === 'Active').map(m => m.name + (m.dose ? ' ' + m.dose : '')).join(', ') || 'None';
-  const diag = p.diag || 'Not specified';
-  const grade = p.whoGrade || 'Not specified';
-  const ecog = p.ecog ? p.ecog.split(' – ')[0] : 'Not specified';
-  const kps = p.kps || 'Not specified';
-  const bp = p.bp_sys && p.bp_dia ? p.bp_sys + '/' + p.bp_dia + ' mmHg' : 'Not recorded';
-  const notes = p.clinNotes || 'None';
-  const phase = p.phase || 'Not specified';
-
-  const prompt = `You are an expert neuro-oncology clinical data analyst. Analyze this patient's health profile and generate a structured clinical risk report.
-
-PATIENT PROFILE:
-- Primary Diagnosis: ${diag} (${grade})
-- Treatment Phase: ${phase}
-- ECOG: ${ecog} | KPS: ${kps}
-- Blood Pressure: ${bp}
-- Allergies: ${allergies}
-- Comorbidities: ${comorbidities}
-- Active Medications: ${activeMeds}
-- Clinical Notes: ${notes}
-
-Generate a structured analysis with these exact sections:
-
-## Risk Stratification
-Classify overall health risk (Low / Moderate / High) and explain why based on interaction of the conditions.
-
-## Disease Cross-Talk & Contraindications
-Identify any conflicts between allergies, comorbidities, and active medications. Flag any drug-disease or drug-allergy interactions relevant to neuro-oncology treatment.
-
-## Prioritized Action Plan
-
-### 🔴 Immediate / Red Flag (Severe)
-Bullet list of urgent actions for any severe or uncontrolled conditions.
-
-### 🟡 Management / Yellow Flag (Moderate)
-Bullet list of monitoring and management steps for moderate conditions.
-
-### 🟢 Maintenance / Green Flag (Mild/Controlled)
-Bullet list of preventive and maintenance steps.
-
-## Summary Table
-| Condition | Severity | Risk Level | Priority |
-|-----------|----------|------------|----------|
-(Fill in for each listed condition/allergy)
-
----
-*Standard medical disclaimer: This AI-generated analysis is for clinical reference and decision support only. It does not replace professional medical judgment. Always verify recommendations with current clinical guidelines and individual patient assessment.*
-
-Be concise, clinical, and specific to this patient's neuro-oncology context. Use markdown formatting.`;
-
-  statusEl.textContent = '⏳ Analyzing health profile...';
-  statusEl.style.display = 'block';
-  resultEl.style.display = 'none';
-
-  // Require session key — never hardcoded, never stored in localStorage
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    const ok = promptApiKey();
-    if (!ok) { statusEl.textContent = '⚠ API key required. Click Run to try again.'; return; }
-  }
-
-  try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': getApiKey(),
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1500,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-
-    if (!response.ok) throw new Error('API error ' + response.status);
-    const data = await response.json();
-    const text = (data.content || []).find(b => b.type === 'text')?.text || 'No response.';
-
-    // Render markdown-style text as HTML
-    const html = text
-      .replace(/^## (.+)$/gm, '<h3 style="font-size:13px;font-weight:800;color:var(--blue);margin:16px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border);">$1</h3>')
-      .replace(/^### (.+)$/gm, '<h4 style="font-size:12.5px;font-weight:700;margin:12px 0 6px;">$1</h4>')
-      .replace(/^\| (.+) \|$/gm, (match) => {
-        const cells = match.split('|').filter(c=>c.trim()&&!c.includes('---')).map(c=>`<td style="padding:5px 10px;border-bottom:1px solid var(--border);">${c.trim()}</td>`);
-        return '<tr>' + cells.join('') + '</tr>';
-      })
-      .replace(/(<tr>.*<\/tr>)/gs, '<div style="overflow-x:auto;margin:8px 0;"><table style="width:100%;border-collapse:collapse;font-size:12px;background:var(--surface2);border-radius:6px;overflow:hidden;"><thead><tr style="background:var(--surface3);font-weight:700;">' + '' + '</tr></thead><tbody>$1</tbody></table></div>')
-      .replace(/^\*\*(.+?)\*\*/gm, '<strong>$1</strong>')
-      .replace(/^\* (.+)$/gm, '<li style="margin-left:16px;margin-bottom:4px;">$1</li>')
-      .replace(/^- (.+)$/gm, '<li style="margin-left:16px;margin-bottom:4px;">$1</li>')
-      .replace(/(<li.*<\/li>)/gs, '<ul style="margin:6px 0;padding:0;list-style:disc;">$1</ul>')
-      .replace(/---\n\*/g, '<hr style="margin:14px 0;border:none;border-top:1px solid var(--border);"><p style="font-size:11px;color:var(--text-dim);font-style:italic;">')
-      .replace(/\*$/g, '</p>')
-      .replace(/\n\n/g, '<br>')
-      .replace(/\n/g, ' ');
-
-    contentEl.innerHTML = html;
-    statusEl.style.display = 'none';
-    resultEl.style.display = 'block';
-
-  } catch (err) {
-    statusEl.textContent = '⚠ Analysis failed: ' + err.message + '. Make sure you are connected to the internet.';
-    statusEl.style.color = 'var(--orange)';
-  }
-}
-
 
 const EMAILJS_CONFIG = { serviceId:'', templateIdVerify:'', templateIdAppt:'', publicKey:'' };
 
@@ -5799,18 +5947,13 @@ function printLabQRCard(lab, fileName, sourceCanvas) {
     3. Select patient &amp; upload report / PDF<br>
     4. Submit — reports go to doctor
   </div>
-  <div class="doc">Dr. ${currentDoc.name} · No internet needed</div>
+  <div class="doc">${/^dr[.\s]/i.test(currentDoc.name)?currentDoc.name:'Dr. '+currentDoc.name} · No internet needed</div>
   <button class="no-print" onclick="window.print()" style="padding:10px 20px;background:#000;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;width:100%;margin-top:14px;">🖨 Print</button>
 </div>
 </body></html>`);
   w.document.close();
 }
 
-function printLabCard(labId) {
-  const lab = LS.get('lab_' + currentDoc.docId + '_' + labId);
-  if (!lab) return;
-  openShareLink(labId); // redirect to new share modal
-}
 
 function openLabDetail(labId) {
   const lab = LS.get('lab_' + currentDoc.docId + '_' + labId);
@@ -5991,8 +6134,8 @@ function _showReadPreview(rows, fileName, sub, idx, warnMsg) {
         </tr></thead>
         <tbody>${rows.map(r=>`<tr style="border-top:1px solid var(--border);">
           <td style="padding:7px 10px;font-size:11.5px;">${r.date}</td>
-          <td style="padding:7px 10px;font-weight:600;">${r.test}</td>
-          <td style="padding:7px 10px;font-family:var(--mono);">${r.value}</td>
+          <td style="padding:7px 10px;font-weight:600;">${esc(r.test)}</td>
+          <td style="padding:7px 10px;font-family:var(--mono);">${esc(r.value)}</td>
           <td style="padding:7px 10px;color:var(--text-muted);">${r.ref||'—'}</td>
           <td style="padding:7px 10px;"><span style="font-size:10.5px;padding:2px 8px;border-radius:10px;font-weight:700;background:${sc[r.status]||'var(--text-muted)'}18;color:${sc[r.status]||'var(--text-muted)'};">${r.status}</span></td>
         </tr>`).join('')}</tbody>
@@ -6253,7 +6396,7 @@ function sendToLabPortal() {
 
   const dueFmt = new Date(dueDate + 'T12:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
   if (okEl) {
-    okEl.innerHTML = `✅ Task sent to <strong>${lab.name}</strong> for <strong>${pat.name}</strong><br>
+    okEl.innerHTML = `✅ Task sent to <strong>${lab.name}</strong> for <strong>${esc(pat.name)}</strong><br>
       <span style="font-size:11.5px;color:var(--text-muted);">${desc} · Due ${dueFmt} · ${prio}</span>`;
     okEl.style.display = 'block';
     setTimeout(() => { if(okEl) okEl.style.display='none'; }, 5000);
@@ -6402,13 +6545,6 @@ function copyPatientLink() {
 function generatePatientLink() { sendToLabPortal(); }
 
 
-function openPatientPortal() { if (_currentPatTokenLab) openLabWindowForLab(_currentPatTokenLab.labId); }
-
-function openLabWindowForLab(labId) {
-  const lab = LS.get('lab_' + currentDoc.docId + '_' + labId);
-  if (!lab) return;
-  openLabWindow(lab);
-}
 
 function openLabWindow(lab) {
   if (!lab) { const labs=getMyLabs(); if(!labs.length){flash('Register a lab first.');return;} lab=labs[0]; }
@@ -6692,32 +6828,18 @@ function openLabWindow(lab) {
   w.document.write(html);
   w.document.close();
 }
-function openLabPortalModal() { goToLabsPanel(); }
-
-// ── Navigation ──
-function goToLabsPanel() {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const panel = document.getElementById('panel-labs');
-  if (panel) panel.classList.add('active');
-  const labNav = document.getElementById('nav-labs');
-  if (labNav) labNav.classList.add('active');
-  renderLabsList();
-  renderPendingLabs();
-  updateLabBadge();
-}
 
 </script>
 
 
 <!-- PWA install prompt + service worker registration -->
-<div id="pwa-install-banner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:99999;background:#1a56db;color:#fff;padding:14px 20px;border-radius:14px;box-shadow:0 8px 30px rgba(26,86,219,0.4);display:none;align-items:center;gap:14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;max-width:90vw;">
+<div id="pwa-install-banner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:99999;background:#1591DC;color:#fff;padding:14px 20px;border-radius:14px;box-shadow:0 8px 30px rgba(44,94,173,0.4);display:none;align-items:center;gap:14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;max-width:90vw;">
   <div style="font-size:24px;">💻</div>
   <div style="flex:1;">
     <div style="font-weight:700;">Install ChemoCure Pro</div>
     <div style="font-size:12px;opacity:0.85;">Add to your desktop for quick access &amp; offline use</div>
   </div>
-  <button id="pwa-install-btn" style="background:#fff;color:#1a56db;border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-family:inherit;font-size:13px;cursor:pointer;">Install</button>
+  <button id="pwa-install-btn" style="background:#fff;color:#1591DC;border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-family:inherit;font-size:13px;cursor:pointer;">Install</button>
   <button id="pwa-dismiss-btn" style="background:none;border:none;color:rgba(255,255,255,0.7);font-size:20px;cursor:pointer;padding:0 4px;">&times;</button>
 </div>
 <script>
@@ -6752,6 +6874,670 @@ function goToLabsPanel() {
     localStorage.setItem('pwa-doctor-dismissed', '1');
   });
   window.addEventListener('appinstalled', function(){ banner.style.display = 'none'; });
+})();
+</script>
+<div id="nav-backdrop" onclick="document.body.classList.remove('nav-open')"></div>
+<button id="nav-fab" aria-label="Toggle menu" onclick="document.body.classList.toggle('nav-open')">☰</button>
+<script>document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('.nav-item'))document.body.classList.remove('nav-open');});</script>
+<script>
+// ═══════════════════════════════════════════════
+// TREATMENT PROTOCOL TEMPLATES
+// Standard neuro-oncology regimens applied to a patient's medication
+// list in one click, instead of typing each drug by hand.
+// ═══════════════════════════════════════════════
+(function(){
+'use strict';
+
+const PROTOCOLS = [
+  {
+    id:'stupp', name:'Stupp Protocol — newly diagnosed GBM',
+    desc:'RT 60 Gy/30 fx with concurrent TMZ, then 6 cycles adjuvant TMZ. Includes PCP prophylaxis + antiemetic.',
+    meds:[
+      {name:'Temozolomide (concurrent)', dose:'75 mg/m² daily', route:'PO', freq:'Once daily during RT (42 days)', indication:'Concurrent chemoradiation', status:'Active'},
+      {name:'Temozolomide (adjuvant)', dose:'150–200 mg/m²', route:'PO', freq:'Days 1–5 every 28 days × 6 cycles', indication:'Adjuvant chemotherapy', status:'Planned'},
+      {name:'Ondansetron', dose:'8 mg', route:'PO', freq:'30–60 min before each TMZ dose', indication:'Antiemetic prophylaxis', status:'Active'},
+      {name:'Trimethoprim-Sulfamethoxazole', dose:'160/800 mg', route:'PO', freq:'Mon / Wed / Fri', indication:'PCP prophylaxis during concurrent phase', status:'Active'},
+    ],
+  },
+  {
+    id:'tmz-maint', name:'TMZ Maintenance (adjuvant only)',
+    desc:'Standard 5/23 adjuvant temozolomide cycles with antiemetic cover.',
+    meds:[
+      {name:'Temozolomide', dose:'150–200 mg/m²', route:'PO', freq:'Days 1–5 every 28 days', indication:'Adjuvant chemotherapy', status:'Active'},
+      {name:'Ondansetron', dose:'8 mg', route:'PO', freq:'Before each TMZ dose', indication:'Antiemetic prophylaxis', status:'Active'},
+    ],
+  },
+  {
+    id:'pcv', name:'PCV — oligodendroglioma (1p/19q codeleted)',
+    desc:'Procarbazine + CCNU + Vincristine, 6-week cycles.',
+    meds:[
+      {name:'Lomustine (CCNU)', dose:'110 mg/m²', route:'PO', freq:'Day 1 of each 6-week cycle', indication:'PCV chemotherapy', status:'Active'},
+      {name:'Procarbazine', dose:'60 mg/m²', route:'PO', freq:'Days 8–21 of each cycle', indication:'PCV chemotherapy', status:'Active'},
+      {name:'Vincristine', dose:'1.4 mg/m² (max 2 mg)', route:'IV', freq:'Days 8 and 29 of each cycle', indication:'PCV chemotherapy', status:'Active'},
+    ],
+  },
+  {
+    id:'bev', name:'Bevacizumab — recurrent GBM',
+    desc:'Anti-VEGF monotherapy for recurrence; monitor BP and proteinuria.',
+    meds:[
+      {name:'Bevacizumab', dose:'10 mg/kg', route:'IV', freq:'Every 2 weeks', indication:'Recurrent disease', status:'Active'},
+    ],
+  },
+  {
+    id:'support', name:'Supportive care bundle',
+    desc:'Peritumoral edema + seizure prophylaxis + GI protection.',
+    meds:[
+      {name:'Dexamethasone', dose:'4 mg (taper per response)', route:'PO', freq:'Twice daily, taper', indication:'Peritumoral edema', status:'Active'},
+      {name:'Levetiracetam', dose:'500 mg', route:'PO', freq:'Twice daily', indication:'Seizure control', status:'Active'},
+      {name:'Omeprazole', dose:'20 mg', route:'PO', freq:'Once daily', indication:'GI protection while on steroids', status:'Active'},
+    ],
+  },
+];
+
+function openProtocolPicker(){
+  if(!selectedMRN){ return; }
+  let ov=document.getElementById('protocol-overlay');
+  if(ov){ ov.remove(); }
+  ov=document.createElement('div');
+  ov.id='protocol-overlay';
+  ov.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(8,14,30,0.55);display:flex;align-items:center;justify-content:center;padding:20px;';
+  const card=document.createElement('div');
+  card.style.cssText='background:var(--surface,#fff);color:var(--text,#111);border-radius:16px;max-width:620px;width:100%;max-height:82vh;overflow:auto;padding:22px;box-shadow:0 24px 70px rgba(0,0,0,0.35);';
+  card.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'+
+    '<div style="font-size:16px;font-weight:800;">🧪 Apply Treatment Protocol</div>'+
+    '<button id="proto-close" style="border:none;background:transparent;font-size:18px;cursor:pointer;color:inherit;">✕</button></div>'+
+    '<div style="font-size:12px;color:var(--text-muted,#667);margin-bottom:14px;">Adds the template medications to this patient\'s med list. Adjust doses (mg/m² → actual mg by BSA) before saving the record.</div>';
+  PROTOCOLS.forEach(function(pr){
+    const row=document.createElement('div');
+    row.style.cssText='border:1px solid var(--border,#dbe2ef);border-radius:12px;padding:13px 14px;margin-bottom:10px;';
+    row.innerHTML='<div style="font-weight:800;font-size:13.5px;margin-bottom:3px;">'+pr.name+'</div>'+
+      '<div style="font-size:12px;color:var(--text-muted,#667);margin-bottom:8px;">'+pr.desc+'</div>'+
+      '<div style="font-size:11.5px;color:var(--text-dim,#889);margin-bottom:9px;">'+pr.meds.map(m=>m.name).join(' · ')+'</div>';
+    const btn=document.createElement('button');
+    btn.textContent='Apply ('+pr.meds.length+' medications)';
+    btn.style.cssText='padding:8px 14px;border:none;border-radius:8px;background:var(--blue,#1a56db);color:#fff;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;';
+    btn.addEventListener('click',function(){ applyProtocol(pr); ov.remove(); });
+    row.appendChild(btn);
+    card.appendChild(row);
+  });
+  ov.appendChild(card);
+  ov.addEventListener('click',function(e){ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+  document.getElementById('proto-close').addEventListener('click',function(){ ov.remove(); });
+}
+
+function applyProtocol(pr){
+  const start=today();
+  let added=0;
+  pr.meds.forEach(function(m){
+    if (rMeds.some(x=>x.name===m.name)) return;   // don't duplicate
+    rMeds.push({...m, start:start, end:''});
+    added++;
+  });
+  if (typeof renderMedList==='function') renderMedList();
+  if (typeof flash==='function') flash('✅ '+pr.name.split('—')[0].trim()+': '+added+' medication(s) added. Review doses, then Save Record.');
+}
+
+// Add the button into the record header whenever a record is opened.
+const _openRecord=window.openRecord;
+window.openRecord=function(mrn){
+  _openRecord(mrn);
+  try {
+    const anchor=document.getElementById('rec-pat-mrn');
+    if (anchor && !document.getElementById('proto-btn')) {
+      const b=document.createElement('button');
+      b.id='proto-btn';
+      b.textContent='🧪 Apply Protocol';
+      b.style.cssText='margin-left:12px;padding:6px 12px;border:1px solid var(--blue,#1a56db);border-radius:8px;background:transparent;color:var(--blue,#1a56db);font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer;vertical-align:middle;';
+      b.addEventListener('click',openProtocolPicker);
+      anchor.parentElement.appendChild(b);
+    }
+  } catch(e){ console.warn('protocol button injection failed', e); }
+};
+})();
+</script>
+<script>
+// ═══════════════════════════════════════════════
+// CLINIC MANAGEMENT — day board & infusion chairs, task board with
+// follow-up recall, billing/invoices, drug inventory, monthly reports.
+// All state lives in synced LS keys, same as the rest of the app.
+// ═══════════════════════════════════════════════
+(function(){
+'use strict';
+
+const SLOTS=['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00'];
+function cfg(){ return LS.get('clinic_cfg')||{chairs:4}; }
+function dayKey(d){ return 'clinicday_'+d; }
+function getDay(d){ return LS.get(dayKey(d))||{bookings:[]}; }
+function money(n){ return '₹'+Number(n||0).toLocaleString('en-IN'); }
+function esc2(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+/* ── PANEL SHELL ────────────────────────────────────────────── */
+function buildClinicPanel(){
+  if(document.getElementById('panel-clinic'))return;
+  const nav=document.getElementById('nav-labs');
+  if(nav)nav.insertAdjacentHTML('afterend',
+    '<button id="nav-clinic" class="nav-item" onclick="showPanel(\'clinic\',this);renderClinic()"><span class="ni">🏥</span>Clinic Management</button>');
+  const host=document.getElementById('panel-overview')?.parentElement;
+  if(!host)return;
+  const p=document.createElement('div');
+  p.className='panel';p.id='panel-clinic';
+  p.innerHTML=`
+    <div class="page-header"><div><div class="page-title">Clinic Management</div>
+      <div class="page-sub">Day board, tasks, billing, inventory &amp; reports</div></div></div>
+    <div id="clinic-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">
+      ${['Day Board','Tasks & Recall','Billing','Inventory','Reports'].map((t,i)=>
+        `<button class="btn ${i?'btn-ghost':'btn-primary'}" data-ct="${i}" onclick="switchClinicTab(${i},this)">${t}</button>`).join('')}
+    </div>
+    <div id="ct-0"></div><div id="ct-1" style="display:none;"></div><div id="ct-2" style="display:none;"></div>
+    <div id="ct-3" style="display:none;"></div><div id="ct-4" style="display:none;"></div>`;
+  host.appendChild(p);
+}
+window.switchClinicTab=function(i,btn){
+  for(let n=0;n<5;n++){const el=document.getElementById('ct-'+n);if(el)el.style.display=n===i?'block':'none';}
+  document.querySelectorAll('#clinic-tabs .btn').forEach(b=>{b.className='btn '+(b===btn?'btn-primary':'btn-ghost');});
+  [renderDayBoard,renderTasksTab,renderBillingTab,renderInventoryTab,renderReportsTab][i]();
+};
+window.renderClinic=function(){ buildClinicPanel(); renderDayBoard(); };
+
+/* ── 1. DAY BOARD: infusion chairs + arrivals ───────────────── */
+let boardDate=today();
+window.clinicSetDate=function(v){ boardDate=v||today(); renderDayBoard(); };
+
+function renderDayBoard(){
+  const el=document.getElementById('ct-0');if(!el)return;
+  const day=getDay(boardDate),c=cfg();
+  const byCell={};day.bookings.forEach(b=>{byCell[b.chair+'|'+b.slot]=b;});
+  // arrivals: checkin_<MRN> keys for this date
+  const arrivals=LS.keys('checkin_').map(k=>({mrn:k.slice(8),...(LS.get(k)||{})}))
+    .filter(a=>a.date===boardDate).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  const patName=m=>{const p=LS.get('pat_'+m);return p?p.name:m;};
+
+  el.innerHTML=`
+  <div class="card" style="margin-bottom:14px;">
+    <div class="card-header" style="flex-wrap:wrap;gap:10px;">
+      <div class="card-title">🪑 Infusion Chairs</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="date" value="${boardDate}" onchange="clinicSetDate(this.value)"
+          style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
+        <select onchange="clinicChairs(this.value)" style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
+          ${[2,3,4,5,6,8].map(n=>`<option ${n===c.chairs?'selected':''} value="${n}">${n} chairs</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;min-width:640px;">
+      <tr><th style="text-align:left;padding:6px 8px;color:var(--text-muted);font-size:10.5px;">TIME</th>
+      ${Array.from({length:c.chairs},(_,i)=>`<th style="text-align:left;padding:6px 8px;color:var(--text-muted);font-size:10.5px;">CHAIR ${i+1}</th>`).join('')}</tr>
+      ${SLOTS.map(sl=>`<tr>
+        <td style="padding:5px 8px;font-family:var(--mono);color:var(--text-muted);border-top:1px solid var(--border);">${sl}</td>
+        ${Array.from({length:c.chairs},(_,i)=>{
+          const b=byCell[(i+1)+'|'+sl];
+          return b
+            ?`<td style="padding:4px;border-top:1px solid var(--border);"><div onclick="chairRemove('${b.id}')" title="Click to remove"
+                 style="background:${b.type==='Chemo'?'rgba(79,179,255,0.16)':'rgba(0,200,150,0.14)'};border-radius:6px;padding:5px 8px;cursor:pointer;">
+                 <b style="font-size:11.5px;">${esc2(b.name)}</b><div style="font-size:10px;color:var(--text-muted);">${esc2(b.type)}</div></div></td>`
+            :`<td style="padding:4px;border-top:1px solid var(--border);"><button onclick="chairBook(${i+1},'${sl}')"
+                 style="width:100%;padding:8px;border:1px dashed var(--border);border-radius:6px;background:transparent;color:var(--text-dim);cursor:pointer;font-size:11px;">+</button></td>`;
+        }).join('')}</tr>`).join('')}
+    </table></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">🚶 Arrivals & Queue — ${boardDate}</div></div>
+    ${arrivals.length?arrivals.map((a,i)=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--surface2);border-radius:7px;margin-bottom:6px;">
+        <div><b style="font-size:12.5px;">${i+1}. ${esc2(patName(a.mrn))}</b>
+          <span style="font-size:11px;color:var(--text-muted);margin-left:8px;">arrived ${esc2(a.time||'')}</span>
+          <span style="font-size:10px;font-weight:700;margin-left:8px;color:${a.status==='waiting'?'var(--orange)':a.status==='called'?'var(--cyan)':'var(--green)'};">${(a.status||'').toUpperCase()}</span></div>
+        <div style="display:flex;gap:6px;">
+          ${a.status==='waiting'?`<button class="btn btn-cyan btn-sm" onclick="checkinStatus('${a.mrn}','called')">Call In</button>`:''}
+          ${a.status!=='seen'?`<button class="btn btn-ghost btn-sm" onclick="checkinStatus('${a.mrn}','seen')">Done</button>`:''}
+        </div>
+      </div>`).join(''):'<div style="color:var(--text-dim);font-size:12.5px;padding:8px 4px;">No patients have checked in for this day.</div>'}
+  </div>`;
+}
+window.clinicChairs=function(n){ LS.set('clinic_cfg',{...cfg(),chairs:parseInt(n,10)||4}); renderDayBoard(); };
+window.chairBook=function(chair,slot){
+  const pats=getMyPatients();
+  if(!pats.length){flash('Add a patient first.');return;}
+  const pick=prompt('Book Chair '+chair+' at '+slot+'\n\n'+pats.map((p,i)=>(i+1)+'. '+p.name+' ('+p.mrn+')').join('\n')+'\n\nEnter patient number:');
+  const p=pats[parseInt(pick,10)-1];if(!p)return;
+  const type=prompt('Booking type: 1 = Chemo infusion, 2 = Other (hydration, transfusion...)','1')==='1'?'Chemo':'Other';
+  const day=getDay(boardDate);
+  day.bookings.push({id:uid(),chair,slot,mrn:p.mrn,name:p.name,type});
+  LS.set(dayKey(boardDate),day);renderDayBoard();
+};
+window.chairRemove=function(id){
+  const day=getDay(boardDate);day.bookings=day.bookings.filter(b=>b.id!==id);
+  LS.set(dayKey(boardDate),day);renderDayBoard();
+};
+window.checkinStatus=function(mrn,st){
+  const c=LS.get('checkin_'+mrn);if(!c)return;
+  LS.set('checkin_'+mrn,{...c,status:st});renderDayBoard();
+};
+
+/* ── 2. TASKS + FOLLOW-UP RECALL ─────────────────────────────── */
+function tasks(){ return LS.get('clinic_tasks')||[]; }
+function renderTasksTab(){
+  const el=document.getElementById('ct-1');if(!el)return;
+  const list=tasks().sort((a,b)=>(a.done?1:0)-(b.done?1:0)||(a.due||'9999').localeCompare(b.due||'9999'));
+  const t=today();
+  // recall: my patients with no upcoming appointment
+  const recall=getMyPatients().map(p=>{
+    const appts=LS.get('appts_'+p.mrn)||[];
+    const future=appts.some(a=>a.date>=t&&a.status!=='Cancelled');
+    const past=appts.map(a=>a.date).filter(d=>d<t).sort().pop();
+    const logs=LS.keys('log_'+p.mrn+'_').sort().pop();
+    const lastLog=logs?logs.slice(-10):null;
+    const lastSeen=[past,lastLog].filter(Boolean).sort().pop();
+    return {p,future,lastSeen};
+  }).filter(r=>!r.future);
+  // surveillance scans: latest report's nextDue has passed with no newer study
+  const scansOverdue=getMyPatients().map(p=>{
+    const imgs=(p.imaging||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    const latest=imgs[0];
+    if(!latest||!latest.nextDue||latest.nextDue>=t)return null;
+    return {p,due:latest.nextDue,last:latest.date};
+  }).filter(Boolean);
+
+  el.innerHTML=`
+  <div class="card" style="margin-bottom:14px;">
+    <div class="card-header"><div class="card-title">✅ Task Board</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+      <input id="ctask-text" placeholder="e.g. Order MRI, chase pathology report…" style="flex:2;min-width:200px;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12.5px;">
+      <select id="ctask-mrn" style="flex:1;min-width:140px;padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
+        <option value="">— no patient —</option>${getMyPatients().map(p=>`<option value="${p.mrn}">${esc2(p.name)}</option>`).join('')}
+      </select>
+      <input type="date" id="ctask-due" style="padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
+      <button class="btn btn-primary" onclick="clinicAddTask()">+ Add</button>
+    </div>
+    ${list.length?list.map(tk=>{
+      const overdue=!tk.done&&tk.due&&tk.due<t;
+      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface2);border-radius:7px;margin-bottom:6px;${tk.done?'opacity:0.5;':''}">
+        <input type="checkbox" ${tk.done?'checked':''} onchange="clinicToggleTask('${tk.id}')" style="width:15px;height:15px;cursor:pointer;">
+        <div style="flex:1;"><div style="font-size:12.5px;${tk.done?'text-decoration:line-through;':''}">${esc2(tk.text)}</div>
+          <div style="font-size:10.5px;color:var(--text-muted);">${tk.mrn?'👤 '+esc2((LS.get('pat_'+tk.mrn)||{}).name||tk.mrn)+' · ':''}${tk.due?`<span style="${overdue?'color:var(--red);font-weight:700;':''}">due ${tk.due}${overdue?' — OVERDUE':''}</span>`:''}</div></div>
+        <button onclick="clinicDelTask('${tk.id}')" style="border:none;background:transparent;color:var(--text-dim);cursor:pointer;font-size:14px;">✕</button>
+      </div>`;}).join(''):'<div style="color:var(--text-dim);font-size:12.5px;">No tasks yet.</div>'}
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title" style="color:var(--orange);">📞 Follow-up Recall — no upcoming visit booked</div></div>
+    ${recall.length?recall.map(r=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--surface2);border-radius:7px;margin-bottom:6px;">
+        <div><b style="font-size:12.5px;">${esc2(r.p.name)}</b>
+          <div style="font-size:11px;color:var(--text-muted);">${esc2(r.p.diag||'')} · last activity: ${r.lastSeen||'never'}</div></div>
+        <button class="btn btn-cyan btn-sm" onclick="openRecord('${r.p.mrn}')">Open Record</button>
+      </div>`).join(''):'<div style="color:var(--text-dim);font-size:12.5px;">Every patient has an upcoming appointment. 🎉</div>'}
+  </div>
+  <div class="card" style="margin-top:14px;">
+    <div class="card-header"><div class="card-title" style="color:var(--red);">📡 Surveillance Scans Overdue</div></div>
+    ${scansOverdue.length?scansOverdue.map(r=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--surface2);border-radius:7px;margin-bottom:6px;">
+        <div><b style="font-size:12.5px;">${esc2(r.p.name)}</b>
+          <div style="font-size:11px;color:var(--text-muted);">last scan ${r.last||'—'} · follow-up was due <b style="color:var(--red);">${r.due}</b></div></div>
+        <button class="btn btn-cyan btn-sm" onclick="openRecord('${r.p.mrn}')">Open Record</button>
+      </div>`).join(''):'<div style="color:var(--text-dim);font-size:12.5px;">No overdue surveillance scans.</div>'}
+  </div>`;
+}
+window.clinicAddTask=function(){
+  const text=v('ctask-text');if(!text){flash('Enter a task first.');return;}
+  const all=tasks();all.push({id:uid(),text,mrn:v('ctask-mrn'),due:v('ctask-due'),done:false,createdAt:Date.now()});
+  LS.set('clinic_tasks',all);renderTasksTab();
+};
+window.clinicToggleTask=function(id){
+  const all=tasks();const tk=all.find(x=>x.id===id);if(tk)tk.done=!tk.done;
+  LS.set('clinic_tasks',all);renderTasksTab();
+};
+window.clinicDelTask=function(id){ LS.set('clinic_tasks',tasks().filter(x=>x.id!==id));renderTasksTab(); };
+
+/* ── 3. BILLING / INVOICES ───────────────────────────────────── */
+function allInvoices(){
+  const out=[];
+  LS.keys('invoices_').forEach(k=>{(LS.get(k)||[]).forEach(inv=>out.push({...inv,mrn:k.slice(9)}));});
+  return out.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+}
+function renderBillingTab(){
+  const el=document.getElementById('ct-2');if(!el)return;
+  const invs=allInvoices();
+  const due=invs.filter(i=>i.status!=='Paid').reduce((s,i)=>s+(i.total||0),0);
+  el.innerHTML=`
+  <div class="card" style="margin-bottom:14px;">
+    <div class="card-header"><div class="card-title">🧾 New Invoice</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+      <select id="inv-mrn" style="flex:1;min-width:160px;padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
+        ${getMyPatients().map(p=>`<option value="${p.mrn}">${esc2(p.name)} (${p.mrn})</option>`).join('')}
+      </select>
+      <input type="date" id="inv-date" value="${today()}" style="padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
+    </div>
+    <div id="inv-items"></div>
+    <button class="btn btn-ghost btn-sm" onclick="invAddRow()">+ Add line item</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+      <div style="font-size:14px;font-weight:700;">Total: <span id="inv-total">₹0</span></div>
+      <button class="btn btn-primary" onclick="invSave()">Save Invoice</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">📒 All Invoices</div>
+      <div style="font-size:12px;color:var(--orange);font-weight:700;">Outstanding: ${money(due)}</div></div>
+    ${invs.length?invs.map(inv=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--surface2);border-radius:7px;margin-bottom:6px;flex-wrap:wrap;gap:6px;">
+        <div><b style="font-size:12.5px;">${esc2((LS.get('pat_'+inv.mrn)||{}).name||inv.mrn)}</b>
+          <span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-left:6px;">#${inv.id.slice(-6).toUpperCase()}</span>
+          <div style="font-size:11px;color:var(--text-muted);">${inv.date} · ${(inv.items||[]).length} item(s) · ${money(inv.total)}</div></div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span style="font-size:10px;font-weight:800;padding:3px 9px;border-radius:99px;background:${inv.status==='Paid'?'rgba(0,200,150,0.15)':'rgba(240,160,75,0.15)'};color:${inv.status==='Paid'?'var(--green)':'var(--orange)'};">${inv.status||'Unpaid'}</span>
+          ${inv.status!=='Paid'?`<button class="btn btn-cyan btn-sm" onclick="invMarkPaid('${inv.mrn}','${inv.id}')">Mark Paid</button>`:''}
+          <button class="btn btn-ghost btn-sm" onclick="invPrint('${inv.mrn}','${inv.id}')">🖨 Print</button>
+        </div>
+      </div>`).join(''):'<div style="color:var(--text-dim);font-size:12.5px;">No invoices yet.</div>'}
+  </div>`;
+  invAddRow();
+}
+window.invAddRow=function(){
+  document.getElementById('inv-items').insertAdjacentHTML('beforeend',
+    `<div style="display:flex;gap:6px;margin-bottom:6px;" class="inv-row">
+      <input placeholder="Description (e.g. Consultation, TMZ cycle 2)" class="inv-desc" oninput="invTotal()" style="flex:3;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
+      <input type="number" placeholder="Qty" value="1" min="1" class="inv-qty" oninput="invTotal()" style="flex:0 0 64px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
+      <input type="number" placeholder="Rate ₹" class="inv-rate" oninput="invTotal()" style="flex:0 0 110px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
+      <button onclick="this.parentElement.remove();invTotal()" style="border:none;background:transparent;color:var(--text-dim);cursor:pointer;">✕</button>
+    </div>`);
+};
+window.invTotal=function(){
+  let t=0;document.querySelectorAll('.inv-row').forEach(r=>{
+    t+=(parseFloat(r.querySelector('.inv-qty').value)||0)*(parseFloat(r.querySelector('.inv-rate').value)||0);});
+  document.getElementById('inv-total').textContent=money(t);
+  return t;
+};
+window.invSave=function(){
+  const mrn=v('inv-mrn');if(!mrn){flash('Select a patient.');return;}
+  const items=[...document.querySelectorAll('.inv-row')].map(r=>({
+    desc:r.querySelector('.inv-desc').value.trim(),
+    qty:parseFloat(r.querySelector('.inv-qty').value)||0,
+    rate:parseFloat(r.querySelector('.inv-rate').value)||0,
+  })).filter(i=>i.desc&&i.qty&&i.rate);
+  if(!items.length){flash('Add at least one line item with description, qty and rate.');return;}
+  const k='invoices_'+mrn;const list=LS.get(k)||[];
+  list.unshift({id:uid(),date:v('inv-date')||today(),items,total:items.reduce((s,i)=>s+i.qty*i.rate,0),status:'Unpaid',by:currentDoc?.name||''});
+  LS.set(k,list);flash('Invoice saved.');renderBillingTab();
+};
+window.invMarkPaid=function(mrn,id){
+  const k='invoices_'+mrn;const list=LS.get(k)||[];
+  const inv=list.find(i=>i.id===id);if(inv){inv.status='Paid';inv.paidAt=new Date().toISOString();}
+  LS.set(k,list);renderBillingTab();
+};
+window.invPrint=function(mrn,id){
+  const inv=(LS.get('invoices_'+mrn)||[]).find(i=>i.id===id);if(!inv)return;
+  const p=LS.get('pat_'+mrn)||{};
+  const w=window.open('','_blank','width=720,height=900');
+  w.document.write(`<html><head><title>Invoice #${inv.id.slice(-6).toUpperCase()}</title></head>
+  <body style="font-family:system-ui,sans-serif;color:#1a2540;max-width:640px;margin:32px auto;padding:0 20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #1a56db;padding-bottom:14px;">
+      <div><div style="font-size:22px;font-weight:800;color:#1a56db;">ChemoCure Clinic</div>
+        <div style="font-size:12px;color:#667;">${esc2(currentDoc?.name||'')} · ${esc2(currentDoc?.spec||'')}</div></div>
+      <div style="text-align:right;"><div style="font-size:16px;font-weight:800;">INVOICE</div>
+        <div style="font-family:monospace;font-size:12px;">#${inv.id.slice(-6).toUpperCase()} · ${inv.date}</div></div>
+    </div>
+    <div style="margin:16px 0;font-size:13px;"><b>Billed to:</b> ${esc2(p.name||mrn)} &nbsp;·&nbsp; MRN ${esc2(mrn)}</div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <tr style="background:#eef3fd;"><th style="text-align:left;padding:8px;">Description</th><th style="text-align:right;padding:8px;">Qty</th><th style="text-align:right;padding:8px;">Rate</th><th style="text-align:right;padding:8px;">Amount</th></tr>
+      ${inv.items.map(i=>`<tr><td style="padding:8px;border-bottom:1px solid #e3e9f4;">${esc2(i.desc)}</td>
+        <td style="text-align:right;padding:8px;border-bottom:1px solid #e3e9f4;">${i.qty}</td>
+        <td style="text-align:right;padding:8px;border-bottom:1px solid #e3e9f4;">${money(i.rate)}</td>
+        <td style="text-align:right;padding:8px;border-bottom:1px solid #e3e9f4;">${money(i.qty*i.rate)}</td></tr>`).join('')}
+      <tr><td colspan="3" style="text-align:right;padding:10px 8px;font-weight:800;">TOTAL</td>
+        <td style="text-align:right;padding:10px 8px;font-weight:800;font-size:15px;">${money(inv.total)}</td></tr>
+    </table>
+    <div style="margin-top:14px;font-size:12px;">Status: <b style="color:${inv.status==='Paid'?'#0e9f6e':'#c26a1b'};">${inv.status}</b></div>
+    <div style="margin-top:40px;font-size:11px;color:#889;">Generated by ChemoCure · This is a computer-generated invoice.</div>
+    <script>window.print();<\/script></body></html>`);
+  w.document.close();
+};
+
+/* ── 4. DRUG INVENTORY ───────────────────────────────────────── */
+function inv(){ return LS.get('clinic_inventory')||[]; }
+function renderInventoryTab(){
+  const el=document.getElementById('ct-3');if(!el)return;
+  const t=new Date();const soon=new Date(t);soon.setDate(soon.getDate()+60);
+  const soonStr=soon.toISOString().slice(0,10);
+  const items=inv().sort((a,b)=>a.name.localeCompare(b.name));
+  el.innerHTML=`
+  <div class="card" style="margin-bottom:14px;">
+    <div class="card-header"><div class="card-title">📦 Add Stock Item</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <input id="stk-name" placeholder="Drug (e.g. Temozolomide 100mg)" style="flex:2;min-width:180px;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12.5px;">
+      <input id="stk-qty" type="number" placeholder="Stock" style="flex:0 0 80px;padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
+      <input id="stk-min" type="number" placeholder="Min" style="flex:0 0 70px;padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
+      <input id="stk-exp" type="date" title="Expiry" style="padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
+      <button class="btn btn-primary" onclick="stkAdd()">+ Add</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Stock on hand</div></div>
+    ${items.length?items.map(it=>{
+      const low=it.stock<=(it.minStock||0);
+      const expiring=it.expiry&&it.expiry<=soonStr;
+      const expired=it.expiry&&it.expiry<today();
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--surface2);border-radius:7px;margin-bottom:6px;flex-wrap:wrap;gap:6px;">
+        <div><b style="font-size:12.5px;">${esc2(it.name)}</b>
+          <div style="font-size:11px;color:var(--text-muted);">stock: <b style="color:${low?'var(--red)':'var(--text)'};">${it.stock}</b>${it.minStock?' (min '+it.minStock+')':''}${it.expiry?' · expiry '+it.expiry:''}</div></div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          ${expired?'<span style="font-size:10px;font-weight:800;color:var(--red);">EXPIRED</span>':expiring?'<span style="font-size:10px;font-weight:800;color:var(--orange);">EXPIRING SOON</span>':''}
+          ${low?'<span style="font-size:10px;font-weight:800;color:var(--red);">LOW STOCK</span>':''}
+          <button class="btn btn-cyan btn-sm" onclick="stkAdj('${it.id}',-1)">− Dispense</button>
+          <button class="btn btn-ghost btn-sm" onclick="stkAdj('${it.id}',1)">+1</button>
+          <button onclick="stkDel('${it.id}')" style="border:none;background:transparent;color:var(--text-dim);cursor:pointer;">✕</button>
+        </div>
+      </div>`;}).join(''):'<div style="color:var(--text-dim);font-size:12.5px;">No stock items yet.</div>'}
+  </div>`;
+}
+window.stkAdd=function(){
+  const name=v('stk-name');if(!name){flash('Enter a drug name.');return;}
+  const all=inv();all.push({id:uid(),name,stock:parseInt(v('stk-qty'),10)||0,minStock:parseInt(v('stk-min'),10)||0,expiry:v('stk-exp')||''});
+  LS.set('clinic_inventory',all);renderInventoryTab();
+};
+window.stkAdj=function(id,d){
+  const all=inv();const it=all.find(x=>x.id===id);if(it)it.stock=Math.max(0,(it.stock||0)+d);
+  LS.set('clinic_inventory',all);renderInventoryTab();
+};
+window.stkDel=function(id){ LS.set('clinic_inventory',inv().filter(x=>x.id!==id));renderInventoryTab(); };
+
+/* ── 5. MONTHLY REPORTS ──────────────────────────────────────── */
+function renderReportsTab(){
+  const el=document.getElementById('ct-4');if(!el)return;
+  const month=(document.getElementById('rep-month')?.value)||today().slice(0,7);
+  const pats=getMyPatients();
+  const inMonth=s=>s&&String(s).slice(0,7)===month;
+  const newPats=pats.filter(p=>p.created&&new Date(p.created).toISOString().slice(0,7)===month).length;
+  let appts=0,completed=0,noshow=0;
+  pats.forEach(p=>(LS.get('appts_'+p.mrn)||[]).forEach(a=>{
+    if(!inMonth(a.date))return;appts++;
+    if(a.status==='Completed')completed++;
+    if(a.status==='No-show')noshow++;
+  }));
+  let logs=0;pats.forEach(p=>{logs+=LS.keys('log_'+p.mrn+'_').filter(k=>inMonth(k.slice(-10))).length;});
+  let billed=0,collected=0;
+  allInvoices().forEach(i=>{if(inMonth(i.date)){billed+=i.total||0;if(i.status==='Paid')collected+=i.total||0;}});
+  let chemoSlots=0;
+  LS.keys('clinicday_').forEach(k=>{if(k!=='clinicday_cfg'&&inMonth(k.slice(10)))chemoSlots+=(LS.get(k)?.bookings||[]).filter(b=>b.type==='Chemo').length;});
+  const lowStock=inv().filter(i=>i.stock<=(i.minStock||0)).length;
+  const tile=(label,val,color)=>`<div class="card" style="flex:1;min-width:150px;text-align:left;">
+    <div style="font-size:10.5px;letter-spacing:.06em;color:var(--text-muted);font-weight:700;">${label}</div>
+    <div style="font-size:26px;font-weight:800;color:${color||'var(--text)'};margin-top:2px;">${val}</div></div>`;
+  el.innerHTML=`
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+    <label style="font-size:12px;color:var(--text-muted);font-weight:700;">MONTH</label>
+    <input type="month" id="rep-month" value="${month}" onchange="renderReportsTab()"
+      style="padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
+    <button class="btn btn-ghost btn-sm" onclick="repCSV()">⬇ Export CSV</button>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+    ${tile('NEW PATIENTS',newPats,'var(--blue)')}
+    ${tile('APPOINTMENTS',appts)}
+    ${tile('COMPLETED',completed,'var(--green)')}
+    ${tile('NO-SHOWS',noshow,noshow?'var(--red)':'var(--text)')}
+    ${tile('CHEMO SLOTS',chemoSlots,'var(--cyan)')}
+    ${tile('HEALTH LOGS',logs)}
+    ${tile('BILLED',money(billed))}
+    ${tile('COLLECTED',money(collected),'var(--green)')}
+    ${tile('LOW-STOCK ITEMS',lowStock,lowStock?'var(--orange)':'var(--text)')}
+  </div>`;
+}
+window.renderReportsTab=renderReportsTab;
+window.renderTasksTab=renderTasksTab;
+window.renderBillingTab=renderBillingTab;
+window.renderInventoryTab=renderInventoryTab;
+window.renderDayBoard=renderDayBoard;
+window.repCSV=function(){
+  const month=(document.getElementById('rep-month')?.value)||today().slice(0,7);
+  const rows=[['Invoice','Date','Patient','Items','Total','Status']];
+  allInvoices().filter(i=>String(i.date).slice(0,7)===month).forEach(i=>
+    rows.push([i.id,i.date,(LS.get('pat_'+i.mrn)||{}).name||i.mrn,(i.items||[]).map(x=>x.desc).join('; '),i.total,i.status]));
+  downloadCSV('chemocure-billing-'+month+'.csv',rows);
+};
+
+// Build the nav entry once the doctor is logged in (initApp runs then).
+const _initApp2=window.initApp;
+window.initApp=function(){ _initApp2(); buildClinicPanel(); };
+})();
+
+</script>
+<script>
+// ── Accessibility enhancer (additive, runs on load) ──────────────
+(function(){
+  'use strict';
+  // Keyboard users get a clear focus ring (mouse users don't see it).
+  var st=document.createElement('style');
+  st.textContent=':focus-visible{outline:2.5px solid var(--blue,#1a56db);outline-offset:2px;border-radius:4px;}'+
+    'a.skip-link{position:absolute;left:-999px;top:0;z-index:100000;background:var(--blue,#1a56db);color:#fff;padding:8px 14px;border-radius:0 0 8px 0;}'+
+    'a.skip-link:focus{left:0;}';
+  document.head.appendChild(st);
+
+  function enhance(){
+    // Landmarks for screen-reader navigation.
+    var side=document.querySelector('.sidebar');
+    if(side && !side.getAttribute('role')){ side.setAttribute('role','navigation'); side.setAttribute('aria-label','Main navigation'); }
+    document.querySelectorAll('.rnav').forEach(function(n){ if(!n.getAttribute('role')){ n.setAttribute('role','tablist'); n.setAttribute('aria-label','Patient record sections'); }});
+
+    // Label icon-only buttons so screen readers announce them.
+    var SYM={'✕':'Close','×':'Close','⎋':'Log out','🖨':'Print','⬇':'Download','🔍':'Search',
+      '📋':'Copy','＋':'Add','+':'Add','←':'Back','→':'Next','🗑':'Delete','✓':'Confirm','▶':'Run'};
+    document.querySelectorAll('button, [onclick]').forEach(function(b){
+      if(b.getAttribute('aria-label')) return;
+      var txt=(b.textContent||'').trim();
+      // "icon-only" = no ASCII letters in the label
+      if(txt && !/[a-z]/i.test(txt)){
+        var label=b.getAttribute('title')||SYM[txt]||SYM[txt.charAt(0)];
+        if(label) b.setAttribute('aria-label',label);
+      }
+    });
+    // Buttons carrying a title but a rich label still benefit from the title as tooltip; nothing to do.
+  }
+
+  // Run now and after each panel/record render (DOM changes a lot).
+  function ready(fn){ document.readyState==='loading'?document.addEventListener('DOMContentLoaded',fn):fn(); }
+  ready(function(){
+    enhance();
+    // Skip-link to jump past the nav.
+    var main=document.getElementById('app');
+    if(main){ var sk=document.createElement('a'); sk.href='#app-main'; sk.className='skip-link'; sk.textContent='Skip to content';
+      document.body.insertBefore(sk, document.body.firstChild);
+      var content=main.querySelector('.main')||main; content.id=content.id||'app-main'; content.setAttribute('role','main'); }
+    // Re-label after dynamic renders.
+    var mo=new MutationObserver(function(){ clearTimeout(window.__a11yT); window.__a11yT=setTimeout(enhance,300); });
+    mo.observe(document.body,{childList:true,subtree:true});
+  });
+})();
+</script>
+<script>
+// ── Global patient search (Ctrl/Cmd+K) ──────────────────────────
+(function(){
+  'use strict';
+  var ov, inp, list, sel=0, matches=[];
+  function build(){
+    if(ov) return;
+    ov=document.createElement('div'); ov.id='cmdk';
+    ov.style.cssText='position:fixed;inset:0;z-index:100001;background:rgba(8,14,30,0.5);display:none;align-items:flex-start;justify-content:center;padding-top:12vh;';
+    ov.innerHTML='<div role="dialog" aria-label="Search patients" style="background:var(--surface,#fff);color:var(--text,#111);width:min(560px,92vw);border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,0.4);overflow:hidden;">'+
+      '<input id="cmdk-inp" placeholder="Search patients by name or MRN…" aria-label="Search patients" style="width:100%;box-sizing:border-box;padding:15px 18px;border:none;border-bottom:1px solid var(--border,#e2e8f0);font:15px system-ui;outline:none;background:transparent;color:inherit;">'+
+      '<div id="cmdk-list" style="max-height:52vh;overflow:auto;"></div>'+
+      '<div style="padding:8px 14px;font-size:11px;color:var(--text-dim,#889);border-top:1px solid var(--border,#e2e8f0);">↑↓ to move · Enter to open · Esc to close</div></div>';
+    document.body.appendChild(ov);
+    inp=document.getElementById('cmdk-inp'); list=document.getElementById('cmdk-list');
+    ov.addEventListener('click',function(e){ if(e.target===ov) close(); });
+    inp.addEventListener('input',render);
+    inp.addEventListener('keydown',function(e){
+      if(e.key==='ArrowDown'){e.preventDefault();sel=Math.min(sel+1,matches.length-1);render(true);}
+      else if(e.key==='ArrowUp'){e.preventDefault();sel=Math.max(sel-1,0);render(true);}
+      else if(e.key==='Enter'){e.preventDefault();pick(matches[sel]);}
+      else if(e.key==='Escape'){close();}
+    });
+  }
+  function open(){
+    // Only when logged in (app shell visible). currentDoc is a lexical let, so
+    // don't test window.currentDoc — check the DOM instead.
+    if(typeof getMyPatients!=='function') return;
+    var app=document.getElementById('app');
+    if(!app || app.style.display==='none') return;
+    build(); ov.style.display='flex'; sel=0; inp.value=''; render(); setTimeout(function(){inp.focus();},30);
+  }
+  function close(){ if(ov) ov.style.display='none'; }
+  function esc(x){ return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+  function render(keepSel){
+    var q=(inp.value||'').toLowerCase().trim();
+    var all=getMyPatients();
+    matches=(!q?all:all.filter(function(p){return (p.name||'').toLowerCase().includes(q)||(p.mrn||'').toLowerCase().includes(q);})).slice(0,50);
+    if(!keepSel) sel=0;
+    if(!matches.length){ list.innerHTML='<div style="padding:16px 18px;color:var(--text-dim,#889);font-size:13px;">'+(all.length?'No match.':'No patients yet.')+'</div>'; return; }
+    list.innerHTML=matches.map(function(p,i){return '<div data-i="'+i+'" style="padding:11px 18px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;'+(i===sel?'background:var(--blue-pale,#e8effc);':'')+'">'+
+      '<span style="font-weight:600;font-size:13.5px;">'+esc(p.name||'—')+'</span>'+
+      '<span style="font-family:monospace;font-size:11.5px;color:var(--text-muted,#667);">'+esc(p.mrn)+' · '+esc(p.diag||'')+'</span></div>';}).join('');
+    [].forEach.call(list.children,function(row){
+      row.addEventListener('mouseenter',function(){sel=+row.dataset.i;highlight();});
+      row.addEventListener('click',function(){pick(matches[+row.dataset.i]);});
+    });
+  }
+  function highlight(){ [].forEach.call(list.children,function(row,i){row.style.background=i===sel?'var(--blue-pale,#e8effc)':'';}); }
+  function pick(p){ if(!p)return; close(); if(typeof openRecord==='function') openRecord(p.mrn); }
+  document.addEventListener('keydown',function(e){
+    if((e.ctrlKey||e.metaKey)&&(e.key==='k'||e.key==='K')){ e.preventDefault(); open(); }
+  });
+  window.openPatientSearch=open;
+})();
+</script>
+<script>
+// ── Idle auto-logout: protect an unattended record on a shared screen ──
+(function(){
+  'use strict';
+  var IDLE_MS=15*60*1000, WARN_MS=60*1000, timer, warnTimer, warnBox;
+  function loggedIn(){ var a=document.getElementById('app'); return a && a.style.display!=='none'; }
+  function clearWarn(){ if(warnBox){warnBox.remove();warnBox=null;} }
+  function doIdleLogout(){
+    clearWarn();
+    if(loggedIn() && typeof doLogout==='function'){ doLogout(); try{flash&&flash('Signed out due to inactivity.');}catch(e){} alert('You were signed out after 15 minutes of inactivity, to protect patient data.'); }
+  }
+  function warn(){
+    if(!loggedIn())return;
+    clearWarn();
+    warnBox=document.createElement('div');
+    warnBox.setAttribute('role','alert');
+    warnBox.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:100002;background:#7f1d1d;color:#fff;padding:12px 18px;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,0.4);font:600 13px system-ui;display:flex;gap:14px;align-items:center;';
+    warnBox.innerHTML='<span>You\'ll be signed out in 1 minute (inactivity).</span>';
+    var b=document.createElement('button'); b.textContent='Stay signed in';
+    b.style.cssText='background:#fff;color:#7f1d1d;border:none;border-radius:8px;padding:6px 14px;font:700 12.5px system-ui;cursor:pointer;';
+    b.addEventListener('click',reset);
+    warnBox.appendChild(b); document.body.appendChild(warnBox);
+  }
+  function reset(){
+    clearWarn(); clearTimeout(timer); clearTimeout(warnTimer);
+    if(!loggedIn())return;
+    warnTimer=setTimeout(warn, IDLE_MS-WARN_MS);
+    timer=setTimeout(doIdleLogout, IDLE_MS);
+  }
+  ['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(function(ev){
+    document.addEventListener(ev, function(){ if(loggedIn()) reset(); }, {passive:true});
+  });
+  // arm once the app is shown
+  var iv=setInterval(function(){ if(loggedIn()){ reset(); clearInterval(iv); } }, 2000);
 })();
 </script>
 </body>

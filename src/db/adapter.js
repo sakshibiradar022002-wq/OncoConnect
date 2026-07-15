@@ -27,52 +27,47 @@ export async function openDatabase(path) {
     return wrapLibsql(client, tursoUrl);
   }
 
+  // Serverless hosts (Vercel, Netlify, Cloudflare) have a read-only, ephemeral
+  // filesystem — a local SQLite file cannot work there. Fail with a clear,
+  // actionable message instead of a cryptic native crash.
+  if (process.env.VERCEL || process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    throw new Error(
+      'This is a serverless deployment but no TURSO_DATABASE_URL is set. ' +
+      'SQLite files cannot persist on serverless hosts — create a free Turso ' +
+      'database (https://turso.tech) and set TURSO_DATABASE_URL and ' +
+      'TURSO_AUTH_TOKEN in your host\'s environment variables. ' +
+      'Alternatively deploy to a host with a persistent disk (Render, Fly.io, Railway).'
+    );
+  }
+
   // Try better-sqlite3 first.
   try {
     const mod = await import('better-sqlite3');
-    const Database = mod.default;
-    const db = new Database(path);
+    const db = new mod.default(path);
     impl = 'better-sqlite3';
-    return wrapSync(db, path);
+    return wrapSync(db, (s) => db.pragma(s), path);
   } catch {
-    // Fall back to built-in node:sqlite (Node >= 22).
+    // Fall back to built-in node:sqlite (Node >= 22); it has no .pragma().
     const { DatabaseSync } = await import('node:sqlite');
-    const raw = new DatabaseSync(path);
+    const db = new DatabaseSync(path);
     impl = 'node:sqlite';
-    return wrapSync(wrapNodeSqlite(raw, path), path);
+    return wrapSync(db, (s) => db.exec(`PRAGMA ${s};`), path);
   }
 }
 
 export function activeImpl() { return impl; }
 
-// Promisify a synchronous better-sqlite3-style handle.
-function wrapSync(db, dbPath) {
+// Promisify a synchronous sqlite handle (both share prepare/exec).
+function wrapSync(db, pragma, dbPath) {
   return {
     async exec(sql) { db.exec(sql); },
-    async pragma(str) { db.pragma(str); },
+    async pragma(str) { pragma(str); },
     prepare(sql) {
       const stmt = db.prepare(sql);
       return {
         async run(...args) { return stmt.run(...args); },
         async get(...args) { return stmt.get(...args); },
         async all(...args) { return stmt.all(...args); },
-      };
-    },
-    name: dbPath,
-  };
-}
-
-// node:sqlite has a slightly different API — match better-sqlite3 first.
-function wrapNodeSqlite(raw, dbPath) {
-  return {
-    exec(sql) { raw.exec(sql); },
-    pragma(str) { raw.exec(`PRAGMA ${str};`); },
-    prepare(sql) {
-      const stmt = raw.prepare(sql);
-      return {
-        run(...args) { return stmt.run(...args); },
-        get(...args) { return stmt.get(...args); },
-        all(...args) { return stmt.all(...args); },
       };
     },
     name: dbPath,

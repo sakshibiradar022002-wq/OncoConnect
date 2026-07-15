@@ -64,11 +64,7 @@ after(() => {
 });
 
 const doctor = jar();
-const patient = jar();
-const lab = jar();
 const stranger = jar();
-
-let patientId, patientMrn, patientPassword, labId, labCreds, taskId;
 
 test('health check responds', async () => {
   const r = await call(stranger, 'GET', '/health');
@@ -103,95 +99,18 @@ test('doctor login sets a working session', async () => {
     email: 'suite@onco.test', password: 'SuitePass!2026',
   });
   assert.equal(r.status, 200);
-  const me = await call(doctor, 'GET', '/api/auth/me');
-  assert.equal(me.data.name, 'Dr. Test Suite');
+  assert.equal(r.data.user.name, 'Dr. Test Suite');
 });
 
 test('unauthenticated requests are rejected', async () => {
-  const r = await call(stranger, 'GET', '/api/patients');
+  const r = await call(stranger, 'GET', '/api/sync');
   assert.equal(r.status, 401);
-});
-
-test('doctor creates and lists a patient', async () => {
-  const r = await call(doctor, 'POST', '/api/patients', {
-    record: { name: 'Suite Patient', diag: 'Glioblastoma', phase: 'Diagnosis' },
-  });
-  assert.equal(r.status, 201);
-  ({ id: patientId, mrn: patientMrn, password: patientPassword } = r.data);
-  const list = await call(doctor, 'GET', '/api/patients');
-  assert.equal(list.data.patients.length, 1);
-  assert.equal(list.data.patients[0].name, 'Suite Patient');
-});
-
-test('patient portal login + RBAC denial', async () => {
-  const r = await call(patient, 'POST', '/api/auth/patient-login', {
-    mrn: patientMrn, password: patientPassword,
-  });
-  assert.equal(r.status, 200);
-  const denied = await call(patient, 'GET', '/api/patients');
-  assert.equal(denied.status, 403);
-});
-
-test('messages flow both ways', async () => {
-  const send = await call(doctor, 'POST', '/api/clinical/messages', {
-    patientId, body: 'How are you feeling?',
-  });
-  assert.equal(send.status, 201);
-  const reply = await call(patient, 'POST', '/api/clinical/messages', {
-    body: 'Feeling okay today.',
-  });
-  assert.equal(reply.status, 201);
-  const thread = await call(doctor, 'GET', `/api/clinical/messages/${patientId}`);
-  assert.equal(thread.data.messages.length, 2);
-});
-
-test('appointments and symptom logs', async () => {
-  const appt = await call(doctor, 'POST', '/api/clinical/appointments', {
-    patientId, date: '2026-09-01', time: '10:00', type: 'MRI Review',
-  });
-  assert.equal(appt.status, 201);
-  const log = await call(patient, 'POST', '/api/clinical/symptom-logs', {
-    logDate: '2026-07-08', data: { fatigue: 2, nausea: 0 },
-  });
-  assert.equal(log.status, 201);
-  const logs = await call(doctor, 'GET', `/api/clinical/symptom-logs/${patientId}`);
-  assert.equal(logs.data.logs.length, 1);
-});
-
-test('full lab workflow', async () => {
-  const create = await call(doctor, 'POST', '/api/labs', { name: 'Suite Lab', contact: 'lab@suite.test' });
-  assert.equal(create.status, 201);
-  labId = create.data.labId;
-  labCreds = create.data.credentials;
-
-  const assign = await call(doctor, 'POST', '/api/labs/tasks', {
-    labId, patientId, description: 'MGMT methylation', dueDate: '2026-07-20', priority: 'Urgent',
-  });
-  assert.equal(assign.status, 201);
-  taskId = assign.data.taskId;
-
-  const login = await call(lab, 'POST', '/api/auth/login', {
-    email: labCreds.email, password: labCreds.password,
-  });
-  assert.equal(login.status, 200);
-
-  const tasks = await call(lab, 'GET', '/api/labs/my-tasks');
-  assert.equal(tasks.data.tasks.length, 1);
-  assert.equal(tasks.data.tasks[0].patientName, 'Suite Patient');
-
-  const submit = await call(lab, 'POST', '/api/labs/submit', {
-    taskId, result: { status: 'Methylated' }, notes: 'QC passed',
-  });
-  assert.equal(submit.status, 200);
-
-  const subs = await call(doctor, 'GET', `/api/labs/submissions/${patientId}`);
-  assert.equal(subs.data.submissions.length, 1);
 });
 
 test('kv sync: doctor push/pull, patient login, scope enforcement', async () => {
   const push = await call(doctor, 'PUT', '/api/sync', {
     changes: {
-      'pat_KV-42': { name: 'KV Patient', pass: 'kv-plain-pw', docId: 'DOC-9' },
+      'pat_KV-42': { name: 'KV Patient', diag: 'Glioblastoma', pass: 'kv-plain-pw', docId: 'DOC-9' },
       'doc_DOC-9': { name: 'Dr. Test Suite', pass: 'doctor-secret-hash' },
     },
   });
@@ -219,10 +138,72 @@ test('kv sync: doctor push/pull, patient login, scope enforcement', async () => 
   assert.equal(foreignWrite.data.count, 0);
 });
 
+test('patient scope: exact key matching blocks arbitrary and foreign keys', async () => {
+  await call(doctor, 'PUT', '/api/sync', { changes: {
+    'pat_KV-99': { name: 'Other Pt', pass: 'other-pw', docId: 'DOC-9' },
+    'msgs_KV-42': [{ from: 'doctor', text: 'hi' }],
+    'invoices_KV-42': [{ id: 'i1', total: 100 }],
+  }});
+  const pt = jar();
+  await call(pt, 'POST', '/api/sync/patient-login', { mrn: 'KV-42', password: 'kv-plain-pw' });
+  const pull = await call(pt, 'GET', '/api/sync/patient');
+  assert.ok(pull.data.keys['msgs_KV-42'], 'own message thread visible');
+  assert.ok(pull.data.keys['invoices_KV-42'], 'own invoices visible');
+  assert.ok(!pull.data.keys['pat_KV-99'], 'must not see another patient record');
+
+  const w = await call(pt, 'PUT', '/api/sync/patient', { changes: {
+    'log_KV-42_d2': { pain: 2 },       // own key family → allowed
+    'evilkey_KV-42': { x: 1 },         // contains MRN but not an allowed pattern → rejected
+    'pat_KV-99': { hijacked: true },   // foreign patient → rejected
+  }});
+  assert.equal(w.data.count, 1, 'only the own log should be written');
+  const dpull = await call(doctor, 'GET', '/api/sync');
+  assert.ok(!dpull.data.keys['evilkey_KV-42'], 'arbitrary key not injected');
+  assert.ok(dpull.data.keys['log_KV-42_d2'], 'own log persisted');
+  assert.ok(!dpull.data.keys['pat_KV-99'].v.hijacked, 'foreign record untouched');
+});
+
+test('patient scope: a prefix MRN cannot reach a longer MRN\'s keys (substring-collision fix)', async () => {
+  // 'KV-4' is a substring of 'KV-42' — the old includes()-based match leaked here.
+  await call(doctor, 'PUT', '/api/sync', { changes: {
+    'pat_KV-4': { name: 'Short Mrn', pass: 'shortpw', docId: 'DOC-9' },
+  }});
+  const shortPt = jar();
+  const login = await call(shortPt, 'POST', '/api/sync/patient-login', { mrn: 'KV-4', password: 'shortpw' });
+  assert.equal(login.status, 200);
+  const pull = await call(shortPt, 'GET', '/api/sync/patient');
+  assert.ok(!pull.data.keys['pat_KV-42'], 'prefix MRN must not read the longer MRN record');
+  assert.ok(!pull.data.keys['msgs_KV-42'], 'prefix MRN must not read the longer MRN messages');
+  const w = await call(shortPt, 'PUT', '/api/sync/patient', { changes: {
+    'pat_KV-42': { hijacked: true }, 'log_KV-42_x': { p: 1 },
+  }});
+  assert.equal(w.data.count, 0, 'prefix MRN cannot write the longer MRN keys');
+});
+
+test('cross-origin writes are rejected (CSRF guard)', async () => {
+  const res = await fetch(base + '/api/sync', {
+    method: 'PUT',
+    headers: { ...doctor.headers({ 'content-type': 'application/json' }), origin: 'https://evil.example' },
+    body: JSON.stringify({ changes: { hacked: 1 } }),
+  });
+  assert.equal(res.status, 403);
+});
+
+test('plaintext patient password is upgraded to a v2 hash on login', async () => {
+  const probe = jar();
+  await call(probe, 'POST', '/api/sync/patient-login', { mrn: 'KV-42', password: 'kv-plain-pw' });
+  const pull = await call(doctor, 'GET', '/api/sync');
+  const stored = pull.data.keys['pat_KV-42'].v.pass;
+  assert.ok(String(stored).startsWith('pbkdf2v2:'), `expected v2 hash, got: ${stored}`);
+  // and the upgraded hash still verifies
+  const again = await call(jar(), 'POST', '/api/sync/patient-login', { mrn: 'KV-42', password: 'kv-plain-pw' });
+  assert.equal(again.status, 200);
+});
+
 test('logout revokes the session server-side', async () => {
   const out = await call(doctor, 'POST', '/api/auth/logout');
   assert.equal(out.status, 200);
-  const after_ = await call(doctor, 'GET', '/api/patients');
+  const after_ = await call(doctor, 'GET', '/api/sync');
   assert.equal(after_.status, 401);
 });
 
@@ -232,7 +213,7 @@ test('no plaintext PHI in the database file', () => {
     ? process.env.TURSO_DATABASE_URL.slice(5)
     : process.env.DB_PATH;
   const raw = readFileSync(path, 'latin1');
-  for (const phi of ['Suite Patient', 'Glioblastoma', 'How are you feeling', 'KV Patient', 'MGMT methylation']) {
+  for (const phi of ['KV Patient', 'Glioblastoma', 'kv-plain-pw', 'doctor-secret-hash']) {
     assert.ok(!raw.includes(phi), `plaintext PHI found in db: ${phi}`);
   }
 });

@@ -127,11 +127,16 @@
   // Patient/lab portals: poll for new server data (e.g. a task assigned by
   // the doctor after login) and refresh the task list when something changed.
   setInterval(function () {
-    if (!state.online || (state.mode !== 'patient' && state.mode !== 'lab')) return;
-    req('GET', state.mode === 'patient' ? API + '/patient' : API + '/lab').then(function (d) {
+    if (!state.online || !state.mode) return;
+    var pullUrl = state.mode === 'patient' ? API + '/patient' : state.mode === 'lab' ? API + '/lab' : API;
+    req('GET', pullUrl).then(function (d) {
       var applied = mergeKeys(d.keys);
-      if (applied && state.mode === 'lab' && typeof window.refreshLabTasks === 'function') {
+      if (!applied) return;
+      if (state.mode === 'lab' && typeof window.refreshLabTasks === 'function') {
         try { window.refreshLabTasks(); } catch (e) {}
+      }
+      if (state.mode === 'doctor' && typeof window.refreshDoctorNotifs === 'function') {
+        try { window.refreshDoctorNotifs(); } catch (e) {}
       }
     }).catch(function () {});
   }, 45000);
@@ -155,6 +160,27 @@
     } catch (e) {}
   });
 
+  function b64ToU8(b64) {
+    var pad = '='.repeat((4 - b64.length % 4) % 4);
+    var raw = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/'));
+    var out = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+    return out;
+  }
+  // Ask for notification permission and register this device for web push.
+  async function enablePush() {
+    try {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return;
+      var reg = await navigator.serviceWorker.ready;
+      if (Notification.permission === 'denied') return;
+      var perm = await Notification.requestPermission();
+      if (perm !== 'granted') return;
+      var keyRes = await req('GET', '/api/push/vapid-public-key');
+      var sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToU8(keyRes.key) });
+      await req('POST', '/api/push/subscribe', { subscription: sub.toJSON ? sub.toJSON() : sub });
+    } catch (e) { /* push is best-effort */ }
+  }
+
   window.CCSync = {
     get online() { return state.online; },
     get mode() { return state.mode; },
@@ -162,9 +188,19 @@
     // Doctor: authenticate on the server, pull the account keyspace, then
     // upload any local-only keys (first device migrating its prototype data).
     doctorLogin: async function (email, password) {
-      await req('POST', '/api/auth/login', { email: email, password: password });
+      try {
+        await req('POST', '/api/auth/login', { email: email, password: password });
+      } catch (e) {
+        // Account has TOTP 2FA enabled — ask for the authenticator code and retry.
+        if (e.status === 401 && /totp/i.test(e.message || '')) {
+          var code = prompt('\ud83d\udd10 Two-factor authentication is enabled.\nEnter the 6-digit code from your authenticator app:');
+          if (!code) throw e;
+          await req('POST', '/api/auth/login', { email: email, password: password, totpCode: code.trim() });
+        } else { throw e; }
+      }
       state.mode = 'doctor';
       state.online = true;
+      enablePush();
       var pulled = await req('GET', API);
       mergeKeys(pulled.keys);
       var local = collectAllLocal();
@@ -191,6 +227,7 @@
       var data = await req('POST', API + '/patient-login', { mrn: mrn, password: password });
       state.mode = 'patient';
       state.online = true;
+      enablePush();
       mergeKeys(data.keys);
       return true;
     },
@@ -201,8 +238,18 @@
       var data = await req('POST', API + '/lab-login', { username: username, password: password });
       state.mode = 'lab';
       state.online = true;
+      enablePush();
       mergeKeys(data.keys);
       return true;
+    },
+
+    // Revoke the server session (fire-and-forget; local logout proceeds regardless).
+    logout: function () {
+      var wasOnline = state.online;
+      state.mode = null;
+      state.online = false;
+      state.dirty.clear();
+      if (wasOnline) { try { req('POST', '/api/auth/logout').catch(function () {}); } catch (e) {} }
     },
   };
 })();
