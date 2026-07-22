@@ -13,12 +13,15 @@ import { dirname, join } from 'node:path';
 
 import { initSchema } from './db/index.js';
 import { errorHandler } from './middleware/validate.js';
+import { authenticate } from './middleware/auth.js';
 import { authRouter } from './routes/auth.js';
 import { syncRouter } from './routes/sync.js';
 import { adminRouter } from './routes/admin.js';
 import { pushRouter } from './routes/push.js';
 import { emailRouter } from './routes/email.js';
 import { initPush } from './push.js';
+import { observability, metricsSnapshot } from './observability.js';
+import { db } from './db/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -51,6 +54,7 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
 }));
 
+app.use(observability); // correlation IDs + structured logs + flow metrics
 app.use(express.json({ limit: '8mb' })); // lab file uploads (base64) can be large
 app.use(cookieParser());
 
@@ -81,7 +85,28 @@ const authLimiter = rateLimit({
 const apiLimiter = rateLimit({ windowMs: 60 * 1000, max: 300 });
 
 // ── Health check (for cloud hosts) ────────────────────────────────
-app.get('/health', (req, res) => res.json({ ok: true, ts: new Date().toISOString() }));
+// Shallow by default (fast, for load-balancer pings); ?deep=1 also checks
+// the database so a broken DB surfaces as unhealthy instead of silently 200.
+app.get('/health', async (req, res) => {
+  if (req.query.deep === '1') {
+    try {
+      await db.prepare('SELECT 1 AS ok').get();
+    } catch (e) {
+      return res.status(503).json({ ok: false, db: false, error: 'database unreachable' });
+    }
+    return res.json({ ok: true, db: true, ts: new Date().toISOString() });
+  }
+  res.json({ ok: true, ts: new Date().toISOString() });
+});
+
+// ── Metrics (admin-only): per-flow count / error rate / latency ───
+app.get('/api/metrics', apiLimiter, authenticate, async (req, res) => {
+  if (req.auth.role !== 'admin') {
+    const first = await db.prepare('SELECT id FROM users ORDER BY created_at ASC LIMIT 1').get();
+    if (!first || first.id !== req.auth.subjectId) return res.status(403).json({ error: 'Admin access required' });
+  }
+  res.json(metricsSnapshot());
+});
 
 // ── API routes ────────────────────────────────────────────────────
 app.use('/api/auth', authLimiter, authRouter);

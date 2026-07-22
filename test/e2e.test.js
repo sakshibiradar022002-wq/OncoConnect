@@ -72,6 +72,17 @@ test('health check responds', async () => {
   assert.equal(r.data.ok, true);
 });
 
+test('deep health check verifies the database', async () => {
+  const r = await call(stranger, 'GET', '/health?deep=1');
+  assert.equal(r.status, 200);
+  assert.equal(r.data.db, true);
+});
+
+test('every response carries a correlation id', async () => {
+  const res = await fetch(base + '/health');
+  assert.ok(res.headers.get('x-request-id'), 'X-Request-Id header should be set');
+});
+
 test('doctor registration', async () => {
   const r = await call(doctor, 'POST', '/api/auth/register', {
     name: 'Dr. Test Suite', email: 'suite@onco.test', password: 'SuitePass!2026',
@@ -237,6 +248,38 @@ test('email: status reports unconfigured, OTP dev-mode round-trips, send is auth
   // …and with auth but no mail config, reports 503 (clear config message).
   const authed = await call(doctor, 'POST', '/api/email/send', { to: 'x@test.dev', subject: 'hi', text: 'hi' });
   assert.equal(authed.status, 503);
+});
+
+test('tenant isolation: a second clinic cannot read the first clinic\'s data', async () => {
+  // Register a separate doctor account = a separate tenant.
+  const clinicB = jar();
+  await call(clinicB, 'POST', '/api/auth/register', {
+    name: 'Dr. Clinic B', email: 'clinicb@onco.test', password: 'ClinicBpass9',
+  });
+  await call(clinicB, 'POST', '/api/auth/login', { email: 'clinicb@onco.test', password: 'ClinicBpass9' });
+  // Clinic B seeds its own patient.
+  await call(clinicB, 'PUT', '/api/sync', { changes: { 'pat_CLINICB-1': { name: 'B Patient', pass: 'bpw', docId: 'DOC-B' } } });
+  // Clinic B's pull must contain ONLY its own keys — never Clinic A's (KV-42 etc.)
+  const bPull = await call(clinicB, 'GET', '/api/sync');
+  assert.ok(bPull.data.keys['pat_CLINICB-1'], 'Clinic B sees its own patient');
+  assert.ok(!bPull.data.keys['pat_KV-42'], 'Clinic B must NOT see Clinic A patients');
+  // And Clinic A cannot see Clinic B's patient.
+  const aPull = await call(doctor, 'GET', '/api/sync');
+  assert.ok(!aPull.data.keys['pat_CLINICB-1'], 'Clinic A must NOT see Clinic B patients');
+});
+
+test('metrics endpoint is admin-only and reports flow stats', async () => {
+  // The first-registered account (doctor) is the instance admin.
+  const m = await call(doctor, 'GET', '/api/metrics');
+  assert.equal(m.status, 200);
+  assert.ok(m.data.flows && typeof m.data.uptimeSec === 'number');
+  assert.ok(m.data.flows['sync.doctor_pull'], 'sync pulls should be counted');
+  // A non-admin account is refused.
+  const other = jar();
+  await call(other, 'POST', '/api/auth/register', { name: 'Dr. NonAdmin', email: 'nonadmin@onco.test', password: 'NonAdmin123' });
+  await call(other, 'POST', '/api/auth/login', { email: 'nonadmin@onco.test', password: 'NonAdmin123' });
+  const denied = await call(other, 'GET', '/api/metrics');
+  assert.equal(denied.status, 403);
 });
 
 test('cross-origin writes are rejected (CSRF guard)', async () => {

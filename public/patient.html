@@ -2276,11 +2276,20 @@ function renderConsentSheet(){
     +'<div style="height:8px;"></div>';
 }
 function openConsentSheet(){renderConsentSheet();openSheet('consent-sheet');}
+// Append-only consent event log: each accept / research-change / withdrawal
+// is recorded with its version, timestamp and language, so the full consent
+// history is auditable and the patient can see prior versions.
+function logConsentEvent(pat,event,extra){
+  pat.consentHistory=pat.consentHistory||[];
+  pat.consentHistory.push(Object.assign({event:event,version:CONSENT_VERSION,at:new Date().toISOString(),lang:getLang()},extra||{}));
+  if(pat.consentHistory.length>50)pat.consentHistory=pat.consentHistory.slice(-50);
+}
 function acceptConsent(){
   if(!PAT)return;
   var pat=LS.get('pat_'+PAT.mrn)||PAT;
-  pat.consent={version:CONSENT_VERSION,acceptedAt:new Date().toISOString(),lang:getLang(),
-    research:!!document.getElementById('consent-research').checked};
+  var research=!!document.getElementById('consent-research').checked;
+  pat.consent={version:CONSENT_VERSION,acceptedAt:new Date().toISOString(),lang:getLang(),research:research};
+  logConsentEvent(pat,'accepted',{research:research});
   LS.set('pat_'+PAT.mrn,pat);
   PAT=pat;
   closeSheet('consent-sheet');
@@ -2298,6 +2307,7 @@ function setResearchOptIn(on){
   if(!pat.consent)return;
   pat.consent.research=!!on;
   pat.consent.researchChangedAt=new Date().toISOString();
+  logConsentEvent(pat,on?'research_opt_in':'research_opt_out');
   LS.set('pat_'+PAT.mrn,pat);PAT=pat;
   toast(on?'Research use: opted in':'Research use: opted out');
   renderPrivacyCard();
@@ -2307,8 +2317,23 @@ function withdrawConsent(){
   if(!confirm('Withdraw consent?\n\nThe app will stop collecting your data and you will be signed out. Your clinic keeps your medical record as required by law — ask them about correction or deletion.'))return;
   var pat=LS.get('pat_'+PAT.mrn)||PAT;
   if(pat.consent)pat.consent.withdrawn=new Date().toISOString();
+  logConsentEvent(pat,'withdrawn');
   LS.set('pat_'+PAT.mrn,pat);
   doLogout();
+}
+function showConsentHistory(){
+  var pat=(PAT&&LS.get('pat_'+PAT.mrn))||PAT||{};
+  var h=(pat.consentHistory||[]).slice().reverse();
+  var hi=getLang()==='hi';
+  var labels={accepted:hi?'सहमति दी':'Consent accepted',research_opt_in:hi?'शोध: हाँ':'Research: opted in',research_opt_out:hi?'शोध: नहीं':'Research: opted out',withdrawn:hi?'सहमति वापस ली':'Consent withdrawn'};
+  var body=h.length?h.map(function(e){
+    return '<div style="padding:9px 0;border-bottom:1px solid var(--border);font-size:12.5px;">'
+      +'<strong>'+(labels[e.event]||e.event)+'</strong> · v'+e.version
+      +'<div style="font-size:11px;color:var(--text-muted);">'+new Date(e.at).toLocaleString()+' · '+(e.lang==='hi'?'हिंदी':'English')+'</div></div>';
+  }).join(''):'<div style="color:var(--text-dim);font-size:12.5px;padding:8px 0;">'+(hi?'कोई इतिहास नहीं':'No history yet')+'</div>';
+  document.getElementById('detail-title').innerHTML=(hi?'सहमति इतिहास':'Consent history')+' <button class="sheet-x" onclick="closeSheet(\'detail-sheet\')">✕</button>';
+  document.getElementById('detail-body').innerHTML='<div class="ld-sec">'+body+'</div><div style="height:16px;"></div>';
+  openSheet('detail-sheet');
 }
 function renderPrivacyCard(){
   var el=document.getElementById('privacy-card-body');if(!el||!PAT)return;
@@ -2319,6 +2344,7 @@ function renderPrivacyCard(){
     +'<div class="tog-row"><span style="font-size:12.5px;">De-identified research use</span>'
     +'<label class="tog"><input type="checkbox" '+(c.research?'checked':'')+' onchange="setResearchOptIn(this.checked)"><span class="tog-track"></span></label></div>'
     +'<button onclick="openConsentSheet()" style="width:100%;margin-top:10px;padding:11px;border-radius:10px;background:var(--surface2);border:1.5px solid var(--border2);color:var(--text);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">📄 Read the consent text again</button>'
+    +'<button onclick="showConsentHistory()" style="width:100%;margin-top:8px;padding:11px;border-radius:10px;background:var(--surface2);border:1.5px solid var(--border2);color:var(--text);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">🕐 View my consent history</button>'
     +'<button onclick="withdrawConsent()" style="width:100%;margin-top:8px;padding:11px;border-radius:10px;background:rgba(220,38,38,0.06);border:1.5px solid rgba(220,38,38,0.2);color:var(--red);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">Withdraw consent</button>';
 }
 

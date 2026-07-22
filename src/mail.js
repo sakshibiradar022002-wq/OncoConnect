@@ -58,7 +58,19 @@ export async function sendMail({ to, subject, text, html }) {
     e.status = 503;
     throw e;
   }
-  return transport.sendMail({ from: fromAddr, to, subject, text, html });
+  // Retry transient SMTP failures with exponential backoff (0.5s, 1s, 2s).
+  // Auth failures (EAUTH) are permanent — fail fast, don't hammer.
+  let lastErr;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      return await transport.sendMail({ from: fromAddr, to, subject, text, html });
+    } catch (err) {
+      lastErr = err;
+      if (err.code === 'EAUTH' || err.responseCode === 535) break;
+      if (attempt < 2) await new Promise(r => setTimeout(r, 500 * 2 ** attempt));
+    }
+  }
+  throw lastErr;
 }
 
 // Verifies SMTP credentials without sending anything. Used by the status

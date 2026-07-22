@@ -573,6 +573,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
       <div class="sidebar-section" style="margin-top:8px;">System</div>
       <button class="nav-item" onclick="showPanel('backup',this)"><span class="ni">💾</span>Data &amp; Backup<span class="nav-badge" id="storage-badge" style="display:none;background:var(--orange);">!</span></button>
       <button class="nav-item" onclick="showInstallGuide()"><span class="ni">📱</span>Patient App Info</button>
+      <button class="nav-item" onclick="openAboutModal()"><span class="ni">🧬</span>Why OncoConnect</button>
 
       <!-- Storage bar -->
       <div style="padding:10px 14px 0;">
@@ -7870,6 +7871,58 @@ function renderGovernanceTab(){
    quality of life, and consent coverage. All computed locally. */
 let impactDays=30;
 window.setImpactWindow=function(d){impactDays=d;renderImpactTab();};
+let _impactMetrics=null;
+// Pilot summary: the headline metrics as a CSV, for a slide deck or a grant
+// report. Uses whatever window (30/90 days) is currently selected.
+function exportPilotSummary(){
+  if(!_impactMetrics){flash('Open the Impact tab first.');return;}
+  const m=_impactMetrics;
+  const rows=[
+    ['OncoConnect — Pilot Summary'],
+    ['Clinic',currentDoc?.name||''],
+    ['Generated',new Date().toISOString()],
+    ['Window (days)',m.windowDays],
+    [],
+    ['Metric','Value','Notes'],
+    ['Patients (total)',m.patients,''],
+    ['Active patients',m.active,'logged ≥1 symptom diary in window'],
+    ['Symptom logs',m.totalLogs,''],
+    ['Diary completion %',m.completion,'of one-log-per-patient-per-day target'],
+    ['Medication adherence %',m.adherence===null?'n/a':m.adherence,'from daily checklists'],
+    ['Alerts raised',m.alerts,m.urgent+' urgent'],
+    ['Alerts reviewed %',m.readRate===null?'n/a':m.readRate,'opened by clinician'],
+    ['FACT-Br surveys',m.fbCount,m.fbAvg===null?'':'avg wellbeing '+m.fbAvg+'%'],
+    ['Consent coverage',m.consented+' / '+m.patients,''],
+    ['Research opt-in',m.research,'de-identified use permitted'],
+  ];
+  downloadCSV('oncoconnect-pilot-summary-'+new Date().toISOString().slice(0,10)+'.csv',rows);
+  try{writeAuditLog('research-export',[{field:'Pilot summary exported',prev:'',next:m.windowDays+'-day metrics'}]);}catch(e){}
+}
+
+// ── "Why OncoConnect" — per-stakeholder value, in-product ──
+function openAboutModal(){
+  const existing=document.getElementById('about-modal');if(existing)existing.remove();
+  const card=(icon,who,points)=>`<div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;background:var(--surface);">
+    <div style="font-weight:700;font-size:13.5px;margin-bottom:6px;">${icon} ${who}</div>
+    <div style="font-size:12.5px;color:var(--text-muted);line-height:1.7;">${points.map(p=>'• '+p).join('<br>')}</div></div>`;
+  const modal=document.createElement('div');
+  modal.id='about-modal';modal.className='overlay open';
+  modal.innerHTML=`
+    <div class="modal" style="max-width:600px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <div class="modal-title">🧬 Why OncoConnect?</div>
+        <button onclick="document.getElementById('about-modal').remove()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:20px;">✕</button>
+      </div>
+      <div class="modal-sub">A neuro-oncology platform connecting patients, clinicians and labs — symptom tracking, chemo workflows and triage, with encrypted cross-device sync and audit-ready data.</div>
+      ${card('🧑‍🤝‍🧑','Patients',['Log symptoms in minutes, in your language','Clear "when to call now" triage with one-tap contact','Fewer unmanaged side effects between visits'])}
+      ${card('🩺','Doctors',['Structured symptom + toxicity data instead of phone calls','Protocol library with schedule generation and dose guardrails','Smart, low-noise alerts and one-tap high-risk views'])}
+      ${card('🏥','Clinics',['Audit-ready, tamper-evident records','Governance dashboard: consent coverage + security events','Fewer avoidable ER visits through earlier triage'])}
+      ${card('🔬','Researchers',['De-identified PRO + regimen data, consent-gated','CTCAE-graded, analysis-ready fields','Pilot-summary metrics export for grants and papers'])}
+      <div style="font-size:11px;color:var(--text-dim);margin-top:6px;line-height:1.6;">Decision-support, not autonomous decision-making — a clinician confirms every order. See GOVERNANCE.md and the Governance tab for data handling, DPDP/GDPR mapping, and clinical oversight.</div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click',e=>{if(e.target===modal)modal.remove();});
+}
 function renderImpactTab(){
   const el=document.getElementById('ct-5');if(!el)return;
   const pats=getMyPatients();
@@ -7937,10 +7990,13 @@ function renderImpactTab(){
     <div style="font-size:26px;font-weight:800;color:${color||'var(--text)'};margin-top:2px;">${val}</div>
     ${sub?`<div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${sub}</div>`:''}</div>`;
 
+  // Stash the current metrics so the pilot-summary export uses the same numbers.
+  _impactMetrics={windowDays:impactDays,patients:pats.length,active,totalLogs,completion,adherence,alerts,urgent,readRate,fbCount,fbAvg:fbCount?Math.round(fbPctSum/fbCount):null,consented,research};
   el.innerHTML=`
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
     <span style="font-size:12px;color:var(--text-muted);font-weight:700;">WINDOW</span>
     ${[30,90].map(d=>`<button class="btn btn-sm ${impactDays===d?'btn-primary':'btn-ghost'}" onclick="setImpactWindow(${d})">${d} days</button>`).join('')}
+    <button class="btn btn-cyan btn-sm" style="margin-left:auto;" onclick="exportPilotSummary()">⬇ Pilot summary (.csv)</button>
   </div>
   <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
     ${tile('Active patients',active+' / '+pats.length,'logged ≥1 time in window','var(--blue)')}

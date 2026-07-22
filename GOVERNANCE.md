@@ -122,6 +122,46 @@ These require work outside the codebase and are **not** claimed as done:
 - A signed data-processing agreement between the clinic and any hosting provider.
 - Validation of all clinical reference content against institutional protocols.
 
+## 10. Supported stack & deployment
+
+**Supported runtime:** Node.js 20 LTS (also tested on 22). SQLite via
+better-sqlite3, or the built-in `node:sqlite` on Node 22+; Turso (libsql) for
+serverless hosts. Key libraries are version-pinned in `package.json`; CI runs
+the suite on Node 20 and 22 on every push.
+
+**Environments:** run separate **dev / staging / production** deployments, each
+with its own database and its own `JWT_SECRET` + `PHI_ENCRYPTION_KEY`. Secrets
+live only in the host's environment, never in the repo (`.env` is gitignored).
+
+**Deployment (managed host, e.g. Render/Fly):**
+1. Set env vars in the host dashboard (secrets, `DB_PATH` or Turso URL, optional
+   Gmail + VAPID keys).
+2. Deploy from `main` only; a push to `main` triggers CI, which must pass first.
+3. The host runs `npm ci && npm run init-db && npm start`.
+4. Health check `GET /health` (liveness) and `GET /health?deep=1` (DB) gate the
+   rollout; auto-restart on failure.
+
+**Rollback:** deploys are immutable per release. To roll back, redeploy the
+previous known-good commit/image from the host. Because `init-db` is additive
+(idempotent `CREATE TABLE IF NOT EXISTS`), rolling the app back does not drop
+data. Before any schema-changing release, snapshot the DB (`npm run backup`).
+
+**Observability:** every request emits one structured JSON log line with a
+correlation id (`X-Request-Id`), method, path, status, latency, and the
+actor/tenant when authenticated (never bodies — they hold PHI). Per-flow
+counters (chemo/sync/auth/email) with count, error rate, and latency are at
+`GET /api/metrics` (admin-only) for scraping or a dashboard.
+
+**Resilience:** email and push sends retry with exponential backoff; auth
+failures fail fast. Core care flows (orders, diaries, triage) degrade
+gracefully — analytics or export failures never block them; the patient PWA
+also works offline and syncs on reconnect.
+
+## 11. Companion documents
+
+- **DPIA.md** — data protection impact assessment (risks, mitigations, sign-off).
+- **IMPLEMENTATION_KIT.md** — clinic rollout guide, roles, sample pilot, tiers.
+
 ---
 *This document describes the software's design intent and controls. It does not
 constitute legal or regulatory advice.*
