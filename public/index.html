@@ -4872,8 +4872,51 @@ function saveMed(){
 }
 function delMed(idx){rMeds.splice(idx,1);renderMedList();}
 // ── LOGS DISPLAY ──
+// CTCAE-style grading — the exact mapping the patient app applies to its
+// 0–10 sliders, so both sides chart the same scale.
+const CTCAE_SHORT=['G0','G1','G2','G3','G4'];
+function ctcaeGrade(v){v=parseInt(v,10)||0;return v<=0?0:v<=3?1:v<=6?2:v<=8?3:4;}
+function ctcaeTag(v){const g=ctcaeGrade(v);const cols=['#94a3b8','#059669','#d97706','#dc2626','#7f1d1d'];return `<span style="font-size:9.5px;font-weight:700;color:${cols[g]};">${CTCAE_SHORT[g]}</span>`;}
+
+function renderSymptomTrends(mrn){
+  const host=document.getElementById('r-logs-trends');if(!host)return;
+  const since=new Date(Date.now()-29*86400000).toISOString().slice(0,10);
+  const logs=getPatientLogs(mrn).filter(l=>l.date>=since).sort((a,b)=>a.date.localeCompare(b.date));
+  if(logs.length<2){host.innerHTML='';return;}
+  const t0=Date.parse(logs[0].date),span=Math.max(Date.parse(logs[logs.length-1].date)-t0,1);
+  const series=[
+    {k:'headache',lbl:'🤕 Headache',col:'#d97706'},{k:'nausea',lbl:'🤢 Nausea',col:'#f43f5e'},
+    {k:'fatigue',lbl:'😴 Fatigue',col:'#fb923c'},{k:'seizure',lbl:'⚡ Seizure',col:'#dc2626'},
+    {k:'cognitive',lbl:'🧠 Cognitive',col:'#7c3aed'},{k:'vision',lbl:'👁 Vision',col:'#0284c7'},
+    {k:'mood',lbl:'😊 Mood',col:'#059669',hib:true}
+  ];
+  let cells='';
+  series.forEach(s=>{
+    const pts=[];
+    logs.forEach(l=>{const v=parseInt(l[s.k],10);if(!isNaN(v))pts.push({x:2+((Date.parse(l.date)-t0)/span)*100,v});});
+    if(pts.length<2||(!s.hib&&Math.max(...pts.map(p=>p.v))===0))return;
+    const latest=pts[pts.length-1].v;
+    const line=pts.map(p=>`${p.x.toFixed(1)},${(34-p.v*3).toFixed(1)}`).join(' ');
+    const reds=pts.filter(p=>p.v>=8&&!s.hib).map(p=>`<circle cx="${p.x.toFixed(1)}" cy="${(34-p.v*3).toFixed(1)}" r="2" fill="#dc2626"/>`).join('');
+    cells+=`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+        <span style="font-size:11px;font-weight:700;">${s.lbl}</span>
+        <span style="font-size:11px;font-weight:700;color:${s.col};">${latest}/10 ${s.hib?'':ctcaeTag(latest)}</span>
+      </div>
+      <svg viewBox="0 0 104 38" preserveAspectRatio="none" style="width:100%;height:34px;display:block;">
+        <polyline points="${line}" fill="none" stroke="${s.col}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>${reds}
+      </svg></div>`;
+  });
+  host.innerHTML=cells?`<div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:8px;">📈 30-day symptom trends (patient-reported, CTCAE-graded)</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;margin-bottom:14px;">${cells}</div>`:'';
+}
+
 function renderRecordLogs(mrn){
   const c=document.getElementById('r-logs-list');if(!c)return;
+  if(!document.getElementById('r-logs-trends')){
+    c.insertAdjacentHTML('beforebegin','<div id="r-logs-trends"></div>');
+  }
+  renderSymptomTrends(mrn);
   const logs=getPatientLogs(mrn).reverse();
   if(!logs.length){c.innerHTML='<div style="text-align:center;padding:24px;color:var(--text-dim);">No health logs yet.</div>';return;}
   const sc={Normal:'#00d4b4',High:'#ff5c5c',Low:'#f0a04b'};
@@ -4882,9 +4925,10 @@ function renderRecordLogs(mrn){
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div style="font-weight:500;font-size:12.5px;">📅 ${log.date}</div>
         <div style="display:flex;gap:4px;flex-wrap:wrap;">
-          ${log.cognitive>0?`<span class="badge badge-orange">🧠 ${log.cognitive}/10</span>`:''}
-          ${log.seizure>0?`<span class="badge badge-red">⚡ ${log.seizure}/10</span>`:''}
-          ${log.headache>0?`<span class="badge badge-orange">🤕 ${log.headache}/10</span>`:''}
+          ${log.cognitive>0?`<span class="badge badge-orange">🧠 ${log.cognitive}/10 ${ctcaeTag(log.cognitive)}</span>`:''}
+          ${log.seizure>0?`<span class="badge badge-red">⚡ ${log.seizure}/10 ${ctcaeTag(log.seizure)}</span>`:''}
+          ${log.headache>0?`<span class="badge badge-orange">🤕 ${log.headache}/10 ${ctcaeTag(log.headache)}</span>`:''}
+          ${log.nausea>0?`<span class="badge badge-red">🤢 ${log.nausea}/10 ${ctcaeTag(log.nausea)}</span>`:''}
           ${log.mood?`<span class="badge badge-cyan">😊 ${log.mood}/10</span>`:''}
         </div>
       </div>

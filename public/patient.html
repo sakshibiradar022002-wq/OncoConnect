@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- Pinch-zoom stays enabled: blocking it is an accessibility failure for
+     low-vision users, exactly the people a chemo app serves. -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="ChemoCure">
 <meta name="theme-color" content="#3E5F44">
@@ -227,6 +229,15 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;z-index:9999;box-shadow:0 4px 20px rgba(15,23,42,0.3);white-space:nowrap;pointer-events:none;font-weight:500;}
 ::-webkit-scrollbar{display:none;}
 
+/* ═══ Accessibility: larger-text mode ═══ */
+body.big-text #app-shell,body.big-text .sheet{font-size:16px;}
+body.big-text .nav-label{font-size:12px;}
+body.big-text .log-btn,body.big-text .big-btn{font-size:16px;}
+body.big-text .log-sec-title,body.big-text .sheet-title{font-size:1.15em;}
+body.big-text .check-item,body.big-text .tag-pill{font-size:14px;}
+body.big-text .ikey,body.big-text .ival{font-size:14px;}
+body.big-text .bubble{font-size:15.5px;}
+
 /* ═══ Responsive & polish layer ═══ */
 html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
 ::selection{background:rgba(147,218,151,.35);}
@@ -247,6 +258,10 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
 </head>
 <body>
 <div id="screen-login">
+  <div style="text-align:right;margin-bottom:4px;">
+    <button class="lang-btn" data-lang="en" onclick="setLang('en')" style="padding:6px 12px;border-radius:9px;border:1.5px solid rgba(255,255,255,0.3);background:transparent;color:#fff;font-family:inherit;font-size:12px;cursor:pointer;">English</button>
+    <button class="lang-btn" data-lang="hi" onclick="setLang('hi')" style="padding:6px 12px;border-radius:9px;border:1.5px solid rgba(255,255,255,0.3);background:transparent;color:#fff;font-family:inherit;font-size:12px;cursor:pointer;">हिंदी</button>
+  </div>
   <div class="logo-wrap">
     <div class="logo-circle">💊</div>
     <div class="app-title">ChemoCure</div>
@@ -461,6 +476,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
     <button class="log-btn" onclick="openLogSheet()">📋 Log Today's Symptoms</button>
     <button class="log-btn" onclick="openFactBr()" style="background:linear-gradient(135deg,#4a3aa7,#6b5bd4);margin-top:8px;">🧠 Monthly Quality-of-Life Survey (FACT-Br)</button>
     <button class="log-btn" onclick="openTriage()" style="background:linear-gradient(135deg,#b91c1c,#dc2626);margin-top:8px;">🚨 When to Call Your Care Team NOW</button>
+    <div id="trend-card" style="margin:16px 20px 12px;display:none;"></div>
     <div class="recent-section" id="recent-logs"></div>
   </div>
 
@@ -571,6 +587,18 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
     <div class="info-card">
       <div class="info-card-title">My Medications</div>
       <div id="prof-meds"><div style="color:var(--text-dim);font-size:12.5px;padding:4px 0;">No medications on record yet.</div></div>
+    </div>
+    <!-- Language & accessibility -->
+    <div class="info-card">
+      <div class="info-card-title">Language / भाषा</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <button class="lang-btn" data-lang="en" onclick="setLang('en')" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--border2);background:transparent;color:var(--text);font-family:inherit;font-size:14px;cursor:pointer;">English</button>
+        <button class="lang-btn" data-lang="hi" onclick="setLang('hi')" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--border2);background:transparent;color:var(--text);font-family:inherit;font-size:14px;cursor:pointer;">हिंदी</button>
+      </div>
+      <div class="tog-row" style="border-bottom:none;">
+        <span style="font-size:13px;">🔎 Larger text / बड़े अक्षर</span>
+        <label class="tog"><input type="checkbox" id="bigtext-toggle" onchange="setBigText(this.checked)"><span class="tog-track"></span></label>
+      </div>
     </div>
     <!-- Data & backup card -->
     <div class="info-card" style="margin-bottom:14px;">
@@ -803,22 +831,15 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
 <div class="sheet-overlay" id="triage-sheet">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title" style="color:var(--red);">🚨 Call your care team NOW if… <button class="sheet-x" onclick="closeSheet('triage-sheet')">✕</button></div>
+    <div class="sheet-title" style="color:var(--red);"><span id="triage-title-txt">🚨 Call your care team NOW if…</span> <button class="sheet-x" onclick="closeSheet('triage-sheet')" aria-label="Close">✕</button></div>
     <div class="sheet-body">
       <div id="triage-context" style="display:none;background:rgba(220,38,38,0.08);border:1.5px solid rgba(220,38,38,0.3);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--red);font-weight:600;margin-bottom:14px;"></div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:4px 16px;margin-bottom:14px;">
-        <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:18px;">🌡</span><div style="font-size:13.5px;line-height:1.5;"><strong>Fever 38.5&nbsp;°C or higher</strong>, or shaking chills — during chemo this can mean a serious infection.</div></div>
-        <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:18px;">⚡</span><div style="font-size:13.5px;line-height:1.5;"><strong>A seizure</strong>, or new weakness, confusion, or trouble speaking.</div></div>
-        <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:18px;">🤢</span><div style="font-size:13.5px;line-height:1.5;"><strong>Vomiting that won't stop</strong>, or you can't keep fluids down for more than a day.</div></div>
-        <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:18px;">🩸</span><div style="font-size:13.5px;line-height:1.5;"><strong>Unusual bleeding or bruising</strong> — nosebleeds that won't stop, blood in urine or stool.</div></div>
-        <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:18px;">🤕</span><div style="font-size:13.5px;line-height:1.5;"><strong>A severe headache unlike your usual ones</strong>, or a sudden change in vision or balance.</div></div>
-        <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;"><span style="font-size:18px;">💊</span><div style="font-size:13.5px;line-height:1.5;"><strong>You missed chemo doses because of side effects</strong> — don't double up; call first.</div></div>
-      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:4px 16px;margin-bottom:14px;" id="triage-list"></div>
       <a id="triage-call-btn" href="#" style="display:none;text-decoration:none;text-align:center;margin:0 0 8px;padding:16px;border-radius:14px;background:linear-gradient(135deg,#059669,#047857);color:#fff;font-family:inherit;font-size:15px;font-weight:800;box-shadow:0 4px 20px rgba(5,150,105,0.35);" onclick="logTriageCall()">📞 Call the clinic now</a>
       <div id="triage-no-phone" style="display:none;background:var(--surface2);border:1px dashed var(--border2);border-radius:12px;padding:12px 14px;font-size:12.5px;color:var(--text-muted);margin-bottom:8px;text-align:center;">Your clinic hasn't added an emergency number yet. Use the alert button below, or your local emergency number.</div>
-      <button onclick="sendUrgentAlert()" style="width:100%;padding:15px;border-radius:14px;background:rgba(220,38,38,0.08);border:1.5px solid rgba(220,38,38,0.35);color:var(--red);font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:8px;">🚨 Send urgent alert to my doctor</button>
+      <button id="triage-alert-btn" onclick="sendUrgentAlert()" style="width:100%;padding:15px;border-radius:14px;background:rgba(220,38,38,0.08);border:1.5px solid rgba(220,38,38,0.35);color:var(--red);font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:8px;">🚨 Send urgent alert to my doctor</button>
       <div id="triage-emerg-contact" style="display:none;margin-bottom:8px;"></div>
-      <div style="font-size:12px;color:var(--text-muted);text-align:center;line-height:1.6;padding:4px 8px 8px;">If you can't reach anyone and feel very unwell, go to the nearest emergency department. Take your medication list with you (Profile → My Medications).</div>
+      <div id="triage-footer" style="font-size:12px;color:var(--text-muted);text-align:center;line-height:1.6;padding:4px 8px 8px;">If you can't reach anyone and feel very unwell, go to the nearest emergency department. Take your medication list with you (Profile → My Medications).</div>
     </div>
   </div>
 </div>
@@ -1431,7 +1452,7 @@ function initApp(){
   }
   renderCalendar();
   updateLogCount();
-  renderRecentLogs();
+  renderRecentLogs();renderTrends();
   renderTodayMeds();
   goScreen('calendar');
 }
@@ -1630,6 +1651,81 @@ function renderTreatmentPlan(){
 function todayStr(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function getMyLogs(){return LS.keys('log_'+PAT.mrn+'_').map(function(k){return LS.get(k);}).filter(Boolean);}
 
+// ── CTCAE-style grading ──
+// The 0–10 sliders map onto the toxicity grades the care team charts with,
+// so patient self-reports and the doctor's toxicity view speak one scale.
+var CTCAE_SHORT=['G0','G1','G2','G3','G4'];
+var CTCAE_LABELS=['G0 · None','G1 · Mild','G2 · Moderate','G3 · Severe','G4 · Very severe'];
+var CTCAE_COLS=['#94a3b8','#059669','#d97706','#dc2626','#7f1d1d'];
+function ctcaeGrade(v){v=parseInt(v,10)||0;return v<=0?0:v<=3?1:v<=6?2:v<=8?3:4;}
+function ctcaeChip(v){var g=ctcaeGrade(v);return '<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:6px;margin-left:6px;background:'+CTCAE_COLS[g]+'1a;color:'+CTCAE_COLS[g]+';white-space:nowrap;">'+CTCAE_LABELS[g]+'</span>';}
+
+// ── 30-day symptom trends (inline SVG — works offline, no libraries) ──
+function sparklineSVG(points,col){
+  // points: [{x:0..100, v:0..10, red:bool}]
+  var line=points.map(function(p){return (p.x).toFixed(1)+','+(34-p.v*3).toFixed(1);}).join(' ');
+  var dots=points.filter(function(p){return p.red;}).map(function(p){
+    return '<circle cx="'+p.x.toFixed(1)+'" cy="'+(34-p.v*3).toFixed(1)+'" r="2.2" fill="#dc2626"/>';}).join('');
+  var last=points[points.length-1];
+  return '<svg viewBox="0 0 104 38" preserveAspectRatio="none" style="width:100%;height:38px;display:block;" role="img">'
+    +'<polyline points="'+line+'" fill="none" stroke="'+col+'" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>'
+    +dots
+    +'<circle cx="'+last.x.toFixed(1)+'" cy="'+(34-last.v*3).toFixed(1)+'" r="2.4" fill="'+col+'"/>'
+    +'</svg>';
+}
+function trendArrow(vals,higherIsBetter){
+  // last 7 days vs the 7 before: is this getting better or worse?
+  if(vals.length<4)return '';
+  var half=Math.floor(vals.length/2);
+  var avg=function(a){return a.reduce(function(s,x){return s+x;},0)/a.length;};
+  var recent=avg(vals.slice(half)),prior=avg(vals.slice(0,half));
+  var d=recent-prior;
+  if(Math.abs(d)<0.8)return '<span style="color:var(--text-dim);font-size:11px;">→ stable</span>';
+  var improving=higherIsBetter?d>0:d<0;
+  return improving
+    ?'<span style="color:var(--green);font-size:11px;font-weight:700;">'+(higherIsBetter?'↑':'↓')+' improving</span>'
+    :'<span style="color:var(--red);font-size:11px;font-weight:700;">'+(higherIsBetter?'↓':'↑')+' worsening</span>';
+}
+function renderTrends(){
+  var el=document.getElementById('trend-card');if(!el)return;
+  var since=new Date(Date.now()-29*86400000).toISOString().slice(0,10);
+  var logs=getMyLogs().filter(function(l){return l.date>=since;}).sort(function(a,b){return a.date.localeCompare(b.date);});
+  if(logs.length<2){el.innerHTML='';el.style.display='none';return;}
+  var t0=Date.parse(logs[0].date),t1=Date.parse(logs[logs.length-1].date),span=Math.max(t1-t0,1);
+  var series=[
+    {k:'headache',lbl:'🤕 Headache',col:'#d97706',hib:false},
+    {k:'nausea',lbl:'🤢 Nausea',col:'#f43f5e',hib:false},
+    {k:'fatigue',lbl:'😴 Fatigue',col:'#fb923c',hib:false},
+    {k:'seizure',lbl:'⚡ Seizure',col:'#dc2626',hib:false},
+    {k:'cognitive',lbl:'🧠 Cognitive',col:'#7c3aed',hib:false},
+    {k:'mood',lbl:'😊 Mood',col:'#059669',hib:true}
+  ];
+  var rows='';
+  series.forEach(function(s){
+    var vals=[],points=[];
+    logs.forEach(function(l){
+      var v=parseInt(l[s.k],10);if(isNaN(v))return;
+      vals.push(v);
+      points.push({x:2+((Date.parse(l.date)-t0)/span)*100,v:v,red:v>=8&&!s.hib});
+    });
+    if(points.length<2)return;
+    if(!s.hib&&Math.max.apply(null,vals)===0)return; // never had this symptom — skip the flat line
+    var latest=vals[vals.length-1];
+    rows+='<div style="padding:9px 0;border-bottom:1px solid var(--border);">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">'
+      +'<span style="font-size:12px;font-weight:700;color:var(--text);">'+s.lbl+'</span>'
+      +'<span style="display:flex;gap:8px;align-items:center;">'+trendArrow(vals,s.hib)
+      +'<span style="font-size:12px;font-weight:700;color:'+s.col+';">'+latest+'/10</span>'
+      +(s.hib?'':ctcaeChip(latest))+'</span></div>'
+      +sparklineSVG(points,s.col)+'</div>';
+  });
+  if(!rows){el.innerHTML='';el.style.display='none';return;}
+  el.style.display='block';
+  el.innerHTML='<div class="info-card" style="margin:0;">'
+    +'<div class="info-card-title">📈 Last 30 Days <span style="float:right;font-weight:600;color:var(--text-dim);text-transform:none;">'+logs.length+' logs</span></div>'
+    +rows+'</div>';
+}
+
 function renderCalendar(){
   var now=new Date(),month=now.getMonth(),year=now.getFullYear();
   var mNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -1775,7 +1871,9 @@ function openLogSheet(){
 
 function updSlider(key,val){
   var map={cog:'sc-cog',sz:'sc-sz',vis:'sc-vis',ha:'sc-ha',mood:'sc-mood'};
-  var el=document.getElementById(map[key]);if(el)el.textContent=val+'/10';
+  var el=document.getElementById(map[key]);if(!el)return;
+  // Live CTCAE grade next to the score (mood is wellbeing, not toxicity)
+  el.textContent=val+'/10'+(key==='mood'?'':' · '+CTCAE_SHORT[ctcaeGrade(val)]);
 }
 function syncMood(val){
   var faces=document.querySelectorAll('.mood-f');
@@ -1850,7 +1948,7 @@ function saveLog(){
     LS.set(ak,alerts.slice(0,50));
   }
   closeSheet('log-sheet');
-  renderCalendar();updateLogCount();renderRecentLogs();
+  renderCalendar();updateLogCount();renderRecentLogs();renderTrends();
   toast('Health log saved!');
   // A red-flag log doesn't just alert the doctor — it tells the patient
   // what to do right now.
@@ -1863,9 +1961,10 @@ function showLogDetail(log){
   var cols={cognitive:'#ffaa44',seizure:'#ff6060',vision:'#4fb3ff',headache:'#ffaa44',mood:'#00c896',fatigue:'#fb923c',nausea:'#f43f5e',appetite:'#22c55e',sleep:'#818cf8'};
   var lbls={cognitive:'Cognitive',seizure:'Seizure',vision:'Vision/Balance',headache:'Headache',mood:'Mood',fatigue:'Fatigue',nausea:'Nausea',appetite:'Appetite',sleep:'Sleep Quality'};
   var html='<div class="ld-sec"><div class="ld-label">Symptom Scores</div>';
+  var graded={cognitive:1,seizure:1,vision:1,headache:1,fatigue:1,nausea:1};
   Object.keys(lbls).forEach(function(key){
     var val=log[key]||0;var col=cols[key];
-    html+='<div class="meter"><span class="meter-lbl">'+lbls[key]+'</span><div class="meter-bar"><div class="meter-fill" style="width:'+val*10+'%;background:'+col+';"></div></div><span class="meter-num" style="color:'+col+';">'+val+'/10</span></div>';
+    html+='<div class="meter"><span class="meter-lbl">'+lbls[key]+'</span><div class="meter-bar"><div class="meter-fill" style="width:'+val*10+'%;background:'+col+';"></div></div><span class="meter-num" style="color:'+col+';">'+val+'/10</span>'+(graded[key]?ctcaeChip(val):'')+'</div>';
   });
   html+='</div>';
   if(log.meds&&log.meds.length)html+='<div class="ld-sec"><div class="ld-label">Medications</div><div class="pill-row">'+log.meds.map(function(m){return '<div class="tag-pill sel" style="pointer-events:none;color:var(--blue);border-color:rgba(79,179,255,0.3);">'+m+'</div>';}).join('')+'</div></div>';
@@ -1946,9 +2045,62 @@ function openSheet(id){document.getElementById(id).classList.add('open');}
 function closeSheet(id){document.getElementById(id).classList.remove('open');}
 
 // ── TRIAGE: explicit red-flag guidance + one-tap call ──
+// All triage text lives here in both languages: this screen is the one that
+// must be understood at 2 a.m. by a frightened patient.
+var TRIAGE_I18N={
+  en:{
+    title:'🚨 Call your care team NOW if…',
+    context:function(f){return '⚠ You just logged: '+f+'. Please read this and act now.';},
+    call:function(ph){return '📞 Call the clinic now — '+ph;},
+    noPhone:'Your clinic hasn\'t added an emergency number yet. Use the alert button below, or your local emergency number.',
+    alert:'🚨 Send urgent alert to my doctor',
+    alertSent:'Urgent alert sent to your doctor.',
+    emerg:function(name,rel){return '👤 Call '+name+(rel?' ('+rel+')':'');},
+    emergDefault:'my emergency contact',
+    footer:'If you can\'t reach anyone and feel very unwell, go to the nearest emergency department. Take your medication list with you (Profile → My Medications).',
+    rows:[
+      ['🌡','<strong>Fever 38.5&nbsp;°C or higher</strong>, or shaking chills — during chemo this can mean a serious infection.'],
+      ['⚡','<strong>A seizure</strong>, or new weakness, confusion, or trouble speaking.'],
+      ['🤢','<strong>Vomiting that won\'t stop</strong>, or you can\'t keep fluids down for more than a day.'],
+      ['🩸','<strong>Unusual bleeding or bruising</strong> — nosebleeds that won\'t stop, blood in urine or stool.'],
+      ['🤕','<strong>A severe headache unlike your usual ones</strong>, or a sudden change in vision or balance.'],
+      ['💊','<strong>You missed chemo doses because of side effects</strong> — don\'t double up; call first.']
+    ]
+  },
+  hi:{
+    title:'🚨 अपनी केयर टीम को तुरंत फ़ोन करें अगर…',
+    context:function(f){return '⚠ आपने अभी दर्ज किया: '+f+'। कृपया इसे पढ़ें और तुरंत कार्रवाई करें।';},
+    call:function(ph){return '📞 अभी क्लिनिक को फ़ोन करें — '+ph;},
+    noPhone:'आपके क्लिनिक ने अभी इमरजेंसी नंबर नहीं जोड़ा है। नीचे वाला अलर्ट बटन इस्तेमाल करें, या अपना स्थानीय इमरजेंसी नंबर।',
+    alert:'🚨 डॉक्टर को तुरंत अलर्ट भेजें',
+    alertSent:'आपके डॉक्टर को अर्जेंट अलर्ट भेज दिया गया है।',
+    emerg:function(name,rel){return '👤 '+name+(rel?' ('+rel+')':'')+' को फ़ोन करें';},
+    emergDefault:'अपने इमरजेंसी संपर्क',
+    footer:'अगर किसी से संपर्क न हो पाए और तबीयत बहुत खराब लगे, तो नज़दीकी इमरजेंसी विभाग जाएँ। अपनी दवाओं की सूची साथ ले जाएँ (प्रोफ़ाइल → मेरी दवाइयाँ)।',
+    rows:[
+      ['🌡','<strong>बुखार 38.5&nbsp;°C या ज़्यादा</strong>, या कँपकँपी के साथ ठंड — कीमो के दौरान यह गंभीर संक्रमण हो सकता है।'],
+      ['⚡','<strong>दौरा पड़ना</strong>, या नई कमज़ोरी, उलझन, या बोलने में दिक्कत।'],
+      ['🤢','<strong>उल्टी रुक नहीं रही</strong>, या एक दिन से ज़्यादा पानी भी पेट में नहीं टिक रहा।'],
+      ['🩸','<strong>असामान्य खून बहना या नील पड़ना</strong> — नाक से खून न रुकना, पेशाब या मल में खून।'],
+      ['🤕','<strong>आपके आम सिरदर्द से अलग तेज़ सिरदर्द</strong>, या अचानक नज़र/संतुलन में बदलाव।'],
+      ['💊','<strong>साइड इफ़ेक्ट की वजह से कीमो की खुराक छूटी</strong> — दोहरी खुराक न लें; पहले फ़ोन करें।']
+    ]
+  }
+};
 function openTriage(contextText){
+  var T=TRIAGE_I18N[getLang()]||TRIAGE_I18N.en;
+  document.getElementById('triage-title-txt').textContent=T.title;
+  document.getElementById('triage-list').innerHTML=T.rows.map(function(r,i){
+    return '<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;'+(i<T.rows.length-1?'border-bottom:1px solid var(--border);':'')+'">'
+      +'<span style="font-size:18px;" aria-hidden="true">'+r[0]+'</span>'
+      +'<div style="font-size:13.5px;line-height:1.5;">'+r[1]+'</div></div>';
+  }).join('');
+  document.getElementById('triage-footer').textContent=T.footer;
+  document.getElementById('triage-alert-btn').textContent=T.alert;
+  document.getElementById('triage-no-phone').textContent=T.noPhone;
+
   var ctx=document.getElementById('triage-context');
-  if(contextText){ctx.textContent='⚠ You just logged: '+contextText+'. Please read this and act now.';ctx.style.display='block';}
+  if(contextText){ctx.textContent=T.context(contextText);ctx.style.display='block';}
   else ctx.style.display='none';
 
   // Clinic emergency number comes from the doctor's profile (Clinic Management).
@@ -1958,7 +2110,7 @@ function openTriage(contextText){
   var noPhone=document.getElementById('triage-no-phone');
   if(phone){
     callBtn.href='tel:'+phone.replace(/[^\d+]/g,'');
-    callBtn.textContent='📞 Call the clinic now — '+phone;
+    callBtn.textContent=T.call(phone);
     callBtn.style.display='block';noPhone.style.display='none';
   }else{
     callBtn.style.display='none';noPhone.style.display='block';
@@ -1968,7 +2120,7 @@ function openTriage(contextText){
   var p=(PAT&&LS.get('pat_'+PAT.mrn))||PAT||{};
   var ec=document.getElementById('triage-emerg-contact');
   if(p.emergencyPhone){
-    ec.innerHTML='<a href="tel:'+String(p.emergencyPhone).replace(/[^\d+]/g,'')+'" style="display:block;text-decoration:none;text-align:center;padding:13px;border-radius:12px;background:var(--blue-pale);border:1.5px solid rgba(62,95,68,0.25);color:var(--blue);font-weight:700;font-size:13.5px;">👤 Call '+escT(p.emergencyName||'my emergency contact')+(p.emergencyRel?' ('+escT(p.emergencyRel)+')':'')+'</a>';
+    ec.innerHTML='<a href="tel:'+String(p.emergencyPhone).replace(/[^\d+]/g,'')+'" style="display:block;text-decoration:none;text-align:center;padding:13px;border-radius:12px;background:var(--blue-pale);border:1.5px solid rgba(62,95,68,0.25);color:var(--blue);font-weight:700;font-size:13.5px;">'+T.emerg(escT(p.emergencyName||T.emergDefault),escT(p.emergencyRel||''))+'</a>';
     ec.style.display='block';
   }else ec.style.display='none';
   openSheet('triage-sheet');
@@ -1989,8 +2141,102 @@ function logTriageCall(){
 function sendUrgentAlert(){
   if(!PAT)return;
   pushTriageAlert('🚨 URGENT: patient pressed "Alert my doctor" on the When to Call NOW screen. Contact them immediately.',true);
-  toast('Urgent alert sent to your doctor.');
+  toast((TRIAGE_I18N[getLang()]||TRIAGE_I18N.en).alertSent);
 }
+
+// ══════════════════════════════════════════════
+// LANGUAGE (English / हिंदी) + ACCESSIBILITY
+// Text-swap i18n: originals are kept in data-en so switching back is
+// lossless. The dictionary covers navigation, the symptom diary, and all
+// safety-relevant text; untranslated strings stay in English.
+// ══════════════════════════════════════════════
+var HI={
+  'Symptoms':'लक्षण','Treatment':'उपचार','Visits':'मुलाक़ातें','Messages':'संदेश','Profile':'प्रोफ़ाइल',
+  '📋 Log Today\'s Symptoms':'📋 आज के लक्षण दर्ज करें',
+  '🧠 Monthly Quality-of-Life Survey (FACT-Br)':'🧠 मासिक जीवन-गुणवत्ता सर्वे (FACT-Br)',
+  '🚨 When to Call Your Care Team NOW':'🚨 डॉक्टर को तुरंत कब बुलाएँ',
+  'Daily Health Log':'दैनिक स्वास्थ्य डायरी','Save Health Log':'स्वास्थ्य डायरी सेव करें',
+  'Cognitive Issues':'सोचने-समझने में दिक्कत','Seizure Activity':'दौरे (मिर्गी)',
+  'Vision and Balance':'नज़र और संतुलन','Headache Intensity':'सिरदर्द की तीव्रता',
+  'Fatigue':'थकान','Nausea / Vomiting':'मितली / उल्टी','Appetite':'भूख',
+  'Sleep Quality':'नींद की गुणवत्ता','Mood and Wellbeing':'मन की स्थिति',
+  'Medications Taken Today':'आज ली गई दवाइयाँ','Additional Metrics':'अन्य माप','Daily Notes':'आज की टिप्पणी',
+  'None':'कुछ नहीं','Severe':'बहुत तेज़','No fatigue':'थकान नहीं','Cannot function':'कुछ नहीं कर पा रहे',
+  'No appetite':'भूख नहीं','Normal appetite':'सामान्य भूख','No sleep':'नींद नहीं','Restful':'आरामदायक',
+  'Forgetting recent':'हाल की बातें भूलना','Misplacing objects':'चीज़ें रखकर भूलना',
+  'Difficulty focusing':'ध्यान लगाने में दिक्कत','Word-finding issues':'शब्द याद न आना',
+  'Slurred speech':'लड़खड़ाती आवाज़','Date/time confusion':'दिन/समय की उलझन','Irritability':'चिड़चिड़ापन',
+  'Blurred vision':'धुंधला दिखना','Double vision':'दो-दो दिखना','Partial vision loss':'आंशिक नज़र जाना',
+  'Seeing flashes':'चमक दिखना','Unsteady gait':'चलने में लड़खड़ाहट','Dizziness vertigo':'चक्कर आना',
+  'Nausea dizziness':'मितली के साथ चक्कर',
+  'Mild nausea only':'हल्की मितली','Vomited multiple times':'कई बार उल्टी','Food aversions':'खाने से अरुचि',
+  'Relieved by meds':'दवा से आराम','Skipped a meal':'खाना छोड़ा','Ate less than half usual':'आधे से कम खाया',
+  'Too tired to eat':'खाने की ताक़त नहीं','Cannot get out of bed':'बिस्तर से उठ नहीं पा रहे',
+  'Fatigue limits activities':'थकान से काम रुकते हैं','Needed daytime rest':'दिन में आराम करना पड़ा',
+  'Difficulty falling asleep':'नींद आने में दिक्कत','Slept more than 10 hrs':'10 घंटे से ज़्यादा सोए',
+  'Nightmares/disturbing dreams':'बुरे सपने','Could not take medications':'दवा नहीं ले पाए',
+  'Upcoming':'आने वाली','Past':'पिछली','Personal Info':'व्यक्तिगत जानकारी','My Medications':'मेरी दवाइयाँ',
+  'Data & Backup':'डेटा और बैकअप','Sign Out':'साइन आउट','Language / भाषा':'Language / भाषा',
+  'Treatment Phase':'उपचार चरण','Doctor':'डॉक्टर','Blood Group':'ब्लड ग्रुप','Gender':'लिंग','Age':'उम्र'
+};
+function getLang(){try{return localStorage.getItem('chemocure-lang')||'en';}catch(e){return 'en';}}
+function setLang(l){
+  try{localStorage.setItem('chemocure-lang',l);}catch(e){}
+  document.documentElement.lang=(l==='hi'?'hi':'en');
+  translatePage();
+  document.querySelectorAll('.lang-btn').forEach(function(b){
+    b.style.fontWeight=b.dataset.lang===l?'800':'500';
+    b.style.background=b.dataset.lang===l?'var(--blue-pale)':'transparent';
+  });
+}
+function swapText(node){
+  var lang=getLang();
+  if(node.dataset.en===undefined)node.dataset.en=node.textContent.trim();
+  var en=node.dataset.en;
+  node.textContent=(lang==='hi'&&HI[en])?HI[en]:en;
+}
+function translatePage(){
+  document.querySelectorAll('.nav-label,.log-btn,.log-sec-title,.info-card-title,.sec-head,.slider-ends span,.ikey,.big-btn,.ld-label').forEach(swapText);
+  // check items / pills keep their leading .cb box — swap only the text node
+  document.querySelectorAll('.check-item,.tag-pill').forEach(function(el){
+    var tn=null;
+    el.childNodes.forEach(function(n){if(n.nodeType===3&&n.textContent.trim())tn=n;});
+    if(!tn)return;
+    if(el.dataset.en===undefined)el.dataset.en=tn.textContent.trim();
+    var lang=getLang();
+    tn.textContent=(lang==='hi'&&HI[el.dataset.en])?HI[el.dataset.en]:el.dataset.en;
+  });
+}
+function setBigText(on){
+  try{localStorage.setItem('chemocure-bigtext',on?'1':'');}catch(e){}
+  document.body.classList.toggle('big-text',!!on);
+  var t=document.getElementById('bigtext-toggle');if(t)t.checked=!!on;
+}
+// ── ARIA: labels, dialog roles, keyboard activation ──
+function applyA11y(){
+  document.querySelectorAll('.nav-btn').forEach(function(b){
+    var l=b.querySelector('.nav-label');if(l)b.setAttribute('aria-label',l.dataset.en||l.textContent);
+  });
+  document.querySelectorAll('.sheet').forEach(function(s){s.setAttribute('role','dialog');s.setAttribute('aria-modal','true');});
+  document.querySelectorAll('input.slider').forEach(function(sl){
+    var hdr=sl.closest('.log-sec');hdr=hdr&&hdr.querySelector('.log-sec-title');
+    if(hdr)sl.setAttribute('aria-label',(hdr.dataset.en||hdr.textContent)+' (0 to 10)');
+  });
+  document.querySelectorAll('.check-item,.tag-pill,.mood-f').forEach(function(el){
+    el.setAttribute('role','button');el.setAttribute('tabindex','0');
+  });
+}
+// Keyboard: Enter/Space activates the click-only toggles.
+document.addEventListener('keydown',function(e){
+  if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.matches&&e.target.matches('.check-item,.tag-pill,.mood-f')){
+    e.preventDefault();e.target.click();
+  }
+});
+document.addEventListener('DOMContentLoaded',function(){
+  applyA11y();
+  setLang(getLang());
+  try{if(localStorage.getItem('chemocure-bigtext'))setBigText(true);}catch(e){}
+});
 
 document.querySelectorAll('.sheet-overlay').forEach(function(s){
   s.addEventListener('click',function(e){if(e.target===s)closeSheet(s.id);});

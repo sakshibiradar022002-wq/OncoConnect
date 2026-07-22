@@ -99,7 +99,7 @@
       saveMeta(m);
     } catch (e) {
       keys.forEach(function (k) { state.dirty.add(k); }); // retry on next write
-      if (e.status === 401) state.online = false;         // session expired → local-only
+      if (e.status === 401) { state.online = false; state.authLost = true; } // session expired → local-only
     } finally {
       state.pushing = false;
     }
@@ -140,6 +140,23 @@
       }
     }).catch(function () {});
   }, 45000);
+
+  // Offline queue: dirty keys previously waited for the NEXT localStorage
+  // write before retrying. Now they also flush when connectivity returns,
+  // when the tab becomes visible again, and on a slow heartbeat — so a
+  // symptom logged in a dead zone syncs as soon as the network is back.
+  window.addEventListener('online', function () {
+    if (state.mode && !state.authLost) { state.online = true; schedulePush(); }
+  });
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) schedulePush();
+  });
+  setInterval(function () {
+    // Heartbeat retry — also revives a session marked offline by a transient
+    // network error (fetch throws even when navigator.onLine is true).
+    // A 401 (revoked session) is NOT retried: that needs a fresh login.
+    if (state.mode && !state.authLost && state.dirty.size) { state.online = true; schedulePush(); }
+  }, 30000);
 
   // Flush pending changes when the tab closes.
   window.addEventListener('pagehide', function () {
@@ -199,6 +216,7 @@
         } else { throw e; }
       }
       state.mode = 'doctor';
+      state.authLost = false;
       state.online = true;
       enablePush();
       var pulled = await req('GET', API);
@@ -226,6 +244,7 @@
     patientLogin: async function (mrn, password) {
       var data = await req('POST', API + '/patient-login', { mrn: mrn, password: password });
       state.mode = 'patient';
+      state.authLost = false;
       state.online = true;
       enablePush();
       mergeKeys(data.keys);
@@ -237,6 +256,7 @@
     labLogin: async function (username, password) {
       var data = await req('POST', API + '/lab-login', { username: username, password: password });
       state.mode = 'lab';
+      state.authLost = false;
       state.online = true;
       enablePush();
       mergeKeys(data.keys);
