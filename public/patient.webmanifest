@@ -1,6 +1,6 @@
 {
-  "name": "ChemoCure — Patient App",
-  "short_name": "ChemoCure",
+  "name": "OncoConnect — Patient App",
+  "short_name": "OncoConnect",
   "description": "Track your symptoms, treatment, and appointments. Stay connected with your care team.",
   "id": "/patient.html",
   "start_url": "/patient.html",

@@ -1,4 +1,4 @@
-// ChemoCure secure backend — the Express app.
+// OncoConnect secure backend — the Express app.
 //
 // Exported without .listen() so the same app runs everywhere:
 //   - src/server.js  starts a normal long-lived server (local, Docker, Render)

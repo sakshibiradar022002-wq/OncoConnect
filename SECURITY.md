@@ -1,4 +1,4 @@
-# ChemoCure — Security Posture
+# OncoConnect — Security Posture
 
 This document describes how patient data (PHI) is protected. It reflects what is
 **actually implemented and tested**, not aspirations.

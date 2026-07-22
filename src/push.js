@@ -28,7 +28,7 @@ export async function initPush() {
       console.log('[push] generated + persisted VAPID keys');
     }
   }
-  webpush.setVapidDetails('mailto:admin@chemocure.local', pub, priv);
+  webpush.setVapidDetails('mailto:admin@oncoconnect.local', pub, priv);
   vapidPublicKey = pub;
   ready = true;
 }

@@ -1,6 +1,6 @@
-# ChemoCure Server — Secure Neuro-Oncology EMR Backend
+# OncoConnect Server — Secure Neuro-Oncology EMR Backend
 
-Real backend for the ChemoCure platform. Node + Express + SQLite, built security-first:
+Real backend for the OncoConnect platform. Node + Express + SQLite, built security-first:
 **PHI encrypted at rest, revocable server-side sessions, and role-based access control.**
 
 This turns the single-file HTML prototype into real software — cross-device sync, real
@@ -105,14 +105,14 @@ The platform ships as **two separate installable apps**, both served by this one
 
 | App | URL | Installs as | Theme |
 |---|---|---|---|
-| **ChemoCure Pro** (Doctor) | `/` | Desktop/laptop software | Blue |
-| **ChemoCure** (Patient) | `/patient.html` | Phone app (home screen) | Green |
+| **OncoConnect Pro** (Doctor) | `/` | Desktop/laptop software | Blue |
+| **OncoConnect** (Patient) | `/patient.html` | Phone app (home screen) | Green |
 
 Each has its own web manifest, service worker (scoped so they never collide), and app icon.
 Once deployed over HTTPS, the browser offers an **Install** button:
 
 - **Doctor (desktop):** Chrome/Edge show an install icon in the address bar, or use the
-  in-app "Install ChemoCure Pro" banner. It then opens in its own window like native software.
+  in-app "Install OncoConnect Pro" banner. It then opens in its own window like native software.
 - **Patient (phone):** Android Chrome shows an "Install" banner; iOS Safari shows a hint to
   tap **Share → Add to Home Screen**. It launches full-screen with no browser chrome.
 

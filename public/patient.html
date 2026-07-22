@@ -6,9 +6,9 @@
      low-vision users, exactly the people a chemo app serves. -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="ChemoCure">
+<meta name="apple-mobile-web-app-title" content="OncoConnect">
 <meta name="theme-color" content="#3E5F44">
-<title>ChemoCure — Patient App</title>
+<title>OncoConnect — Patient App</title>
 
 <!-- PWA: installable phone app -->
 <link rel="manifest" href="/patient.webmanifest">
@@ -264,7 +264,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
   </div>
   <div class="logo-wrap">
     <div class="logo-circle">💊</div>
-    <div class="app-title">ChemoCure</div>
+    <div class="app-title">OncoConnect</div>
     <div class="app-sub">Patient &amp; Lab Portal</div>
   </div>
 
@@ -288,7 +288,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
   <!-- ── PATIENT LOGIN ── -->
   <div id="login-patient">
     <div class="info-box">
-      🔑 Use the <strong>MRN and password</strong> your doctor gave you when registering you in ChemoCure Pro.
+      🔑 Use the <strong>MRN and password</strong> your doctor gave you when registering you in OncoConnect Pro.
     </div>
     <div class="err-box" id="login-err"></div>
     <div class="fg">
@@ -304,13 +304,13 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
         onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <button class="big-btn" onclick="doLogin()" style="margin-bottom:10px;">Sign In as Patient →</button>
-    <p style="text-align:center;margin-top:14px;font-size:11px;color:rgba(255,255,255,0.35);">🔒 Open ChemoCure Pro Enhanced in the same browser to sync</p>
+    <p style="text-align:center;margin-top:14px;font-size:11px;color:rgba(255,255,255,0.35);">🔒 Open OncoConnect Pro Enhanced in the same browser to sync</p>
   </div>
 
   <!-- ── LAB LOGIN ── -->
   <div id="login-lab" style="display:none;">
     <div class="info-box" style="background:rgba(59,130,246,0.12);border-color:rgba(59,130,246,0.3);color:#93c5fd;">
-      🔬 Use the <strong>username and password</strong> your doctor created in ChemoCure Pro → Lab Management → Add Laboratory.
+      🔬 Use the <strong>username and password</strong> your doctor created in OncoConnect Pro → Lab Management → Add Laboratory.
     </div>
     <div class="err-box" id="lab-login-err"></div>
     <div id="lab-debug-box" style="display:none;background:rgba(217,119,6,0.1);border:1px solid rgba(217,119,6,0.3);border-radius:12px;padding:12px 14px;font-size:12px;color:#fbbf24;margin-bottom:12px;line-height:1.8;"></div>
@@ -326,7 +326,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
         onkeydown="if(event.key==='Enter')doLabLogin()">
     </div>
     <button class="big-btn" style="background:linear-gradient(135deg,rgba(255,255,255,0.95),rgba(255,255,255,0.85));color:var(--blue2);" onclick="doLabLogin()">Sign In as Lab Technician →</button>
-    <p style="text-align:center;margin-top:14px;font-size:11px;color:rgba(255,255,255,0.3);line-height:1.7;">⚠ ChemoCure Pro must be open in this same browser<br>on the same device to share data</p>
+    <p style="text-align:center;margin-top:14px;font-size:11px;color:rgba(255,255,255,0.3);line-height:1.7;">⚠ OncoConnect Pro must be open in this same browser<br>on the same device to share data</p>
   </div>
 </div>
 
@@ -619,7 +619,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
         </div>
       </div>
       <button onclick="exportPatientData()" style="width:100%;padding:12px;border-radius:12px;background:var(--blue-pale);border:1.5px solid rgba(62,95,68,0.25);color:var(--blue);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px;">⬇ Export My Data</button>
-      <div style="font-size:11px;color:var(--text-dim);text-align:center;">Downloads as ChemoCure_MyData_[date].json — send this to a new device to restore your data</div>
+      <div style="font-size:11px;color:var(--text-dim);text-align:center;">Downloads as OncoConnect_MyData_[date].json — send this to a new device to restore your data</div>
     </div>
     <button class="sign-out-btn" onclick="doLogout()">Sign Out</button>
   </div>
@@ -872,7 +872,7 @@ var extraMeds=[];
 function exportPatientData() {
   if (!PAT) return;
   const mrn = PAT.mrn;
-  const exportObj = { exportedAt: new Date().toISOString(), version: '1.0', appName: 'ChemoCure', patientMRN: mrn, data: {} };
+  const exportObj = { exportedAt: new Date().toISOString(), version: '1.0', appName: 'OncoConnect', patientMRN: mrn, data: {} };
   // Export only keys related to this patient
   try {
     for (let i = 0; i < localStorage.length; i++) {
@@ -889,7 +889,7 @@ function exportPatientData() {
   const blob = new Blob([json], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'ChemoCure_MyData_' + new Date().toISOString().slice(0,10) + '.json'; a.click();
+  a.href = url; a.download = 'OncoConnect_MyData_' + new Date().toISOString().slice(0,10) + '.json'; a.click();
   setTimeout(() => URL.revokeObjectURL(url), 3000);
 }
 
@@ -1077,7 +1077,7 @@ async function doLabLogin() {
     errEl.textContent = 'No lab accounts found in this browser.';
     errEl.style.display = 'block';
     dbgEl.innerHTML = '<strong>⚠ Setup required:</strong><br>'
-      + '1. Open <strong>ChemoCure_Pro_Enhanced.html</strong> in this same browser<br>'
+      + '1. Open <strong>OncoConnect_Pro_Enhanced.html</strong> in this same browser<br>'
       + '2. Log in as doctor → go to <strong>Lab Management</strong> in the sidebar<br>'
       + '3. Click <strong>+ Add Laboratory</strong> → a username &amp; password will be generated<br>'
       + '4. Come back here and enter those credentials<br><br>'
@@ -2381,7 +2381,7 @@ document.getElementById('l-pass').addEventListener('keydown',function(e){if(e.ke
 <div id="pwa-install-banner" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:99999;background:#059669;color:#fff;padding:14px 18px;border-radius:16px;box-shadow:0 8px 30px rgba(5,150,105,0.4);align-items:center;gap:12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;width:90vw;max-width:360px;">
   <div style="font-size:26px;">📱</div>
   <div style="flex:1;">
-    <div style="font-weight:700;">Install ChemoCure</div>
+    <div style="font-weight:700;">Install OncoConnect</div>
     <div style="font-size:11.5px;opacity:0.85;">Add to your home screen like an app</div>
   </div>
   <button id="pwa-install-btn" style="background:#fff;color:#059669;border:none;padding:8px 14px;border-radius:8px;font-weight:700;font-family:inherit;font-size:13px;cursor:pointer;">Install</button>
@@ -2496,7 +2496,7 @@ setInterval(function(){
       LS.set(firedKey,fired);
       toast('💊 '+r.label+' — it\'s time!');
       if ('Notification' in window && Notification.permission==='granted') {
-        new Notification('💊 ChemoCure reminder', { body:r.label, icon:'/icons/patient-192.png' });
+        new Notification('💊 OncoConnect reminder', { body:r.label, icon:'/icons/patient-192.png' });
       }
     });
   } catch(e){}

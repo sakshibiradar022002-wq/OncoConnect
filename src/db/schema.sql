@@ -1,4 +1,4 @@
--- ChemoCure database schema.
+-- OncoConnect database schema.
 -- PHI columns store AES-256-GCM encrypted blobs (see crypto.js).
 -- Non-PHI columns (ids, timestamps, roles) stay plaintext for indexing.
 

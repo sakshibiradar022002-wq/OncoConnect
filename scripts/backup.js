@@ -27,12 +27,12 @@ const outDir = resolve(process.argv[2] || './backups');
 mkdirSync(outDir, { recursive: true });
 
 const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-const outFile = join(outDir, `chemocure-${stamp}.db`);
+const outFile = join(outDir, `oncoconnect-${stamp}.db`);
 
 await db.exec(`VACUUM INTO '${outFile.replace(/'/g, "''")}'`);
 console.log(`Backup written: ${outFile} (${(statSync(outFile).size / 1024).toFixed(1)} KB)`);
 
 // Keep the most recent 30 backups.
-const old = readdirSync(outDir).filter(f => f.startsWith('chemocure-') && f.endsWith('.db')).sort().reverse().slice(30);
+const old = readdirSync(outDir).filter(f => f.startsWith('oncoconnect-') && f.endsWith('.db')).sort().reverse().slice(30);
 for (const f of old) { unlinkSync(join(outDir, f)); console.log(`Pruned old backup: ${f}`); }
 process.exit(0);

@@ -1,11 +1,11 @@
-// ChemoCure service worker — served as both /sw-doctor.js and /sw-patient.js.
+// OncoConnect service worker — served as both /sw-doctor.js and /sw-patient.js.
 // Strategy:
 //   - App shell (HTML/JS/icons): cache-first, so the app opens offline.
 //   - API calls (/api/*): NEVER cached (PHI must always be fresh + server-authorized).
 //   - Everything else (fonts, CDN libs): stale-while-revalidate.
 
 const APP = self.location.pathname.includes('doctor') ? 'doctor' : 'patient';
-const CACHE = `chemocure-${APP}-v2`;
+const CACHE = `oncoconnect-${APP}-v3`;
 const SHELL = APP === 'doctor'
   ? ['/', '/index.html', '/sync-client.js', '/doctor.webmanifest', '/icons/doctor-192.png', '/icons/doctor-512.png']
   : ['/patient.html', '/sync-client.js', '/patient.webmanifest', '/icons/patient-192.png', '/icons/patient-512.png'];
@@ -19,7 +19,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k.startsWith(`chemocure-${APP}-`) && k !== CACHE).map((k) => caches.delete(k)))
+      Promise.all(keys.filter((k) => (k.startsWith(`oncoconnect-${APP}-`) || k.startsWith(`chemocure-${APP}-`)) && k !== CACHE).map((k) => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
@@ -51,7 +51,7 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('push', (event) => {
   let d = {};
   try { d = event.data.json(); } catch (e) {}
-  event.waitUntil(self.registration.showNotification(d.title || 'ChemoCure', {
+  event.waitUntil(self.registration.showNotification(d.title || 'OncoConnect', {
     body: d.body || '',
     icon: `/icons/${APP}-192.png`,
     badge: `/icons/${APP}-192.png`,

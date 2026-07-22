@@ -110,7 +110,7 @@ authRouter.post('/totp/setup', authenticate, asyncHandler(async (req, res) => {
     .run(encryptPHI({ secret, enabled: false }), req.auth.subjectId);
   res.json({
     ok: true, secret,
-    otpauthUrl: `otpauth://totp/ChemoCure:${encodeURIComponent(u.email)}?secret=${secret}&issuer=ChemoCure`,
+    otpauthUrl: `otpauth://totp/OncoConnect:${encodeURIComponent(u.email)}?secret=${secret}&issuer=OncoConnect`,
   });
 }));
 

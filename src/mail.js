@@ -29,7 +29,7 @@ function build() {
       auth: { user: gmailUser, pass: gmailPass },
       ...timeouts,
     });
-    fromAddr = process.env.SMTP_FROM || `ChemoCure <${gmailUser}>`;
+    fromAddr = process.env.SMTP_FROM || `OncoConnect <${gmailUser}>`;
     return;
   }
   const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
@@ -42,7 +42,7 @@ function build() {
       auth: { user: SMTP_USER, pass: SMTP_PASS },
       ...timeouts,
     });
-    fromAddr = process.env.SMTP_FROM || `ChemoCure <${SMTP_USER}>`;
+    fromAddr = process.env.SMTP_FROM || `OncoConnect <${SMTP_USER}>`;
   }
 }
 

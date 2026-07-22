@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ChemoCure Pro — Doctor Software</title>
+<title>OncoConnect Pro — Doctor Software</title>
 
 <!-- PWA: installable desktop/mobile software -->
 <link rel="manifest" href="/doctor.webmanifest">
 <meta name="theme-color" content="#1591DC">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="ChemoCure Pro">
+<meta name="apple-mobile-web-app-title" content="OncoConnect Pro">
 <link rel="apple-touch-icon" href="/icons/doctor-192.png">
 <link rel="icon" type="image/png" href="/icons/doctor-192.png">
 
@@ -437,7 +437,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
     <div class="auth-logo">
       <div class="auth-logo-icon">🧬</div>
       <div>
-        <div class="auth-logo-text">ChemoCure Pro</div>
+        <div class="auth-logo-text">OncoConnect Pro</div>
         <div style="font-size:11px;color:var(--text-muted);">Doctor Software · v2.0</div>
       </div>
     </div>
@@ -541,7 +541,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
     </div>
     <div class="titlebar-brand">
       <div class="titlebar-brand-icon">🧬</div>
-      <span class="titlebar-name">ChemoCure Pro</span>
+      <span class="titlebar-name">OncoConnect Pro</span>
       <span class="titlebar-badge">DOCTOR</span>
     </div>
     <button class="notif-bell" id="notif-bell" onclick="toggleNotifs()" title="Notifications">🔔<span class="notif-badge" id="notif-badge" style="display:none;">0</span></button>
@@ -659,7 +659,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
           <div class="card">
             <div class="card-title" style="margin-bottom:8px;">⬇ Export Backup</div>
-            <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Download all ChemoCure data as a single JSON file. This is your complete backup.</div>
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Download all OncoConnect data as a single JSON file. This is your complete backup.</div>
             <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;" id="export-summary">Loading…</div>
             <div class="fg" style="margin-bottom:10px;">
               <label>File attachments</label>
@@ -679,7 +679,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
             <div style="border:2px dashed var(--border2);border-radius:10px;padding:20px;text-align:center;cursor:pointer;margin-bottom:10px;" onclick="document.getElementById('import-file-inp').click()">
               <div style="font-size:24px;margin-bottom:6px;">📂</div>
               <div style="font-size:13px;font-weight:600;color:var(--text);">Click to select backup file</div>
-              <div style="font-size:11.5px;color:var(--text-muted);">ChemoCure_Backup_*.json</div>
+              <div style="font-size:11.5px;color:var(--text-muted);">OncoConnect_Backup_*.json</div>
             </div>
             <input type="file" id="import-file-inp" accept=".json" style="display:none;" onchange="importBackup(this)">
           </div>
@@ -692,7 +692,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
             <button class="btn btn-primary btn-sm" onclick="exportAllData()">⬇ Export Now</button>
           </div>
           <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.7;">
-            <strong style="color:var(--orange);">⚠ Architecture note:</strong> All data is stored in your browser's <code>localStorage</code>. This means the Doctor Software and Patient App <strong>must be open in the same browser on the same physical device</strong> to share data. This is a prototype constraint — not a cross-device sync system. To use ChemoCure on multiple devices, export a backup and import it on the other device.
+            <strong style="color:var(--orange);">⚠ Architecture note:</strong> All data is stored in your browser's <code>localStorage</code>. This means the Doctor Software and Patient App <strong>must be open in the same browser on the same physical device</strong> to share data. This is a prototype constraint — not a cross-device sync system. To use OncoConnect on multiple devices, export a backup and import it on the other device.
           </div>
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
             <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
@@ -794,8 +794,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
         <!-- Danger zone -->
         <div class="card" style="border-color:rgba(220,38,38,0.2);">
           <div class="card-title" style="color:var(--red);margin-bottom:8px;">⚠ Danger Zone</div>
-          <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Permanently delete all ChemoCure data from this browser. This cannot be undone. Export a backup first.</div>
-          <button class="btn btn-danger" onclick="clearAllData()" style="width:100%;">🗑 Clear All ChemoCure Data</button>
+          <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Permanently delete all OncoConnect data from this browser. This cannot be undone. Export a backup first.</div>
+          <button class="btn btn-danger" onclick="clearAllData()" style="width:100%;">🗑 Clear All OncoConnect Data</button>
         </div>
       </div>
       <div class="panel active" id="panel-overview">
@@ -1061,7 +1061,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
         <div class="cred-label">✅ Patient Login Credentials</div>
         <div class="cred-row"><span class="cred-key">App Username (MRN)</span><span class="cred-val" id="ap-mrn-val">—</span></div>
         <div class="cred-row"><span class="cred-key">App Password</span><span class="cred-val" id="ap-pass-val">—</span></div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">Give these to the patient to log in to the ChemoCure Patient App.</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">Give these to the patient to log in to the OncoConnect Patient App.</div>
       </div>
     </div>
     <div style="display:flex;gap:8px;margin-top:4px;">
@@ -1075,11 +1075,11 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
 <div class="overlay" id="install-modal">
   <div class="modal">
     <div class="modal-title">📱 Patient App</div>
-    <div class="modal-sub">How patients connect to ChemoCure</div>
+    <div class="modal-sub">How patients connect to OncoConnect</div>
     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px;">
       <div style="font-size:12px;line-height:1.8;color:var(--text-muted);">
         <strong style="color:var(--cyan);">1. Share the Patient App file</strong><br>
-        Send the <code style="font-family:var(--mono);background:var(--surface3);padding:1px 5px;border-radius:3px;">ChemoCure_Patient_App.html</code> file to the patient (via email/WhatsApp).<br><br>
+        Send the <code style="font-family:var(--mono);background:var(--surface3);padding:1px 5px;border-radius:3px;">OncoConnect_Patient_App.html</code> file to the patient (via email/WhatsApp).<br><br>
         <strong style="color:var(--cyan);">2. Patient opens it in Chrome</strong><br>
         The app works directly in the browser — no installation needed.<br><br>
         <strong style="color:var(--cyan);">3. Install as app (optional)</strong><br>
@@ -1626,14 +1626,14 @@ function downloadCSV(name,rows){
 function exportPatientsCSV(){
   const rows=[['MRN','Name','Age','Sex','Diagnosis','WHO Grade','Phase','ECOG','Active Meds','Created']];
   getMyPatients().forEach(p=>rows.push([p.mrn,p.name,p.age||'',p.sex||'',p.diag||'',p.grade||'',p.phase||'',p.ecog||'',(p.meds||[]).filter(m=>(m.status||'Active')==='Active').map(m=>m.name).join('; '),p.createdAt||'']));
-  downloadCSV('chemocure-patients-'+new Date().toISOString().slice(0,10)+'.csv',rows);
+  downloadCSV('oncoconnect-patients-'+new Date().toISOString().slice(0,10)+'.csv',rows);
 }
 function exportLogsCSV(){
   const rows=[['MRN','Patient','Date','Cognitive','Seizure','Vision','Headache','Mood','Fatigue','Nausea','Appetite','Sleep','Temp','BP sys','BP dia','Weight','Meds taken','Notes']];
   getMyPatients().forEach(p=>{
     LS.keys('log_'+p.mrn+'_').map(k=>LS.get(k)).filter(Boolean).forEach(l=>rows.push([p.mrn,p.name,l.date,l.cognitive,l.seizure,l.vision,l.headache,l.mood,l.fatigue,l.nausea,l.appetite,l.sleep,l.temp||'',l.bp_sys||'',l.bp_dia||'',l.weight||'',(l.meds||[]).join('; '),l.notes||'']));
   });
-  downloadCSV('chemocure-symptom-logs-'+new Date().toISOString().slice(0,10)+'.csv',rows);
+  downloadCSV('oncoconnect-symptom-logs-'+new Date().toISOString().slice(0,10)+'.csv',rows);
 }
 
 // ── DE-IDENTIFIED RESEARCH EXPORT ──
@@ -1709,7 +1709,7 @@ async function exportResearchCSV(){
     tx:['pseudo_id','sex','age_band','diagnosis','who_grade','drug','dose','route','frequency','status','start_day_rel','end_day_rel','overall_ctcae']
   };
   rows.unshift(headers[ds]);
-  downloadCSV('chemocure-research-'+ds+'-'+new Date().toISOString().slice(0,10)+'.csv',rows);
+  downloadCSV('oncoconnect-research-'+ds+'-'+new Date().toISOString().slice(0,10)+'.csv',rows);
   if(summaryEl)summaryEl.innerHTML='✅ Exported <strong>'+rowCount+'</strong> rows from <strong>'+eligible.length+'</strong> consented patient(s). '
     +(all.length-eligible.length)+' patient(s) excluded (no research opt-in or filtered out). '
     +'Pseudonyms are stable across exports on this account; the salt never leaves this device.';
@@ -2973,7 +2973,7 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
                 :`<button class="btn btn-ghost btn-sm" onclick="copyCreds('${p.mrn}','${esc(p.pass||'')}')" style="font-size:11px;">📋 Copy</button>`}
             </div>
           </div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:10px;">Share with patient for ChemoCure Patient App login.</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:10px;">Share with patient for OncoConnect Patient App login.</div>
         </div>
 
         <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;">
@@ -3203,7 +3203,7 @@ function buildFHIRBundle(mrn) {
 
   const patient = {
     resourceType: 'Patient', id: pid,
-    identifier: [{ system: 'urn:chemocure:mrn', value: mrn }],
+    identifier: [{ system: 'urn:oncoconnect:mrn', value: mrn }],
     name: [{ use: 'official', text: p.name }],
     birthDate: p.dob || undefined,
     gender: p.gender === 'Male' ? 'male' : p.gender === 'Female' ? 'female' : 'other',
@@ -3250,8 +3250,8 @@ function buildFHIRBundle(mrn) {
 
   return {
     resourceType: 'Bundle', type: 'collection',
-    timestamp: now, id: 'chemocure-export-' + mrn,
-    meta: { profile: ['http://hl7.org/fhir/StructureDefinition/Bundle'], source: 'ChemoCure Pro Enhanced' },
+    timestamp: now, id: 'oncoconnect-export-' + mrn,
+    meta: { profile: ['http://hl7.org/fhir/StructureDefinition/Bundle'], source: 'OncoConnect Pro Enhanced' },
     entry: entries,
   };
 }
@@ -3327,7 +3327,7 @@ function saveEmailJSConfig() {
 function testEmailJS() {
   // Tests whichever channel is live: server Gmail/SMTP first, EmailJS fallback
   // (sendAppointmentReminder already implements that order).
-  const testAppt = { date: new Date().toLocaleDateString(), time: '10:00 AM', type: 'Test Appointment', notes: 'This is a test email from ChemoCure.' };
+  const testAppt = { date: new Date().toLocaleDateString(), time: '10:00 AM', type: 'Test Appointment', notes: 'This is a test email from OncoConnect.' };
   const testEmail = prompt('Enter your email address to receive a test email:');
   if (!testEmail) return;
   sendAppointmentReminder(testAppt, testEmail, 'Test Patient');
@@ -3567,7 +3567,7 @@ function generatePDFDownload(){
   ${p.clinNotes?`<h2>Clinical Notes</h2><div style="background:#f8fafc;border-radius:6px;padding:12px 14px;font-size:13px;white-space:pre-wrap;">${esc(p.clinNotes)}</div>`:''}
 
   <div class="footer">
-    <div>ChemoCure Pro · Neuro-Oncology EMR</div>
+    <div>OncoConnect Pro · Neuro-Oncology EMR</div>
     <div>${/^dr[.\s]/i.test(clinician)?clinician:'Dr. '+clinician} · ${new Date().toLocaleDateString()}</div>
   </div>
   <div class="no-print" style="margin-top:24px;text-align:center;">
@@ -3604,22 +3604,22 @@ function setDS(btn,val){
   const el=document.getElementById('r-ds');if(el)el.value=val;
 }// ── Credential helpers ──
 function copyCreds(mrn,pass){
-  const text='ChemoCure Patient App\nUsername (MRN): '+mrn+'\nPassword: '+pass;
+  const text='OncoConnect Patient App\nUsername (MRN): '+mrn+'\nPassword: '+pass;
   navigator.clipboard?.writeText(text).catch(()=>{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);});
   flash('Credentials copied to clipboard!');
 }
 function shareCredsWhatsApp(mrn,pass,name){
-  const text=encodeURIComponent('🏥 *ChemoCure Patient App*\n\nPatient: *'+name+'*\nUsername (MRN): *'+mrn+'*\nPassword: *'+pass+'*\n\nOpen the ChemoCure Patient App and log in with these credentials.');
+  const text=encodeURIComponent('🏥 *OncoConnect Patient App*\n\nPatient: *'+name+'*\nUsername (MRN): *'+mrn+'*\nPassword: *'+pass+'*\n\nOpen the OncoConnect Patient App and log in with these credentials.');
   window.open('https://wa.me/?text='+text,'_blank');
 }
 function shareCredsEmail(mrn,pass,name,email){
-  const subj=encodeURIComponent('Your ChemoCure Patient App Login');
-  const body=encodeURIComponent('Dear '+name+',\n\nYour login credentials for the ChemoCure Patient App:\n\nUsername (MRN): '+mrn+'\nPassword: '+pass+'\n\nPlease keep this information safe.\n\nRegards,\n'+( currentDoc?.name||'Your Doctor'));
+  const subj=encodeURIComponent('Your OncoConnect Patient App Login');
+  const body=encodeURIComponent('Dear '+name+',\n\nYour login credentials for the OncoConnect Patient App:\n\nUsername (MRN): '+mrn+'\nPassword: '+pass+'\n\nPlease keep this information safe.\n\nRegards,\n'+( currentDoc?.name||'Your Doctor'));
   window.open('mailto:'+(email||'')+'?subject='+subj+'&body='+body);
 }
 function printCredsCard(mrn,pass,name){
   const w=window.open('','_blank','width=400,height=480');
-  w.document.write(`<!DOCTYPE html><html><head><title>Patient Card</title><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;padding:24px;}.card{border:2px solid #1591DC;border-radius:12px;padding:20px;max-width:340px;text-align:center;}.logo{font-size:28px;margin-bottom:4px;}.title{font-size:15px;font-weight:700;color:#1591DC;margin-bottom:12px;}.name{font-size:18px;font-weight:700;margin-bottom:14px;}.box{background:#f0f5ff;border-radius:8px;padding:10px 14px;text-align:left;margin-bottom:10px;}.label{font-size:10px;text-transform:uppercase;color:#475569;margin-bottom:3px;}.val{font-size:16px;font-weight:700;font-family:monospace;color:#1591DC;}.note{font-size:11px;color:#64748b;margin-top:12px;}.no-print{margin-top:16px;}@media print{.no-print{display:none;}}</style></head><body><div class="card"><div class="logo">🏥</div><div class="title">ChemoCure Patient App</div><div class="name">${name}</div><div class="box"><div class="label">Username (MRN)</div><div class="val">${mrn}</div></div><div class="box"><div class="label">Password</div><div class="val">${pass}</div></div><div class="note">Log in at ChemoCure Patient App</div><div class="no-print" style="margin-top:16px;"><button onclick="window.print()" style="padding:10px 20px;background:#1591DC;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;width:100%;">🖨 Print Card</button></div></div></body></html>`);
+  w.document.write(`<!DOCTYPE html><html><head><title>Patient Card</title><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;padding:24px;}.card{border:2px solid #1591DC;border-radius:12px;padding:20px;max-width:340px;text-align:center;}.logo{font-size:28px;margin-bottom:4px;}.title{font-size:15px;font-weight:700;color:#1591DC;margin-bottom:12px;}.name{font-size:18px;font-weight:700;margin-bottom:14px;}.box{background:#f0f5ff;border-radius:8px;padding:10px 14px;text-align:left;margin-bottom:10px;}.label{font-size:10px;text-transform:uppercase;color:#475569;margin-bottom:3px;}.val{font-size:16px;font-weight:700;font-family:monospace;color:#1591DC;}.note{font-size:11px;color:#64748b;margin-top:12px;}.no-print{margin-top:16px;}@media print{.no-print{display:none;}}</style></head><body><div class="card"><div class="logo">🏥</div><div class="title">OncoConnect Patient App</div><div class="name">${name}</div><div class="box"><div class="label">Username (MRN)</div><div class="val">${mrn}</div></div><div class="box"><div class="label">Password</div><div class="val">${pass}</div></div><div class="note">Log in at OncoConnect Patient App</div><div class="no-print" style="margin-top:16px;"><button onclick="window.print()" style="padding:10px 20px;background:#1591DC;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;width:100%;">🖨 Print Card</button></div></div></body></html>`);
   w.document.close();
 }
 async function resetPatientPassword(mrn){
@@ -3925,17 +3925,17 @@ function deleteImagingReport(mrn,idx){if(!confirm('Delete this imaging report?')
 function exportApptICS(mrn){
   const p=LS.get('pat_'+mrn)||{};const appts=LS.get('appts_'+mrn)||[];
   if(!appts.length){flash('No appointments to export.');return;}
-  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//ChemoCure//Patient EMR//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH'];
+  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//OncoConnect//Patient EMR//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH'];
   appts.forEach(a=>{
     if(!a.date)return;
     const dtStr=a.date.replace(/-/g,'')+(a.time?'T'+a.time.replace(/:/g,'')+'00':'T090000');
     const h=a.time?String(parseInt(a.time.split(':')[0])+1).padStart(2,'0'):'10';
     const endStr=a.date.replace(/-/g,'')+`T${h}${a.time?a.time.slice(3)+'00':'0000'}`;
-    lines.push('BEGIN:VEVENT',`DTSTART;TZID=Asia/Karachi:${dtStr}`,`DTEND;TZID=Asia/Karachi:${endStr}`,`SUMMARY:${(a.type||'Appointment').replace(/,/g,'\\,')} — ${(p.name||mrn).replace(/,/g,'\\,')}`,`DESCRIPTION:${(a.notes||'').replace(/\n/g,'\\n')}`,`STATUS:${a.status==='Confirmed'?'CONFIRMED':'TENTATIVE'}`,`UID:${a.date}-${Date.now()}@chemocure`,'END:VEVENT');
+    lines.push('BEGIN:VEVENT',`DTSTART;TZID=Asia/Karachi:${dtStr}`,`DTEND;TZID=Asia/Karachi:${endStr}`,`SUMMARY:${(a.type||'Appointment').replace(/,/g,'\\,')} — ${(p.name||mrn).replace(/,/g,'\\,')}`,`DESCRIPTION:${(a.notes||'').replace(/\n/g,'\\n')}`,`STATUS:${a.status==='Confirmed'?'CONFIRMED':'TENTATIVE'}`,`UID:${a.date}-${Date.now()}@oncoconnect`,'END:VEVENT');
   });
   lines.push('END:VCALENDAR');
   const blob=new Blob([lines.join('\r\n')],{type:'text/calendar'});
-  const a2=document.createElement('a');a2.href=URL.createObjectURL(blob);a2.download='ChemoCure_'+mrn+'_Appointments.ics';a2.click();setTimeout(()=>URL.revokeObjectURL(a2.href),3000);
+  const a2=document.createElement('a');a2.href=URL.createObjectURL(blob);a2.download='OncoConnect_'+mrn+'_Appointments.ics';a2.click();setTimeout(()=>URL.revokeObjectURL(a2.href),3000);
   flash('📅 Calendar file downloaded — open with Google/Apple/Outlook Calendar');
 }
 
@@ -5839,7 +5839,7 @@ function compressPatientFiles(mrn) {
 
 function exportAllData() {
   const includeFiles = document.getElementById('export-include-files')?.value !== 'no';
-  const exportObj = { exportedAt: new Date().toISOString(), version: '1.0', appName: 'ChemoCure', data: {} };
+  const exportObj = { exportedAt: new Date().toISOString(), version: '1.0', appName: 'OncoConnect', data: {} };
   let skipped = 0;
   try {
     for (let i = 0; i < localStorage.length; i++) {
@@ -5873,7 +5873,7 @@ function exportAllData() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   const date = new Date().toISOString().slice(0,10);
-  a.href = url; a.download = 'ChemoCure_Backup_' + date + '.json'; a.click();
+  a.href = url; a.download = 'OncoConnect_Backup_' + date + '.json'; a.click();
   setTimeout(() => URL.revokeObjectURL(url), 3000);
   flash('✅ Backup downloaded! Keep this file safe — ' + (skipped ? 'file attachments excluded, ' : '') + Object.keys(exportObj.data).length + ' records exported.');
 }
@@ -5889,7 +5889,7 @@ function importBackup(input) {
   reader.onload = function(e) {
     try {
       const obj = JSON.parse(e.target.result);
-      if (!obj.data || obj.appName !== 'ChemoCure') throw new Error('Not a valid ChemoCure backup file.');
+      if (!obj.data || (obj.appName !== 'OncoConnect' && obj.appName !== 'ChemoCure')) throw new Error('Not a valid OncoConnect backup file.');
       let imported = 0, skipped = 0;
       Object.entries(obj.data).forEach(([k, v]) => {
         // Don't overwrite existing data — only import missing keys
@@ -5907,14 +5907,14 @@ function importBackup(input) {
 }
 
 function clearAllData() {
-  if (!confirm('⚠ This will permanently delete ALL ChemoCure data from this browser.\n\nThis includes all patients, records, lab accounts, messages, and appointments.\n\nThis CANNOT be undone.\n\nHave you exported a backup? Type YES to confirm.')) return;
+  if (!confirm('⚠ This will permanently delete ALL OncoConnect data from this browser.\n\nThis includes all patients, records, lab accounts, messages, and appointments.\n\nThis CANNOT be undone.\n\nHave you exported a backup? Type YES to confirm.')) return;
   const confirmation = prompt('Type YES to permanently delete all data:');
   if (confirmation !== 'YES') { flash('Cancelled — no data deleted.'); return; }
   let removed = 0;
   const keys = [];
   for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith('cc_')) keys.push(k); }
   keys.forEach(k => { localStorage.removeItem(k); removed++; });
-  flash('All ' + removed + ' ChemoCure records deleted. Reloading...');
+  flash('All ' + removed + ' OncoConnect records deleted. Reloading...');
   setTimeout(() => location.reload(), 2000);
 }
 
@@ -5948,7 +5948,7 @@ async function sendAppointmentReminder(appt, patEmail, patName) {
           + '  Type:  ' + (appt.type || 'Appointment') + '\n'
           + '  Date:  ' + appt.date + (appt.time ? '\n  Time:  ' + appt.time : '') + '\n'
           + (appt.notes ? '  Notes: ' + appt.notes + '\n' : '')
-          + '\n' + docName + '\nSent via ChemoCure',
+          + '\n' + docName + '\nSent via OncoConnect',
       }),
     });
     if (r.ok) { flash('✅ Reminder email sent to ' + patEmail); return; }
@@ -6061,7 +6061,7 @@ function showLabCredsOnce(lab, password, verb) {
   modal.innerHTML = `
     <div class="modal" style="max-width:420px;">
       <div class="modal-title">🔬 ${esc(lab.name)} ${verb}</div>
-      <div class="modal-sub">Portal login for the lab technician (ChemoCure Patient App → Lab Technician tab)</div>
+      <div class="modal-sub">Portal login for the lab technician (OncoConnect Patient App → Lab Technician tab)</div>
       <div class="cred-box" style="margin-bottom:12px;">
         <div class="cred-label">🔑 Lab Portal Credentials</div>
         <div class="cred-row"><span class="cred-key">Username</span><span class="cred-val">${esc(lab.username)}</span></div>
@@ -6077,7 +6077,7 @@ function showLabCredsOnce(lab, password, verb) {
     </div>`;
   document.body.appendChild(modal);
   document.getElementById('lco-copy-btn').onclick = function() {
-    const text = 'ChemoCure Lab Portal – ' + lab.name + '\nUsername: ' + lab.username + '\nPassword: ' + password;
+    const text = 'OncoConnect Lab Portal – ' + lab.name + '\nUsername: ' + lab.username + '\nPassword: ' + password;
     navigator.clipboard?.writeText(text).catch(() => {
       const ta = document.createElement('textarea'); ta.value = text;
       document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
@@ -6182,7 +6182,7 @@ function _drawQRFallback(canvas) {
 function buildPortalBlobURL(lab) {
   // REMOVED: This function previously embedded credentials + full patient roster
   // directly in a downloadable file — a privacy and security violation.
-  // Lab technicians now log in to the ChemoCure Patient App directly
+  // Lab technicians now log in to the OncoConnect Patient App directly
   // using credentials shared securely by the doctor.
   flash("⚠ Standalone portal files are disabled. Share credentials via the 'Share Access' panel instead.");
   return null;
@@ -6272,7 +6272,7 @@ function openShareLink(labId) {
   linkInput.value = portalUrl;
 
   const instructions =
-    'ChemoCure Lab Portal – ' + lab.name + '\n' +
+    'OncoConnect Lab Portal – ' + lab.name + '\n' +
     'Portal: ' + portalUrl + '\n' +
     'Username: ' + lab.username + '\n' +
     'Dr. ' + currentDoc.name + '\n\n' +
@@ -6324,7 +6324,7 @@ function printLabQRCard(lab, portalUrl, sourceCanvas) {
 </style></head><body>
 <div class="card">
   <div class="logo">🔬</div>
-  <h1>ChemoCure Lab Portal</h1>
+  <h1>OncoConnect Lab Portal</h1>
   <div class="lab">${lab.name}</div>
   ${qrDataURL ? `<img src="${qrDataURL}" class="qr" alt="QR Code">` : '<div class="qr" style="background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#999;border-radius:6px;">QR Code</div>'}
   <div class="steps">
@@ -7168,7 +7168,7 @@ function openLabWindow(lab) {
     // Login screen
     '<div id="s-login" class="sec active"><div class="card">',
     '<h1>🔬 Lab Portal</h1>',
-    '<div class="sub">' + lab.name + ' · ChemoCure · Submit patient lab reports securely</div>',
+    '<div class="sub">' + lab.name + ' · OncoConnect · Submit patient lab reports securely</div>',
     '<div class="msg err" id="le"></div>',
     '<label>Username</label><input id="lu" autocomplete="username" placeholder="Your lab username">',
     '<label>Password</label><input type="password" id="lp" autocomplete="current-password" placeholder="Your password">',
@@ -7240,7 +7240,7 @@ function openLabWindow(lab) {
 <div id="pwa-install-banner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:99999;background:#1591DC;color:#fff;padding:14px 20px;border-radius:14px;box-shadow:0 8px 30px rgba(44,94,173,0.4);display:none;align-items:center;gap:14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;max-width:90vw;">
   <div style="font-size:24px;">💻</div>
   <div style="flex:1;">
-    <div style="font-weight:700;">Install ChemoCure Pro</div>
+    <div style="font-weight:700;">Install OncoConnect Pro</div>
     <div style="font-size:12px;opacity:0.85;">Add to your desktop for quick access &amp; offline use</div>
   </div>
   <button id="pwa-install-btn" style="background:#fff;color:#1591DC;border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-family:inherit;font-size:13px;cursor:pointer;">Install</button>
@@ -7541,7 +7541,7 @@ function renderImpactTab(){
     <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--text-dim);margin-top:4px;"><span>${since}</span><span>today</span></div>
   </div>
   <div style="font-size:11px;color:var(--text-dim);margin-top:10px;line-height:1.6;">
-    These are the engagement / adherence / responsiveness metrics from the ChemoCure evaluation matrix, computed from this account's records only.
+    These are the engagement / adherence / responsiveness metrics from the OncoConnect evaluation matrix, computed from this account's records only.
     Diary completion assumes one log per patient per day is the target; alert review rate counts alerts you opened.
   </div>`;
 }
@@ -7794,7 +7794,7 @@ window.invPrint=function(mrn,id){
   w.document.write(`<html><head><title>Invoice #${inv.id.slice(-6).toUpperCase()}</title></head>
   <body style="font-family:system-ui,sans-serif;color:#1a2540;max-width:640px;margin:32px auto;padding:0 20px;">
     <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #1a56db;padding-bottom:14px;">
-      <div><div style="font-size:22px;font-weight:800;color:#1a56db;">ChemoCure Clinic</div>
+      <div><div style="font-size:22px;font-weight:800;color:#1a56db;">OncoConnect Clinic</div>
         <div style="font-size:12px;color:#667;">${esc2(currentDoc?.name||'')} · ${esc2(currentDoc?.spec||'')}</div></div>
       <div style="text-align:right;"><div style="font-size:16px;font-weight:800;">INVOICE</div>
         <div style="font-family:monospace;font-size:12px;">#${inv.id.slice(-6).toUpperCase()} · ${inv.date}</div></div>
@@ -7810,7 +7810,7 @@ window.invPrint=function(mrn,id){
         <td style="text-align:right;padding:10px 8px;font-weight:800;font-size:15px;">${money(inv.total)}</td></tr>
     </table>
     <div style="margin-top:14px;font-size:12px;">Status: <b style="color:${inv.status==='Paid'?'#0e9f6e':'#c26a1b'};">${inv.status}</b></div>
-    <div style="margin-top:40px;font-size:11px;color:#889;">Generated by ChemoCure · This is a computer-generated invoice.</div>
+    <div style="margin-top:40px;font-size:11px;color:#889;">Generated by OncoConnect · This is a computer-generated invoice.</div>
     <script>window.print();<\/script></body></html>`);
   w.document.close();
 };
@@ -7914,7 +7914,7 @@ window.repCSV=function(){
   const rows=[['Invoice','Date','Patient','Items','Total','Status']];
   allInvoices().filter(i=>String(i.date).slice(0,7)===month).forEach(i=>
     rows.push([i.id,i.date,(LS.get('pat_'+i.mrn)||{}).name||i.mrn,(i.items||[]).map(x=>x.desc).join('; '),i.total,i.status]));
-  downloadCSV('chemocure-billing-'+month+'.csv',rows);
+  downloadCSV('oncoconnect-billing-'+month+'.csv',rows);
 };
 
 // Build the nav entry once the doctor is logged in (initApp runs then).

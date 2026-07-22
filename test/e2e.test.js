@@ -12,7 +12,7 @@ import { mkdtempSync, rmSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-const dir = mkdtempSync(join(tmpdir(), 'chemocure-test-'));
+const dir = mkdtempSync(join(tmpdir(), 'oncoconnect-test-'));
 process.env.DB_PATH = join(dir, 'test.db');
 process.env.PORT = '0'; // pick a free port
 process.env.NODE_ENV = 'test';

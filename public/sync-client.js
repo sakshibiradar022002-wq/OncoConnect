@@ -1,4 +1,4 @@
-// ChemoCure sync client — mirrors the cc_* localStorage keys to the server.
+// OncoConnect sync client — mirrors the cc_* localStorage keys to the server.
 //
 // The apps read/write localStorage synchronously; this layer makes that data
 // durable and cross-device without touching the app code:

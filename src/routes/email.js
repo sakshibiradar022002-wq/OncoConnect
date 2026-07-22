@@ -61,10 +61,10 @@ emailRouter.post('/otp', otpLimiter, validate(otpSchema), asyncHandler(async (re
   }
   await sendMail({
     to: email,
-    subject: `${code} is your ChemoCure verification code`,
-    text: `Hello${name ? ' ' + name : ''},\n\nYour ChemoCure verification code is: ${code}\n\nIt expires in 10 minutes. If you didn't request this, ignore this email.`,
+    subject: `${code} is your OncoConnect verification code`,
+    text: `Hello${name ? ' ' + name : ''},\n\nYour OncoConnect verification code is: ${code}\n\nIt expires in 10 minutes. If you didn't request this, ignore this email.`,
     html: `<div style="font-family:system-ui,sans-serif;max-width:420px;margin:0 auto;padding:24px;">
-      <h2 style="color:#2C5EAD;margin:0 0 6px;">ChemoCure</h2>
+      <h2 style="color:#2C5EAD;margin:0 0 6px;">OncoConnect</h2>
       <p>Hello${name ? ' ' + name : ''},</p>
       <p>Your verification code is:</p>
       <div style="font-size:32px;font-weight:800;letter-spacing:6px;background:#F1F8FD;border:1px solid #C4E2F5;border-radius:10px;padding:14px;text-align:center;">${code}</div>

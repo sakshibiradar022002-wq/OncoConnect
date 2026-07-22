@@ -11,7 +11,7 @@
 #   TURSO_AUTH_TOKEN    — from `turso db tokens create <name>` or the dashboard
 services:
   - type: web
-    name: chemocure-server
+    name: oncoconnect-server
     runtime: node
     plan: free
     buildCommand: npm install
