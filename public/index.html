@@ -2487,7 +2487,7 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
     </div>
     <div id="r-med-form" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px;">
       <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
-        <div class="fg" style="margin:0 0 8px;"><label>Drug Name (generic)</label><input id="r-med-name" placeholder="e.g. Temozolomide"></div>
+        <div class="fg" style="margin:0 0 8px;"><label>Drug Name (generic)</label><input id="r-med-name" placeholder="e.g. Temozolomide" oninput="toggleCarboCalc()"></div>
         <div class="fg" style="margin:0 0 8px;"><label>Dose</label><input id="r-med-dose" placeholder="150 mg/m²"></div>
         <div class="fg" style="margin:0 0 8px;"><label>Route</label>
           <select id="r-med-route"><option>PO</option><option>IV</option><option>SC</option><option>IM</option><option>IT</option><option>Topical</option></select>
@@ -2500,6 +2500,18 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
         <div class="fg" style="margin:0 0 8px;"><label>Indication</label><input id="r-med-indication" placeholder="e.g. Seizure prophylaxis"></div>
         <div class="fg" style="margin:0 0 8px;"><label>Status</label>
           <select id="r-med-status"><option>Active</option><option>On Hold</option><option>Discontinued</option></select>
+        </div>
+      </div>
+      <div id="r-carbo-calc" style="display:none;background:var(--blue-pale);border:1px solid rgba(44,94,173,0.25);border-radius:8px;padding:12px 14px;margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--blue);margin-bottom:8px;">🧮 Carboplatin AUC Calculator (Calvert)</div>
+        <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:10px;">Dose (mg) = Target AUC × (GFR + 25). GFR is capped at 125 mL/min per FDA guidance. eGFR is normalised to 1.73 m² — verify against a measured GFR where available.</div>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+          <div class="fg" style="margin:0;flex:0 0 110px;"><label>Target AUC</label>
+            <select id="r-carbo-auc" onchange="calcCarboDose()">${[2,3,4,5,6,7].map(a=>'<option'+(a===5?' selected':'')+'>'+a+'</option>').join('')}</select>
+          </div>
+          <div class="fg" style="margin:0;flex:0 0 130px;"><label>GFR (mL/min)</label><input id="r-carbo-gfr" type="number" step="1" min="0" oninput="calcCarboDose()" placeholder="from eGFR"></div>
+          <div style="flex:1;font-size:13px;padding-bottom:8px;">Dose: <strong id="r-carbo-result" style="font-family:var(--mono);">—</strong></div>
+          <button class="btn btn-primary btn-sm" style="margin-bottom:4px;" onclick="useCarboDose()">Use this dose</button>
         </div>
       </div>
       <div style="display:flex;gap:6px;"><button class="btn btn-ghost btn-sm" onclick="hideMedForm()">Cancel</button><button class="btn btn-primary btn-sm" onclick="saveMed()">Save</button></div>
@@ -4713,8 +4725,127 @@ function importReport() {
   flash(`✅ ${parsedReportRows.length || 'All'} results imported successfully!`);
 }
 
+// ══════════════════════════════════════════════
+// CHEMO SAFETY GUARDRAILS
+// Reference maxima for common regimens (verify against local protocol).
+// Warnings gate saveMed(): saving anyway requires a reason, written to
+// the tamper-evident audit trail as a safety override.
+// ══════════════════════════════════════════════
+const CHEMO_SAFETY = {
+  'temozolomide': { maxPerM2:200, note:'75 mg/m² daily concurrent with RT; 150–200 mg/m² days 1–5 q28d adjuvant.' },
+  'lomustine':    { maxPerM2:130, note:'Single dose every 6 weeks; reduce after prior chemotherapy.' },
+  'ccnu':         { maxPerM2:130, note:'Single dose every 6 weeks (lomustine).' },
+  'procarbazine': { maxPerM2:60,  note:'PCV: 60 mg/m² days 8–21 of each cycle.' },
+  'vincristine':  { maxPerM2:1.4, absMaxMg:2, note:'Absolute cap 2 mg per dose regardless of BSA.' },
+  'carboplatin':  { calvert:true, note:'Dose by Calvert formula: AUC × (GFR + 25), GFR capped at 125 mL/min.' },
+  'cisplatin':    { maxPerM2:100, note:'Per cycle; requires hydration and renal function check.' },
+  'methotrexate': { maxPerM2:12000, note:'High-dose MTX requires leucovorin rescue and level monitoring.' },
+  'irinotecan':   { maxPerM2:350, note:'Every-3-weeks schedule.' },
+  'etoposide':    { maxPerM2:100, note:'IV daily ×3–5; oral dosing differs.' },
+  'bevacizumab':  { maxPerKg:15,  note:'10 mg/kg q2w or 15 mg/kg q3w.' },
+  'doxorubicin':  { maxPerM2:75,  note:'Cumulative lifetime limit 450–550 mg/m² (cardiotoxicity).' },
+  'paclitaxel':   { maxPerM2:175, note:'q3w standard; weekly schedule uses 80 mg/m².' },
+  'docetaxel':    { maxPerM2:100, note:'Every-3-weeks schedule.' },
+};
+const CYTOTOXIC_RX = /temozolomide|lomustine|ccnu|procarbazine|vincristine|carboplatin|cisplatin|methotrexate|irinotecan|etoposide|doxorubicin|paclitaxel|docetaxel|cyclophosphamide|5-?fu|fluorouracil|gemcitabine/i;
+
+function chemoSafetyEntry(name){
+  const n=String(name||'').toLowerCase();
+  for(const key in CHEMO_SAFETY){ if(n.includes(key)) return {key, ...CHEMO_SAFETY[key]}; }
+  return null;
+}
+// Parses "150 mg/m²", "150–200 mg/m2" (takes the upper end), "2 mg",
+// "15 mg/kg", "1.5 g/m²". Returns {mg, per:'m2'|'kg'|null} or null.
+function parseDoseString(dose){
+  const s=String(dose||'').toLowerCase().replace(',', '.');
+  const m=s.match(/(\d+(?:\.\d+)?)(?:\s*[–\-−]\s*(\d+(?:\.\d+)?))?\s*(m?g)\s*\/?\s*(m2|m²|kg)?/);
+  if(!m)return null;
+  let val=parseFloat(m[2]||m[1]);
+  if(m[3]==='g')val*=1000;
+  return { mg:val, per:m[4]?(m[4]==='kg'?'kg':'m2'):null };
+}
+// Live inputs first (the doctor may have just typed height/weight), then
+// the saved record.
+function getDoseContext(){
+  const p=(selectedMRN&&LS.get('pat_'+selectedMRN))||{};
+  const num=x=>{const f=parseFloat(String(x||'').replace(/[^\d.]/g,''));return isNaN(f)?0:f;};
+  const bsa=num(document.getElementById('r-bsa')?.value)||num(p.bsa);
+  const wt=num(document.getElementById('r-w')?.value)||num(document.getElementById('r-weight')?.value)||num(p.weight);
+  const gfr=num(document.getElementById('r-egfr')?.value)||num(p.egfr);
+  return {bsa,wt,gfr};
+}
+function checkMedSafety(med){
+  const warnings=[];
+  const ctx=getDoseContext();
+  const entry=chemoSafetyEntry(med.name);
+  const dose=parseDoseString(med.dose);
+
+  // 1. Per-drug dose caps
+  if(entry&&dose){
+    if(entry.maxPerM2&&dose.per==='m2'&&dose.mg>entry.maxPerM2)
+      warnings.push('Dose '+dose.mg+' mg/m² exceeds the usual maximum of '+entry.maxPerM2+' mg/m² for '+entry.key+'. '+entry.note);
+    if(entry.maxPerKg&&dose.per==='kg'&&dose.mg>entry.maxPerKg)
+      warnings.push('Dose '+dose.mg+' mg/kg exceeds the usual maximum of '+entry.maxPerKg+' mg/kg for '+entry.key+'. '+entry.note);
+    if(entry.absMaxMg){
+      const abs=dose.per==='m2'?(ctx.bsa?dose.mg*ctx.bsa:0):dose.per==='kg'?(ctx.wt?dose.mg*ctx.wt:0):dose.mg;
+      if(abs>entry.absMaxMg)
+        warnings.push('Calculated dose '+abs.toFixed(1)+' mg exceeds the absolute cap of '+entry.absMaxMg+' mg for '+entry.key+'. '+entry.note);
+    }
+    if(entry.maxPerM2&&dose.per==='m2'&&!ctx.bsa)
+      warnings.push('No BSA on record — enter height and weight (Identity tab) so per-m² doses can be verified.');
+    if(entry.calvert&&dose.per==='m2')
+      warnings.push('Carboplatin is dosed by AUC (Calvert formula), not per m². Use the AUC calculator in this form.');
+  }
+
+  // 2. Duplicate active order for the same drug
+  const dup=(rMeds||[]).find(m2=>m2.status!=='Discontinued'&&m2.name&&med.name&&m2.name.trim().toLowerCase()===med.name.trim().toLowerCase());
+  if(dup)warnings.push('Duplicate order: "'+dup.name+'" is already on this list ('+(dup.status||'Active')+', '+(dup.dose||'no dose recorded')+').');
+
+  // 3. Allergy on record
+  const allergy=(rAllergies||[]).find(a=>a.name&&med.name.toLowerCase().includes(String(a.name).toLowerCase()));
+  if(allergy)warnings.push('⛔ ALLERGY on record: '+allergy.name+(allergy.severity?' ('+allergy.severity+')':'')+'.');
+
+  // 4. Stale labs before cytotoxic therapy
+  if(entry||CYTOTOXIC_RX.test(med.name||'')){
+    const cutoff=Date.now()-14*24*3600*1000;
+    const recent=(rLabs||[]).some(l=>{
+      if(!/creatinine|anc|neutrophil|platelet|haemoglobin|hemoglobin|wbc|cbc|blood count/i.test(l.test||''))return false;
+      const t=Date.parse(l.date||'');return !isNaN(t)&&t>=cutoff;
+    });
+    if(!recent)warnings.push('No blood counts or creatinine within the last 14 days on this record. Order a CBC + renal panel before cytotoxic therapy.');
+  }
+  return warnings;
+}
+
+// ── Carboplatin AUC (Calvert) calculator ──
+function toggleCarboCalc(){
+  const box=document.getElementById('r-carbo-calc');if(!box)return;
+  const isCarbo=/carboplatin/i.test(document.getElementById('r-med-name')?.value||'');
+  box.style.display=isCarbo?'block':'none';
+  if(isCarbo){
+    const gfrInp=document.getElementById('r-carbo-gfr');
+    if(gfrInp&&!gfrInp.value){const g=getDoseContext().gfr;if(g)gfrInp.value=g;}
+    calcCarboDose();
+  }
+}
+function calcCarboDose(){
+  const auc=parseFloat(document.getElementById('r-carbo-auc')?.value)||0;
+  let gfr=parseFloat(document.getElementById('r-carbo-gfr')?.value)||0;
+  const out=document.getElementById('r-carbo-result');if(!out)return;
+  if(!auc||!gfr){out.textContent='—';return;}
+  const capped=Math.min(gfr,125);
+  const dose=Math.round(auc*(capped+25));
+  out.textContent=dose+' mg'+(gfr>125?' (GFR capped at 125)':'');
+  out.dataset.dose=dose;out.dataset.auc=auc;
+}
+function useCarboDose(){
+  const out=document.getElementById('r-carbo-result');
+  if(!out||!out.dataset.dose){flash('Enter a target AUC and GFR first.');return;}
+  sv('r-med-dose',out.dataset.dose+' mg (AUC '+out.dataset.auc+', Calvert)');
+}
+
 // ── MEDS ──
-function showMedForm(){const f=document.getElementById('r-med-form');if(f)f.style.display='block';}
+function showMedForm(){const f=document.getElementById('r-med-form');if(f)f.style.display='block';toggleCarboCalc();}
 function hideMedForm(){const f=document.getElementById('r-med-form');if(f)f.style.display='none';}
 function saveMed(){
   const med={
@@ -4723,7 +4854,20 @@ function saveMed(){
     start:v('r-med-start'),end:v('r-med-end'),
     indication:v('r-med-indication'),status:v('r-med-status')||'Active'
   };
-  if(!med.name)return;rMeds.push(med);renderMedList();hideMedForm();
+  if(!med.name)return;
+  const warnings=checkMedSafety(med);
+  if(warnings.length){
+    const msg='⚠ PRESCRIPTION SAFETY CHECK — '+med.name+'\n\n'
+      +warnings.map(w=>'• '+w).join('\n\n')
+      +'\n\nSave anyway? (You will be asked for an override reason, recorded in the audit trail.)';
+    if(!confirm(msg))return;
+    const reason=prompt('Override reason (required — recorded in the audit trail):');
+    if(!reason||!reason.trim()){flash('Not saved — an override reason is required.');return;}
+    try{
+      writeAuditLog('safety-override',[{field:'Prescription safety override',prev:warnings.join(' | '),next:med.name+' '+med.dose,reason:reason.trim()}],selectedMRN);
+    }catch(e){}
+  }
+  rMeds.push(med);renderMedList();hideMedForm();
   ['r-med-name','r-med-dose','r-med-start','r-med-end','r-med-indication'].forEach(id=>sv(id,''));
 }
 function delMed(idx){rMeds.splice(idx,1);renderMedList();}
@@ -5648,17 +5792,18 @@ function updateLabCredPreview() {
   if(el1) el1.textContent = u;
   if(el2) el2.textContent = 'lab####';
 }
-function addLab() {
+function genLabPassword() {
+  const pwArr = new Uint8Array(10);
+  crypto.getRandomValues(pwArr);
+  const pwChars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz0123456789';
+  return Array.from(pwArr).map(b => pwChars[b % pwChars.length]).join('');
+}
+async function addLab() {
   const name = (document.getElementById('al-name')?.value || '').trim();
   if (!name) { showMsg('al-msg','Lab name is required.'); return; }
   const labId = 'LAB-' + Date.now();
   const username = genLabUser(name);
-  // Lab password: plaintext stored because lab must enter it in patient app
-  // It does NOT protect PHI directly — it scopes which tasks a lab can see
-  const pwArr = new Uint8Array(10);
-  crypto.getRandomValues(pwArr);
-  const pwChars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz0123456789';
-  const password = Array.from(pwArr).map(b => pwChars[b % pwChars.length]).join('');
+  const password = genLabPassword();
   const lab = {
     labId, docId:currentDoc.docId, name,
     contact:(document.getElementById('al-contact')?.value||'').trim(),
@@ -5666,12 +5811,58 @@ function addLab() {
     email:(document.getElementById('al-email')?.value||'').trim(),
     address:(document.getElementById('al-address')?.value||'').trim(),
     spec:document.getElementById('al-spec')?.value||'General Pathology',
-    username, password, createdAt:Date.now(), active:true
+    // Hashed, same as patient passwords — never plaintext at rest.
+    username, password: await makePasswordHash(password), createdAt:Date.now(), active:true
   };
   LS.set('lab_' + currentDoc.docId + '_' + labId, lab);
   closeOverlay('add-lab-modal');
   renderLabsList();
-  flash('Lab "' + name + '" registered! Share the credentials from the lab card below.');
+  showLabCredsOnce(lab, password, 'registered');
+}
+// One-time credential reveal: the plaintext exists only in this modal, right
+// after generation. Once closed it cannot be shown again — only reset.
+function showLabCredsOnce(lab, password, verb) {
+  const existing = document.getElementById('lab-creds-once-modal');
+  if (existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'lab-creds-once-modal';
+  modal.className = 'overlay open';
+  modal.innerHTML = `
+    <div class="modal" style="max-width:420px;">
+      <div class="modal-title">🔬 ${esc(lab.name)} ${verb}</div>
+      <div class="modal-sub">Portal login for the lab technician (ChemoCure Patient App → Lab Technician tab)</div>
+      <div class="cred-box" style="margin-bottom:12px;">
+        <div class="cred-label">🔑 Lab Portal Credentials</div>
+        <div class="cred-row"><span class="cred-key">Username</span><span class="cred-val">${esc(lab.username)}</span></div>
+        <div class="cred-row"><span class="cred-key">Password</span><span class="cred-val" id="lco-pass">${esc(password)}</span></div>
+      </div>
+      <div style="background:rgba(217,119,6,0.08);border:1px solid rgba(217,119,6,0.25);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--orange);margin-bottom:14px;">
+        ⚠ This password is shown <strong>only once</strong> and is stored encrypted. Copy or share it now — if it's lost, use <strong>Reset Password</strong> on the lab card to issue a new one.
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost" style="flex:1;" id="lco-copy-btn">📋 Copy credentials</button>
+        <button class="btn btn-primary" style="flex:1;" onclick="document.getElementById('lab-creds-once-modal').remove()">Done</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  document.getElementById('lco-copy-btn').onclick = function() {
+    const text = 'ChemoCure Lab Portal – ' + lab.name + '\nUsername: ' + lab.username + '\nPassword: ' + password;
+    navigator.clipboard?.writeText(text).catch(() => {
+      const ta = document.createElement('textarea'); ta.value = text;
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    });
+    this.textContent = '✓ Copied';
+  };
+}
+async function resetLabPassword(labId) {
+  const lab = LS.get('lab_' + currentDoc.docId + '_' + labId);
+  if (!lab) return;
+  if (!confirm('Reset the portal password for "' + lab.name + '"?\n\nTheir current password stops working immediately. The new one is shown once.')) return;
+  const password = genLabPassword();
+  LS.set('lab_' + currentDoc.docId + '_' + labId, { ...lab, password: await makePasswordHash(password) });
+  try { writeAuditLog('security', [{field:'Lab portal password reset', prev:'(previous password)', next:'reset by clinician — lab: ' + lab.name}]); } catch(e) {}
+  renderLabsList();
+  showLabCredsOnce(lab, password, 'password reset');
 }
 function removeLab(labId) {
   if (!confirm('Remove this laboratory?')) return;
@@ -5697,11 +5888,14 @@ function renderLabsList() {
       + '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;display:inline-block;">'
       + '<div style="font-size:9.5px;font-weight:700;color:var(--cyan);text-transform:uppercase;margin-bottom:4px;">Portal Login</div>'
       + '<div style="font-size:12px;">Username: <strong style="font-family:var(--mono);">' + lab.username + '</strong></div>'
-      + '<div style="font-size:12px;">Password: <strong style="font-family:var(--mono);">' + lab.password + '</strong></div>'
+      + '<div style="font-size:12px;">Password: <strong style="font-family:var(--mono);">'
+      + (String(lab.password||'').startsWith('pbkdf2') ? '••••••••</strong> <span style="font-size:10px;color:var(--text-dim);">(shown once at creation — Reset to reissue)</span>' : esc(lab.password) + '</strong>')
+      + '</div>'
       + '</div>'
       + '</div>'
       + '<div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0;">'
       + '<button class="btn btn-cyan btn-sm" onclick="openShareLink(\'' + lab.labId + '\')">🔗 Share Access</button>'
+      + '<button class="btn btn-ghost btn-sm" onclick="resetLabPassword(\'' + lab.labId + '\')">🔁 Reset Password</button>'
       + '<button class="btn btn-ghost btn-sm" onclick="openLabDetail(\'' + lab.labId + '\')">📋 Activity</button>'
       + '<button class="btn btn-ghost btn-sm" onclick="openLabWindowForLab(\'' + lab.labId + '\')">🧪 Portal</button>'
       + '<button class="btn btn-danger btn-sm" onclick="removeLab(\'' + lab.labId + '\')">Remove</button>'
@@ -5768,9 +5962,13 @@ function openShareLink(labId) {
   const lab = LS.get('lab_' + currentDoc.docId + '_' + labId);
   if (!lab) return;
 
-  // Remove old modal if exists (so we rebuild with fresh blob URL)
   const existing = document.getElementById('share-link-modal');
   if (existing) existing.remove();
+
+  // Labs sign in to the Patient App (Lab Technician tab) with their own
+  // credentials. Nothing shared here contains a password — the password was
+  // shown once at creation; Reset Password reissues it.
+  const portalUrl = location.origin + '/patient.html';
 
   const modal = document.createElement('div');
   modal.id = 'share-link-modal';
@@ -5779,7 +5977,7 @@ function openShareLink(labId) {
     <div class="modal" style="max-width:520px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
         <div>
-          <div class="modal-title">🔬 Share Lab Portal</div>
+          <div class="modal-title">🔬 Share Lab Portal Access</div>
           <div style="font-size:11px;color:var(--text-muted);" id="slm-lab-spec"></div>
         </div>
         <button onclick="closeOverlay('share-link-modal')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:20px;">✕</button>
@@ -5791,37 +5989,31 @@ function openShareLink(labId) {
           <div style="background:#fff;padding:8px;border-radius:10px;display:inline-block;">
             <canvas id="slm-qr-canvas" width="180" height="180"></canvas>
           </div>
-          <div style="font-size:10px;color:var(--text-muted);margin-top:5px;">Scan to open portal</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:5px;">Scan to open the portal</div>
         </div>
         <div style="flex:1;">
           <div style="font-size:11px;font-weight:700;color:var(--cyan);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Lab: <span id="slm-lab-name-badge" style="text-transform:none;font-weight:600;"></span></div>
           <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px;">
-            <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;font-weight:700;">The lab portal link contains:</div>
-            <div style="font-size:13px;margin-bottom:3px;">✓ Auto-login (no password needed)</div>
-            <div style="font-size:13px;margin-bottom:3px;">✓ Patient list pre-loaded</div>
-            <div style="font-size:13px;">✓ PDF upload + text paste</div>
+            <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;font-weight:700;">Portal login</div>
+            <div style="font-size:13px;margin-bottom:3px;">Username: <strong style="font-family:var(--mono);">${esc(lab.username)}</strong></div>
+            <div style="font-size:11.5px;color:var(--text-muted);line-height:1.6;">Password: shown once when the lab was ${String(lab.password||'').startsWith('pbkdf2') ? 'registered — use <strong>Reset Password</strong> on the lab card if it was lost' : 'registered (visible on the lab card)'}.</div>
           </div>
           <div style="font-size:11.5px;color:var(--text-muted);line-height:1.7;">
-            Share the link or QR with the lab technician.<br>
-            They open it → portal loads instantly → no login needed.
+            The technician opens the portal link, picks the <strong>Lab Technician</strong> tab, and signs in. Reports they submit appear in your Lab Management panel.
           </div>
         </div>
       </div>
 
-      <!-- Shareable file -->
+      <!-- Portal link -->
       <div style="background:rgba(0,212,180,0.08);border:1px solid rgba(0,212,180,0.3);border-radius:8px;padding:12px;margin-bottom:14px;">
-        <div style="font-size:11px;font-weight:700;color:var(--cyan);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">⬇ Primary: Download & Send the Portal File</div>
+        <div style="font-size:11px;font-weight:700;color:var(--cyan);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">🔗 Portal link</div>
         <div style="display:flex;align-items:center;gap:8px;">
           <input id="slm-link-input" readonly style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:11px;outline:none;padding:7px 10px;border-radius:6px;" value="">
           <button class="btn btn-ghost btn-sm" id="slm-copy-link-btn" style="flex-shrink:0;">📋 Copy</button>
         </div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:6px;line-height:1.6;">Download the HTML file → send it to the lab via <strong style="color:var(--text);">WhatsApp / Email / USB / Google Drive</strong>. Lab opens it in any browser — works offline.</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:6px;line-height:1.6;">Send the link via <strong style="color:var(--text);">WhatsApp / Email</strong>, and share the password separately (in person or by phone) — never in the same message.</div>
       </div>
 
-      <!-- Share buttons -->
-      <div style="margin-bottom:8px;">
-        <button id="slm-dl-btn" style="width:100%;padding:12px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;border:none;background:linear-gradient(135deg,var(--cyan),#00a587);color:#07090f;margin-bottom:8px;">⬇ Download Portal File (.html)</button>
-      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
         <button class="btn btn-ghost" id="slm-wa-btn">📱 WhatsApp Instructions</button>
         <button class="btn btn-ghost" id="slm-email-btn">✉️ Email Instructions</button>
@@ -5840,83 +6032,48 @@ function openShareLink(labId) {
   document.getElementById('slm-lab-spec').textContent = lab.spec + (lab.contact ? ' · ' + lab.contact : '');
   document.getElementById('slm-lab-name-badge').textContent = lab.name;
 
-  // Generate portal HTML
-  const portal = buildPortalBlobURL(lab);
-  const fileName = 'ChemoCure_Lab_Portal_' + lab.name.replace(/[^a-zA-Z0-9]/g,'_') + '.html';
-
-  // Fill lab info
-  document.getElementById('slm-lab-spec').textContent = lab.spec + (lab.contact ? ' · ' + lab.contact : '');
-  document.getElementById('slm-lab-name-badge').textContent = lab.name;
-
-  // Draw QR — encode the lab name + credentials as text (the QR tells lab which file to open)
-  const qrText = 'ChemoCure Lab Portal\nLab: ' + lab.name + '\nFile: ' + fileName + '\nDr: ' + currentDoc.name;
+  // Draw QR — the portal URL plus the username. Never the password.
+  const qrText = portalUrl + '\nLab: ' + lab.name + '\nUsername: ' + lab.username;
   const canvas = document.getElementById('slm-qr-canvas');
   drawQRToCanvas(canvas, qrText);
 
-  // Show file name in input
   const linkInput = document.getElementById('slm-link-input');
-  linkInput.value = fileName;
+  linkInput.value = portalUrl;
 
-  // Copy file name / instructions
-  document.getElementById('slm-copy-link-btn').textContent = '📋 Copy';
-  document.getElementById('slm-copy-link-btn').onclick = function() {
-    const instructions = 'ChemoCure Lab Portal – ' + lab.name + '\nFile: ' + fileName + '\nDr. ' + currentDoc.name + '\n\nDownload the HTML file from the doctor and open it in any browser.';
-    navigator.clipboard?.writeText(instructions).catch(() => {
-      const ta = document.createElement('textarea'); ta.value = instructions;
+  const instructions =
+    'ChemoCure Lab Portal – ' + lab.name + '\n' +
+    'Portal: ' + portalUrl + '\n' +
+    'Username: ' + lab.username + '\n' +
+    'Dr. ' + currentDoc.name + '\n\n' +
+    'Steps:\n' +
+    '1. Open the portal link in any browser\n' +
+    '2. Choose the "Lab Technician" tab\n' +
+    '3. Sign in with the username above and the password Dr. ' + currentDoc.name + ' gave you separately\n' +
+    '4. Select the patient, upload PDFs or paste report text, and submit';
+
+  const copyWithConfirm = (text, confirmMsg) => {
+    navigator.clipboard?.writeText(text).catch(() => {
+      const ta = document.createElement('textarea'); ta.value = text;
       document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
     });
     const el = document.getElementById('slm-copy-confirm');
-    if (el) { el.style.display='block'; el.textContent='✓ Instructions copied!'; setTimeout(()=>el.style.display='none', 2500); }
+    if (el) { el.style.display='block'; el.textContent=confirmMsg; setTimeout(()=>el.style.display='none', 2500); }
   };
+  document.getElementById('slm-copy-link-btn').onclick = () => copyWithConfirm(portalUrl, '✓ Portal link copied!');
+  document.getElementById('slm-copy-instr-btn').onclick = () => copyWithConfirm(instructions, '✓ Instructions copied!');
 
-  // WhatsApp — share instructions + attach instructions
-  const waMsg = encodeURIComponent(
-    '🔬 *ChemoCure Lab Portal – ' + lab.name + '*\n\n' +
-    'Dr. ' + currentDoc.name + ' is sharing a lab portal with you.\n\n' +
-    '📁 *File name:* ' + fileName + '\n\n' +
-    '✅ *Steps:*\n' +
-    '1. Ask Dr. ' + currentDoc.name + ' to send you the HTML file: *' + fileName + '*\n' +
-    '2. Open the file in any browser (Chrome, Safari, Firefox)\n' +
-    '3. Select patient, upload PDF files or paste report text\n' +
-    '4. Submit — reports go directly to doctor\'s portal\n\n' +
-    '⚠ *No internet needed once you have the file*'
-  );
-  document.getElementById('slm-wa-btn').onclick = () => window.open('https://wa.me/?text=' + waMsg, '_blank');
+  document.getElementById('slm-wa-btn').onclick = () => window.open('https://wa.me/?text=' + encodeURIComponent('🔬 ' + instructions), '_blank');
 
-  // Email
-  const eSubj = encodeURIComponent('Lab Portal File – ' + lab.name + ' | Dr. ' + currentDoc.name);
-  const eBody = encodeURIComponent(
-    'Lab Portal for ' + lab.name + '\n\n' +
-    'Dr. ' + currentDoc.name + ' has attached a lab portal file.\n\n' +
-    'INSTRUCTIONS:\n' +
-    '1. Save the attached HTML file: ' + fileName + '\n' +
-    '2. Open it in any browser (Chrome, Safari, Firefox, Edge)\n' +
-    '3. Select the patient, upload PDF files or paste report text\n' +
-    '4. Submit — reports are sent directly to the doctor\n\n' +
-    'No internet connection needed once the file is saved.\n\n' +
-    'Questions? Contact Dr. ' + currentDoc.name
-  );
-  document.getElementById('slm-email-btn').onclick = () => window.open('mailto:' + (lab.email||'') + '?subject=' + eSubj + '&body=' + eBody);
-
-  // Download portal HTML file — PRIMARY action
-  document.getElementById('slm-dl-btn').onclick = function() {
-    const a = document.createElement('a');
-    const blob = new Blob([portal.html], {type: 'text/html'});
-    a.href = URL.createObjectURL(blob);
-    a.download = fileName;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-    const el = document.getElementById('slm-copy-confirm');
-    if (el) { el.style.display='block'; el.textContent='✅ Portal file downloaded! Send this file to the lab via WhatsApp or email.'; setTimeout(()=>el.style.display='none', 5000); }
-  };
+  const eSubj = encodeURIComponent('Lab Portal Access – ' + lab.name + ' | Dr. ' + currentDoc.name);
+  document.getElementById('slm-email-btn').onclick = () => window.open('mailto:' + (lab.email||'') + '?subject=' + eSubj + '&body=' + encodeURIComponent(instructions));
 
   // Print QR card
-  document.getElementById('slm-print-btn').onclick = () => printLabQRCard(lab, fileName, canvas);
+  document.getElementById('slm-print-btn').onclick = () => printLabQRCard(lab, portalUrl, canvas);
 
   openOverlay('share-link-modal');
 }
 
-function printLabQRCard(lab, fileName, sourceCanvas) {
+function printLabQRCard(lab, portalUrl, sourceCanvas) {
   const qrDataURL = sourceCanvas ? sourceCanvas.toDataURL('image/png') : '';
   const w = window.open('','_blank','width=440,height=580');
   w.document.write(`<!DOCTYPE html><html><head><title>Lab Portal Card</title>
@@ -5941,13 +6098,14 @@ function printLabQRCard(lab, fileName, sourceCanvas) {
   ${qrDataURL ? `<img src="${qrDataURL}" class="qr" alt="QR Code">` : '<div class="qr" style="background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#999;border-radius:6px;">QR Code</div>'}
   <div class="steps">
     <strong>How to use:</strong><br>
-    1. Get the portal file from the doctor:<br>
-    <span class="file">${fileName}</span><br>
-    2. Open in any browser (Chrome/Safari/Firefox)<br>
-    3. Select patient &amp; upload report / PDF<br>
-    4. Submit — reports go to doctor
+    1. Open the portal in any browser:<br>
+    <span class="file">${portalUrl}</span><br>
+    2. Choose the "Lab Technician" tab<br>
+    3. Sign in — Username: <span class="file">${lab.username}</span><br>
+    &nbsp;&nbsp;&nbsp;(password given to you separately)<br>
+    4. Select patient, upload report / PDF, submit
   </div>
-  <div class="doc">${/^dr[.\s]/i.test(currentDoc.name)?currentDoc.name:'Dr. '+currentDoc.name} · No internet needed</div>
+  <div class="doc">${/^dr[.\s]/i.test(currentDoc.name)?currentDoc.name:'Dr. '+currentDoc.name}</div>
   <button class="no-print" onclick="window.print()" style="padding:10px 20px;background:#000;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;width:100%;margin-top:14px;">🖨 Print</button>
 </div>
 </body></html>`);
@@ -5963,7 +6121,7 @@ function openLabDetail(labId) {
   const pending = (LS.get('lab_subs_' + currentDoc.docId)||[]).filter(s => s.labId === labId);
   const sc = { Normal:'#00d4b4', High:'#ff5c5c', Low:'#f0a04b', Critical:'#ff5c5c', Pending:'#6b7f99' };
   let html = '<div style="margin-bottom:14px;"><div style="font-size:11px;font-weight:700;color:var(--cyan);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Credentials</div>'
-    + '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:12px;"><div style="font-size:12.5px;margin-bottom:4px;">Username: <strong style="font-family:var(--mono);">' + lab.username + '</strong></div><div style="font-size:12.5px;">Password: <strong style="font-family:var(--mono);">' + lab.password + '</strong></div></div></div>'
+    + '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:12px;"><div style="font-size:12.5px;margin-bottom:4px;">Username: <strong style="font-family:var(--mono);">' + lab.username + '</strong></div><div style="font-size:12.5px;">Password: <strong style="font-family:var(--mono);">' + (String(lab.password||'').startsWith('pbkdf2') ? '••••••••</strong> <span style="font-size:10px;color:var(--text-dim);">(hidden — stored encrypted)</span>' : esc(lab.password) + '</strong>') + '</div></div></div>'
     + '<div><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Pending Submissions (' + pending.length + ')</div>'
     + (pending.length ? pending.map((s,i) => '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:12px;margin-bottom:8px;">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><div><strong>' + (s.patName||'Unknown') + '</strong> <span style="font-family:var(--mono);color:var(--text-muted);font-size:11px;">' + (s.mrn||'') + '</span></div>'
@@ -6568,6 +6726,8 @@ function openLabWindow(lab) {
   }
 
   const scriptContent = [
+    // LP is the STORED credential: a pbkdf2 hash for current labs (verified
+    // with WebCrypto below) or legacy plaintext for labs created pre-upgrade.
     'var D="' + docId + '",LID="' + lab.labId + '",LU="' + lab.username + '",LP="' + lab.password + '";',
     'var LS2={',
     '  get:function(k){try{return JSON.parse(localStorage.getItem("cc_"+k));}catch(e){return null;}},',
@@ -6581,10 +6741,23 @@ function openLabWindow(lab) {
     '};',
     'var selTok=null,activeTab="pdf";',
     '',
-    'function doLogin(){',
+    'async function verifyPass(p){',
+    '  if(LP.indexOf("pbkdf2")!==0)return p===LP;',
+    '  try{',
+    '    var parts=LP.split(":");',
+    '    var it=parts[0]==="pbkdf2v2"?parseInt(parts[1],10):100000;',
+    '    var salt=parts[0]==="pbkdf2v2"?parts[2]:parts[1];',
+    '    var sh=parts[0]==="pbkdf2v2"?parts[3]:parts[2];',
+    '    var enc=new TextEncoder();',
+    '    var key=await crypto.subtle.importKey("raw",enc.encode(p),"PBKDF2",false,["deriveBits"]);',
+    '    var bits=await crypto.subtle.deriveBits({name:"PBKDF2",salt:enc.encode(salt),iterations:it,hash:"SHA-256"},key,256);',
+    '    return btoa(String.fromCharCode.apply(null,Array.prototype.slice.call(new Uint8Array(bits))))===sh;',
+    '  }catch(e){return false;}',
+    '}',
+    'async function doLogin(){',
     '  var u=document.getElementById("lu").value.trim(),p=document.getElementById("lp").value;',
     '  var e=document.getElementById("le");',
-    '  if(u!==LU||p!==LP){e.textContent="Invalid credentials.";e.style.display="block";return;}',
+    '  if(u!==LU||!(await verifyPass(p))){e.textContent="Invalid credentials.";e.style.display="block";return;}',
     '  e.style.display="none";',
     '  document.getElementById("s-login").classList.remove("active");',
     '  document.getElementById("s-main").classList.add("active");',
@@ -7082,6 +7255,15 @@ function renderDayBoard(){
         }).join('')}</tr>`).join('')}
     </table></div>
   </div>
+  <div class="card" style="margin-bottom:14px;">
+    <div class="card-header"><div class="card-title">🚨 Patient Emergency Number</div></div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;line-height:1.6;">Shown in the patient app's <strong>"When to Call Your Care Team NOW"</strong> screen with a one-tap call button. Use the number that reaches your chemo nurse or on-call line fastest.</div>
+    <div style="display:flex;gap:8px;max-width:420px;">
+      <input id="clinic-emerg-phone" value="${esc2((LS.get('doc_'+currentDoc.docId)||{}).clinicPhone||'')}" placeholder="e.g. +91 98765 43210"
+        style="flex:1;padding:8px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:inherit;font-size:13px;outline:none;">
+      <button class="btn btn-primary btn-sm" onclick="saveClinicPhone()">Save</button>
+    </div>
+  </div>
   <div class="card">
     <div class="card-header"><div class="card-title">🚶 Arrivals & Queue — ${boardDate}</div></div>
     ${arrivals.length?arrivals.map((a,i)=>`
@@ -7097,6 +7279,14 @@ function renderDayBoard(){
   </div>`;
 }
 window.clinicChairs=function(n){ LS.set('clinic_cfg',{...cfg(),chairs:parseInt(n,10)||4}); renderDayBoard(); };
+window.saveClinicPhone=function(){
+  const phone=(document.getElementById('clinic-emerg-phone')?.value||'').trim();
+  const doc=LS.get('doc_'+currentDoc.docId);if(!doc)return;
+  // Stored on the doctor profile: it syncs to every patient (credentials are
+  // stripped server-side) so the triage screen can offer one-tap calling.
+  LS.set('doc_'+currentDoc.docId,{...doc,clinicPhone:phone});
+  flash(phone?'Emergency number saved — patients now see a one-tap call button.':'Emergency number cleared.');
+};
 window.chairBook=function(chair,slot){
   const pats=getMyPatients();
   if(!pats.length){flash('Add a patient first.');return;}

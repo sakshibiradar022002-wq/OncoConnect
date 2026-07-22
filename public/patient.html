@@ -289,8 +289,6 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
         onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <button class="big-btn" onclick="doLogin()" style="margin-bottom:10px;">Sign In as Patient →</button>
-    <button onclick="checkPatientAccounts()" style="width:100%;padding:11px;border-radius:14px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.6);">🔍 Check Available Patient Accounts</button>
-    <div id="patient-hint-box" style="display:none;margin-top:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:12px 14px;font-size:12px;color:rgba(255,255,255,0.8);line-height:1.8;"></div>
     <p style="text-align:center;margin-top:14px;font-size:11px;color:rgba(255,255,255,0.35);">🔒 Open ChemoCure Pro Enhanced in the same browser to sync</p>
   </div>
 
@@ -313,7 +311,6 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
         onkeydown="if(event.key==='Enter')doLabLogin()">
     </div>
     <button class="big-btn" style="background:linear-gradient(135deg,rgba(255,255,255,0.95),rgba(255,255,255,0.85));color:var(--blue2);" onclick="doLabLogin()">Sign In as Lab Technician →</button>
-    <button onclick="checkLabAccounts()" style="width:100%;margin-top:10px;padding:12px;border-radius:14px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.6);">🔍 Auto-detect Lab Credentials</button>
     <p style="text-align:center;margin-top:14px;font-size:11px;color:rgba(255,255,255,0.3);line-height:1.7;">⚠ ChemoCure Pro must be open in this same browser<br>on the same device to share data</p>
   </div>
 </div>
@@ -463,6 +460,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
     </div>
     <button class="log-btn" onclick="openLogSheet()">📋 Log Today's Symptoms</button>
     <button class="log-btn" onclick="openFactBr()" style="background:linear-gradient(135deg,#4a3aa7,#6b5bd4);margin-top:8px;">🧠 Monthly Quality-of-Life Survey (FACT-Br)</button>
+    <button class="log-btn" onclick="openTriage()" style="background:linear-gradient(135deg,#b91c1c,#dc2626);margin-top:8px;">🚨 When to Call Your Care Team NOW</button>
     <div class="recent-section" id="recent-logs"></div>
   </div>
 
@@ -801,6 +799,30 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
   </div>
 </div>
 
+<!-- TRIAGE: when to call the care team NOW -->
+<div class="sheet-overlay" id="triage-sheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" style="color:var(--red);">🚨 Call your care team NOW if… <button class="sheet-x" onclick="closeSheet('triage-sheet')">✕</button></div>
+    <div class="sheet-body">
+      <div id="triage-context" style="display:none;background:rgba(220,38,38,0.08);border:1.5px solid rgba(220,38,38,0.3);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--red);font-weight:600;margin-bottom:14px;"></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:4px 16px;margin-bottom:14px;">
+        <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:18px;">🌡</span><div style="font-size:13.5px;line-height:1.5;"><strong>Fever 38.5&nbsp;°C or higher</strong>, or shaking chills — during chemo this can mean a serious infection.</div></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:18px;">⚡</span><div style="font-size:13.5px;line-height:1.5;"><strong>A seizure</strong>, or new weakness, confusion, or trouble speaking.</div></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:18px;">🤢</span><div style="font-size:13.5px;line-height:1.5;"><strong>Vomiting that won't stop</strong>, or you can't keep fluids down for more than a day.</div></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:18px;">🩸</span><div style="font-size:13.5px;line-height:1.5;"><strong>Unusual bleeding or bruising</strong> — nosebleeds that won't stop, blood in urine or stool.</div></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:18px;">🤕</span><div style="font-size:13.5px;line-height:1.5;"><strong>A severe headache unlike your usual ones</strong>, or a sudden change in vision or balance.</div></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;"><span style="font-size:18px;">💊</span><div style="font-size:13.5px;line-height:1.5;"><strong>You missed chemo doses because of side effects</strong> — don't double up; call first.</div></div>
+      </div>
+      <a id="triage-call-btn" href="#" style="display:none;text-decoration:none;text-align:center;margin:0 0 8px;padding:16px;border-radius:14px;background:linear-gradient(135deg,#059669,#047857);color:#fff;font-family:inherit;font-size:15px;font-weight:800;box-shadow:0 4px 20px rgba(5,150,105,0.35);" onclick="logTriageCall()">📞 Call the clinic now</a>
+      <div id="triage-no-phone" style="display:none;background:var(--surface2);border:1px dashed var(--border2);border-radius:12px;padding:12px 14px;font-size:12.5px;color:var(--text-muted);margin-bottom:8px;text-align:center;">Your clinic hasn't added an emergency number yet. Use the alert button below, or your local emergency number.</div>
+      <button onclick="sendUrgentAlert()" style="width:100%;padding:15px;border-radius:14px;background:rgba(220,38,38,0.08);border:1.5px solid rgba(220,38,38,0.35);color:var(--red);font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:8px;">🚨 Send urgent alert to my doctor</button>
+      <div id="triage-emerg-contact" style="display:none;margin-bottom:8px;"></div>
+      <div style="font-size:12px;color:var(--text-muted);text-align:center;line-height:1.6;padding:4px 8px 8px;">If you can't reach anyone and feel very unwell, go to the nearest emergency department. Take your medication list with you (Profile → My Medications).</div>
+    </div>
+  </div>
+</div>
+
 <script src="/sync-client.js"></script>
 <script>
 var LS={get:function(k){try{var v=localStorage.getItem('cc_'+k);return v?JSON.parse(v):null;}catch(e){return null;}},set:function(k,v){try{localStorage.setItem('cc_'+k,JSON.stringify(v));}catch(e){}},keys:function(pre){return Object.keys(localStorage).filter(function(k){return k.startsWith('cc_'+pre);}).map(function(k){return k.slice(3);});}};
@@ -878,24 +900,9 @@ async function doLogin(){
   }
 
   var storedPass = pat.pass || pat.password || '';
-  var ok = false;
-
-  if (storedPass.startsWith('pbkdf2')) {
-    // Hashed password: "pbkdf2:<salt>:<hash>" or "pbkdf2v2:<iter>:<salt>:<hash>"
-    try {
-      var parts = storedPass.split(':');
-      var iters = parts[0] === 'pbkdf2v2' ? parseInt(parts[1], 10) : 100000;
-      var salt = parts[0] === 'pbkdf2v2' ? parts[2] : parts[1];
-      var storedHash = parts[0] === 'pbkdf2v2' ? parts[3] : parts[2];
-      var enc = new TextEncoder();
-      var key = await crypto.subtle.importKey('raw', enc.encode(pass), 'PBKDF2', false, ['deriveBits']);
-      var bits = await crypto.subtle.deriveBits({name:'PBKDF2', salt:enc.encode(salt), iterations:iters, hash:'SHA-256'}, key, 256);
-      ok = (btoa(String.fromCharCode(...new Uint8Array(bits))) === storedHash);
-    } catch(e) { ok = false; }
-  } else {
-    // Legacy plaintext password (existing accounts before security upgrade)
-    ok = (storedPass === pass || pat.passPlain === pass);
-  }
+  var ok = await verifyUiPass(pass, storedPass);
+  // Legacy records may also keep the original in passPlain.
+  if (!ok && !String(storedPass).startsWith('pbkdf2')) ok = (pat.passPlain === pass);
 
   if (!ok) {
     errEl.textContent='Incorrect password. Ask your doctor for the correct password.';
@@ -956,7 +963,36 @@ var LAB_SESSION = null;
 var labFiles = [];
 var activeTask = null; // {token, mrn, patName, desc}
 
+// ── Password helpers (shared by patient and lab login) ──
+// Verifies input against "pbkdf2:<salt>:<hash>" or "pbkdf2v2:<iter>:<salt>:<hash>",
+// with a plain comparison only for legacy records created before hashing.
+async function verifyUiPass(input, stored) {
+  stored = String(stored || '');
+  if (!stored) return false;
+  if (!stored.startsWith('pbkdf2')) return input === stored;
+  try {
+    var parts = stored.split(':');
+    var iters = parts[0] === 'pbkdf2v2' ? parseInt(parts[1], 10) : 100000;
+    var salt = parts[0] === 'pbkdf2v2' ? parts[2] : parts[1];
+    var storedHash = parts[0] === 'pbkdf2v2' ? parts[3] : parts[2];
+    var enc = new TextEncoder();
+    var key = await crypto.subtle.importKey('raw', enc.encode(input), 'PBKDF2', false, ['deriveBits']);
+    var bits = await crypto.subtle.deriveBits({name:'PBKDF2', salt:enc.encode(salt), iterations:iters, hash:'SHA-256'}, key, 256);
+    return btoa(String.fromCharCode.apply(null, Array.prototype.slice.call(new Uint8Array(bits)))) === storedHash;
+  } catch(e) { return false; }
+}
+async function makeUiPassHash(plaintext) {
+  var saltBytes = new Uint8Array(16); crypto.getRandomValues(saltBytes);
+  var salt = btoa(String.fromCharCode.apply(null, Array.prototype.slice.call(saltBytes)));
+  var enc = new TextEncoder();
+  var key = await crypto.subtle.importKey('raw', enc.encode(plaintext), 'PBKDF2', false, ['deriveBits']);
+  var bits = await crypto.subtle.deriveBits({name:'PBKDF2', salt:enc.encode(salt), iterations:100000, hash:'SHA-256'}, key, 256);
+  return 'pbkdf2:' + salt + ':' + btoa(String.fromCharCode.apply(null, Array.prototype.slice.call(new Uint8Array(bits))));
+}
+
 // ── Find all lab accounts in localStorage ──
+// Returns {key, rec} pairs so a successful legacy login can migrate the
+// record to a hashed password in place.
 function findAllLabAccounts() {
   var accounts = [];
   try {
@@ -968,7 +1004,7 @@ function findAllLabAccounts() {
       try {
         var val = JSON.parse(localStorage.getItem(rawKey));
         if (val && typeof val === 'object' && !Array.isArray(val) && val.username && val.password && val.labId) {
-          accounts.push(val);
+          accounts.push({ key: rawKey, rec: val });
         }
       } catch(e) {}
     }
@@ -1005,19 +1041,26 @@ async function doLabLogin() {
     return;
   }
 
-  var matched = null;
+  var matched = null, matchedKey = null;
   for (var j = 0; j < accounts.length; j++) {
-    if (accounts[j].username === user && accounts[j].password === pass) { matched = accounts[j]; break; }
+    if (accounts[j].rec.username === user && await verifyUiPass(pass, accounts[j].rec.password)) {
+      matched = accounts[j].rec; matchedKey = accounts[j].key; break;
+    }
   }
 
   if (!matched) {
-    // Show which usernames exist (password hidden)
-    var hint = accounts.map(function(a){ return '<strong>' + a.name + '</strong> (user: <code>' + a.username + '</code>)'; }).join('<br>');
-    errEl.textContent = 'Incorrect username or password.';
+    // Deliberately generic: never reveal which usernames exist.
+    errEl.textContent = 'Incorrect username or password. Get the exact credentials from your doctor (Lab Management → Share Access).';
     errEl.style.display = 'block';
-    dbgEl.innerHTML = '⚠ Found ' + accounts.length + ' lab account(s) but none matched:<br>' + hint + '<br><br>Get the exact credentials from Doctor Software → Lab Management → <strong>Share Access</strong>.';
-    dbgEl.style.display = 'block';
     return;
+  }
+
+  // Migrate legacy plaintext records to a hashed password on first login.
+  if (!String(matched.password).startsWith('pbkdf2')) {
+    try {
+      matched.password = await makeUiPassHash(pass);
+      localStorage.setItem(matchedKey, JSON.stringify(matched));
+    } catch(e) {}
   }
 
   // ── SUCCESS ──
@@ -1041,73 +1084,9 @@ async function doLabLogin() {
   switchLabScreen('tasks');
 }
 
-function checkPatientAccounts() {
-  var box = document.getElementById('patient-hint-box');
-  var accounts = [];
-  try {
-    for (var i = 0; i < localStorage.length; i++) {
-      var k = localStorage.key(i);
-      if (!k || !k.startsWith('cc_pat_')) continue;
-      try {
-        var val = JSON.parse(localStorage.getItem(k));
-        if (val && val.mrn && val.name && (val.pass || val.password)) {
-          accounts.push(val);
-        }
-      } catch(e) {}
-    }
-  } catch(e) {}
-
-  if (!accounts.length) {
-    box.innerHTML = '❌ <strong>No patient accounts found in this browser.</strong><br><br>'
-      + '1. Open <strong>ChemoCure Pro Enhanced</strong> (.html file) in <strong>this same browser</strong><br>'
-      + '2. Log in as a doctor<br>'
-      + '3. Click <strong>+ Add Patient</strong> on the Overview panel<br>'
-      + '4. A MRN and password will be auto-generated<br>'
-      + '5. Come back here and enter those credentials';
-  } else {
-    var rows = accounts.map(function(a) {
-      return '<div style="margin-bottom:6px;padding:6px 8px;background:rgba(255,255,255,0.08);border-radius:8px;">'
-        + '<strong>' + a.name + '</strong><br>'
-        + 'MRN: <code style="font-family:monospace;letter-spacing:0.5px;">' + a.mrn + '</code>'
-        + ' &nbsp; Pass: <code style="font-family:monospace;letter-spacing:0.5px;">' + (a.pass||a.password) + '</code>'
-        + '</div>';
-    }).join('');
-    box.innerHTML = '✅ Found <strong>' + accounts.length + '</strong> patient account(s):<br><br>' + rows
-      + '<br><small>Tap the MRN to copy, then paste it into the field above.</small>';
-    if (accounts.length === 1) {
-      document.getElementById('l-mrn').value = accounts[0].mrn;
-      document.getElementById('l-pass').value = accounts[0].pass || accounts[0].password || '';
-      box.innerHTML += '<br>✏ Credentials auto-filled above — tap Sign In.';
-    }
-  }
-  box.style.display = 'block';
-}
-
-function checkLabAccounts() {
-  var dbgEl = document.getElementById('lab-debug-box');
-  var accounts = findAllLabAccounts();
-  if (accounts.length === 0) {
-    dbgEl.innerHTML = '❌ <strong>No lab accounts found.</strong><br><br>'
-      + 'Open <strong>ChemoCure_Pro_Enhanced.html</strong> in this same browser, log in as doctor, go to <strong>Lab Management → + Add Laboratory</strong>. Then return here.';
-  } else {
-    var html = '✅ <strong>' + accounts.length + ' lab account(s) found:</strong><br><br>';
-    accounts.forEach(function(a) {
-      html += '<div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;margin-bottom:6px;">'
-        + '<div style="font-weight:700;">' + a.name + '</div>'
-        + '<div>Username: <strong style="font-family:monospace;letter-spacing:0.5px;">' + a.username + '</strong></div>'
-        + '<div>Password: <strong style="font-family:monospace;letter-spacing:0.5px;">' + a.password + '</strong></div>'
-        + '</div>';
-    });
-    // Auto-fill if only one
-    if (accounts.length === 1) {
-      document.getElementById('lab-l-user').value = accounts[0].username;
-      document.getElementById('lab-l-pass').value = accounts[0].password;
-      html += '<em>Credentials auto-filled above — tap Login.</em>';
-    }
-    dbgEl.innerHTML = html;
-  }
-  dbgEl.style.display = 'block';
-}
+// (Account-listing helpers removed: they let anyone opening this page
+// enumerate every patient MRN and lab username — and auto-fill passwords.
+// Credentials now come only from the doctor, via Share Access.)
 
 function doLabLogout() {
   if(window.CCSync) CCSync.logout();
@@ -1873,6 +1852,9 @@ function saveLog(){
   closeSheet('log-sheet');
   renderCalendar();updateLogCount();renderRecentLogs();
   toast('Health log saved!');
+  // A red-flag log doesn't just alert the doctor — it tells the patient
+  // what to do right now.
+  if(flags.length)openTriage(flags.join(', '));
 }
 
 function showLogDetail(log){
@@ -1962,6 +1944,53 @@ function sendMsg(){
 
 function openSheet(id){document.getElementById(id).classList.add('open');}
 function closeSheet(id){document.getElementById(id).classList.remove('open');}
+
+// ── TRIAGE: explicit red-flag guidance + one-tap call ──
+function openTriage(contextText){
+  var ctx=document.getElementById('triage-context');
+  if(contextText){ctx.textContent='⚠ You just logged: '+contextText+'. Please read this and act now.';ctx.style.display='block';}
+  else ctx.style.display='none';
+
+  // Clinic emergency number comes from the doctor's profile (Clinic Management).
+  var doc=PAT&&PAT.docId?LS.get('doc_'+PAT.docId):null;
+  var phone=doc&&doc.clinicPhone?String(doc.clinicPhone).trim():'';
+  var callBtn=document.getElementById('triage-call-btn');
+  var noPhone=document.getElementById('triage-no-phone');
+  if(phone){
+    callBtn.href='tel:'+phone.replace(/[^\d+]/g,'');
+    callBtn.textContent='📞 Call the clinic now — '+phone;
+    callBtn.style.display='block';noPhone.style.display='none';
+  }else{
+    callBtn.style.display='none';noPhone.style.display='block';
+  }
+
+  // Personal emergency contact from the patient record, if the doctor added one.
+  var p=(PAT&&LS.get('pat_'+PAT.mrn))||PAT||{};
+  var ec=document.getElementById('triage-emerg-contact');
+  if(p.emergencyPhone){
+    ec.innerHTML='<a href="tel:'+String(p.emergencyPhone).replace(/[^\d+]/g,'')+'" style="display:block;text-decoration:none;text-align:center;padding:13px;border-radius:12px;background:var(--blue-pale);border:1.5px solid rgba(62,95,68,0.25);color:var(--blue);font-weight:700;font-size:13.5px;">👤 Call '+escT(p.emergencyName||'my emergency contact')+(p.emergencyRel?' ('+escT(p.emergencyRel)+')':'')+'</a>';
+    ec.style.display='block';
+  }else ec.style.display='none';
+  openSheet('triage-sheet');
+}
+function escT(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+// Both actions leave a trace on the doctor's dashboard, so the care team
+// knows the patient tried to reach them even if the call doesn't connect.
+function pushTriageAlert(text,urgent){
+  if(!PAT||!PAT.docId)return;
+  var ak='alerts_'+PAT.docId+'_'+PAT.mrn;
+  var alerts=LS.get(ak)||[];
+  alerts.unshift({id:Date.now()+''+Math.floor(Math.random()*1e4),ts:new Date().toISOString(),type:'triage',mrn:PAT.mrn,name:PAT.name,text:text,urgent:!!urgent,read:false});
+  LS.set(ak,alerts.slice(0,50));
+}
+function logTriageCall(){
+  pushTriageAlert('Patient used the emergency call button (When to Call NOW screen).',true);
+}
+function sendUrgentAlert(){
+  if(!PAT)return;
+  pushTriageAlert('🚨 URGENT: patient pressed "Alert my doctor" on the When to Call NOW screen. Contact them immediately.',true);
+  toast('Urgent alert sent to your doctor.');
+}
 
 document.querySelectorAll('.sheet-overlay').forEach(function(s){
   s.addEventListener('click',function(e){if(e.target===s)closeSheet(s.id);});

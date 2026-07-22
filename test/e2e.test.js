@@ -180,6 +180,22 @@ test('patient scope: a prefix MRN cannot reach a longer MRN\'s keys (substring-c
   assert.equal(w.data.count, 0, 'prefix MRN cannot write the longer MRN keys');
 });
 
+test('patient scope: triage alerts sync for own MRN only', async () => {
+  const pt = jar();
+  await call(pt, 'POST', '/api/sync/patient-login', { mrn: 'KV-42', password: 'kv-plain-pw' });
+  const w = await call(pt, 'PUT', '/api/sync/patient', { changes: {
+    'alerts_DOC-9_KV-42': [{ type: 'triage', urgent: true, text: 'Red flag: fever 39.1°C' }], // own → allowed
+    'alerts_DOC-9_KV-99': [{ type: 'triage', urgent: true, text: 'spoofed' }],               // foreign → rejected
+  }});
+  assert.equal(w.data.count, 1, 'only the own alerts key should be written');
+  const dpull = await call(doctor, 'GET', '/api/sync');
+  assert.ok(dpull.data.keys['alerts_DOC-9_KV-42'], 'doctor receives the patient red-flag alert');
+  assert.ok(!dpull.data.keys['alerts_DOC-9_KV-99'], 'spoofed alert for another patient not written');
+  // and the patient can pull their own alert history back
+  const ppull = await call(pt, 'GET', '/api/sync/patient');
+  assert.ok(ppull.data.keys['alerts_DOC-9_KV-42'], 'patient sees own alerts');
+});
+
 test('cross-origin writes are rejected (CSRF guard)', async () => {
   const res = await fetch(base + '/api/sync', {
     method: 'PUT',

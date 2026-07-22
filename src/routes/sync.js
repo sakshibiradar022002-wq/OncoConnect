@@ -135,6 +135,9 @@ function patientOwnsKey(k, mrn) {
   const exact = ['pat_', 'msgs_', 'appts_', 'lab_subs_', 'pat_tokens_',
     'reminders_', 'invoices_', 'checkin_', 'travel_'].map(pre => pre + mrn);
   if (exact.includes(k)) return true;
+  // Red-flag / triage alerts: alerts_<docId>_<mrn>. Without this the
+  // patient app's urgent alerts never leave the patient's own browser.
+  if (k.startsWith('alerts_') && k.endsWith('_' + mrn)) return true;
   // date/suffix-scoped families: log_<mrn>_<date>, factbr_<mrn>...
   return k.startsWith('log_' + mrn + '_') || k.startsWith('factbr_' + mrn);
 }
