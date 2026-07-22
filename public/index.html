@@ -513,9 +513,9 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
 
         <!-- Dev fallback: show code if EmailJS not configured -->
         <div id="rg-otp-fallback" style="display:none;background:rgba(217,119,6,0.08);border:1.5px solid rgba(217,119,6,0.2);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12.5px;color:var(--orange);">
-          ⚠ <strong>Dev mode</strong> — EmailJS not configured. Your code is:
+          ⚠ <strong>Dev mode</strong> — email sending is not configured. Your code is:
           <span id="rg-otp-shown" style="font-family:var(--mono);font-size:16px;font-weight:800;letter-spacing:4px;display:block;margin-top:4px;color:var(--text);"></span>
-          <div style="font-size:11px;margin-top:4px;">Configure EmailJS in Data &amp; Backup → Email Setup to send real codes.</div>
+          <div style="font-size:11px;margin-top:4px;">To send real codes: set GMAIL_USER + GMAIL_APP_PASSWORD on the server (or configure EmailJS in Data &amp; Backup → Email Setup).</div>
         </div>
 
         <button class="btn btn-primary btn-full" onclick="verifyAndCreate()">✓ Verify &amp; Create Account</button>
@@ -757,13 +757,14 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
         <div class="card" style="margin-bottom:20px;">
           <div class="card-header">
             <div>
-              <div class="card-title">✉ Email Setup (EmailJS)</div>
+              <div class="card-title">✉ Email Setup</div>
               <div style="font-size:11.5px;color:var(--text-muted);">Configure to send appointment reminders and patient credential emails</div>
             </div>
             <span id="emailjs-status-badge" style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;background:rgba(217,119,6,0.1);color:var(--orange);">Not configured</span>
           </div>
           <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:14px;line-height:1.7;">
-            Free setup at <strong><a href="https://emailjs.com" target="_blank" style="color:var(--blue);">emailjs.com</a></strong> → Add Gmail service → Create two templates (verify_code &amp; appt_reminder) → paste keys below.
+            <span id="server-email-status" style="display:block;margin-bottom:10px;line-height:1.6;">⏳ Checking server email…</span>
+            <strong>Fallback (browser-side):</strong> free setup at <strong><a href="https://emailjs.com" target="_blank" style="color:var(--blue);">emailjs.com</a></strong> → Add Gmail service → Create two templates (verify_code &amp; appt_reminder) → paste keys below.
           </div>
           <div class="g2" style="margin-bottom:10px;">
             <div class="fg" style="margin:0 0 10px;">
@@ -1289,28 +1290,42 @@ async function startEmailVerification() {
     return;
   }
 
-  // Generate 6-digit OTP
-  const arr = new Uint32Array(1);
-  crypto.getRandomValues(arr);
-  _pendingOTP = String(100000 + (arr[0] % 900000));
-  _otpExpiry  = Date.now() + 10 * 60 * 1000; // 10 minutes
-  _otpEmail   = email;
-
-  // Try to send via EmailJS
+  _otpEmail  = email;
+  _otpExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
   let emailSent = false;
-  const ejsCfg = LS.get('doc_email_config');
-  if (ejsCfg && ejsCfg.publicKey && ejsCfg.serviceId && ejsCfg.templateIdVerify) {
-    try {
-      await _ensureEmailJS(ejsCfg.publicKey);
-      await emailjs.send(ejsCfg.serviceId, ejsCfg.templateIdVerify, {
-        to_email: email,
-        to_name:  name,
-        code:     _pendingOTP,
-        expires:  '10 minutes',
-      });
-      emailSent = true;
-    } catch(e) {
-      console.warn('EmailJS send failed:', e);
+
+  // 1st choice: the server sends the code via its Gmail/SMTP account and
+  // keeps the code server-side ('@SERVER' marker — the browser never sees it).
+  try {
+    const r = await fetch('/api/email/otp', {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, name }),
+    });
+    const d = await r.json();
+    if (r.ok && d.sent) { _pendingOTP = '@SERVER'; emailSent = true; }
+    else if (r.ok && d.devCode) { _pendingOTP = d.devCode; } // server up, mail unconfigured
+  } catch (e) { console.warn('server OTP unavailable:', e); }
+
+  // 2nd choice: EmailJS from the browser (needs keys in Email Setup).
+  if (!_pendingOTP) {
+    const arr = new Uint32Array(1);
+    crypto.getRandomValues(arr);
+    _pendingOTP = String(100000 + (arr[0] % 900000));
+    const ejsCfg = LS.get('doc_email_config');
+    if (ejsCfg && ejsCfg.publicKey && ejsCfg.serviceId && ejsCfg.templateIdVerify) {
+      try {
+        await _ensureEmailJS(ejsCfg.publicKey);
+        await emailjs.send(ejsCfg.serviceId, ejsCfg.templateIdVerify, {
+          to_email: email,
+          to_name:  name,
+          code:     _pendingOTP,
+          expires:  '10 minutes',
+        });
+        emailSent = true;
+      } catch(e) {
+        console.warn('EmailJS send failed:', e);
+      }
     }
   }
 
@@ -1390,13 +1405,30 @@ async function verifyAndCreate() {
     if (statusEl) { statusEl.textContent = '⚠ Code expired (10 min). Request a new one.'; statusEl.style.color='var(--orange)'; }
     return;
   }
-  if (entered !== _pendingOTP) {
-    if (statusEl) { statusEl.textContent = '✗ Incorrect code. Try again.'; statusEl.style.color='var(--red)'; }
+  const markWrong = (msg) => {
+    if (statusEl) { statusEl.textContent = msg || '✗ Incorrect code. Try again.'; statusEl.style.color='var(--red)'; }
     document.getElementById('rg-otp').style.borderColor = 'var(--red)';
     setTimeout(() => {
       const inp = document.getElementById('rg-otp');
       if (inp) inp.style.borderColor = '';
     }, 1200);
+  };
+  if (_pendingOTP === '@SERVER') {
+    // Server-issued code: the server holds it, so the server checks it.
+    try {
+      const r = await fetch('/api/email/otp/verify', {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: _otpEmail, code: entered }),
+      });
+      const d = await r.json();
+      if (!r.ok || !d.ok) { markWrong(d.error ? '✗ ' + d.error : undefined); return; }
+    } catch (e) {
+      markWrong('⚠ Could not reach the server to verify. Check your connection and try again.');
+      return;
+    }
+  } else if (entered !== _pendingOTP) {
+    markWrong();
     return;
   }
 
@@ -3293,12 +3325,38 @@ function saveEmailJSConfig() {
 }
 
 function testEmailJS() {
-  const msgEl = document.getElementById('emailjs-config-msg');
-  if (!EMAILJS_CONFIG.publicKey) { if (msgEl) { msgEl.textContent = '⚠ Save your EmailJS config first.'; msgEl.style.color = 'var(--orange)'; msgEl.style.display = 'block'; } return; }
+  // Tests whichever channel is live: server Gmail/SMTP first, EmailJS fallback
+  // (sendAppointmentReminder already implements that order).
   const testAppt = { date: new Date().toLocaleDateString(), time: '10:00 AM', type: 'Test Appointment', notes: 'This is a test email from ChemoCure.' };
-  const testEmail = prompt('Enter your email address to receive a test reminder:');
+  const testEmail = prompt('Enter your email address to receive a test email:');
   if (!testEmail) return;
   sendAppointmentReminder(testAppt, testEmail, 'Test Patient');
+}
+
+// ── Server email status (shown in the Email Setup card) ──
+async function refreshServerEmailStatus() {
+  const el = document.getElementById('server-email-status');
+  if (!el) return;
+  el.innerHTML = '⏳ Checking server email…';
+  try {
+    const r = await fetch('/api/email/status?verify=1', { credentials: 'include' });
+    const d = await r.json();
+    if (!d.configured) {
+      el.innerHTML = '⚠ <strong>Server email not configured.</strong> Set <code>GMAIL_USER</code> + <code>GMAIL_APP_PASSWORD</code> in the server environment '
+        + '(Google Account → Security → 2-Step Verification → App passwords), then restart. EmailJS below works as a browser-side fallback.';
+      el.style.color = 'var(--orange)';
+    } else if (d.ok) {
+      el.innerHTML = '✅ <strong>Server email is live</strong> — verification codes and reminders are sent from the server\'s Gmail/SMTP account. EmailJS below is only a fallback.';
+      el.style.color = 'var(--green)';
+    } else {
+      el.innerHTML = '❌ <strong>Server email configured but failing:</strong> ' + esc(d.error || 'SMTP verify failed')
+        + '. For Gmail: use an <strong>App Password</strong> (not your normal password) and check the address in GMAIL_USER.';
+      el.style.color = 'var(--red)';
+    }
+  } catch (e) {
+    el.innerHTML = '⚠ Could not reach the server to check email status.';
+    el.style.color = 'var(--orange)';
+  }
 }
 
 // ── Drug Interaction Checker — ILLUSTRATIVE ONLY ──
@@ -5875,16 +5933,38 @@ function initEmailJS(config) {
   }
 }
 
-function sendAppointmentReminder(appt, patEmail, patName) {
+async function sendAppointmentReminder(appt, patEmail, patName) {
+  const docName = currentDoc?.name || 'Your doctor';
+  // 1st choice: server Gmail/SMTP.
+  try {
+    const r = await fetch('/api/email/send', {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: patEmail,
+        subject: 'Appointment reminder — ' + (appt.type || 'Appointment') + ' on ' + appt.date,
+        text: 'Hello ' + patName + ',\n\n'
+          + 'This is a reminder for your upcoming appointment:\n\n'
+          + '  Type:  ' + (appt.type || 'Appointment') + '\n'
+          + '  Date:  ' + appt.date + (appt.time ? '\n  Time:  ' + appt.time : '') + '\n'
+          + (appt.notes ? '  Notes: ' + appt.notes + '\n' : '')
+          + '\n' + docName + '\nSent via ChemoCure',
+      }),
+    });
+    if (r.ok) { flash('✅ Reminder email sent to ' + patEmail); return; }
+    if (r.status !== 503) { const d = await r.json().catch(()=>({})); flash('Email error: ' + (d.error || r.statusText)); return; }
+    // 503 = server email unconfigured → fall through to EmailJS
+  } catch (e) { /* server unreachable → try EmailJS */ }
+
   if (!EMAILJS_CONFIG.serviceId || !EMAILJS_CONFIG.templateIdAppt) {
-    flash('EmailJS not configured. Go to Data & Backup → Email Setup to add your keys.');
+    flash('Email not configured. Set GMAIL_USER + GMAIL_APP_PASSWORD on the server, or add EmailJS keys in Data & Backup → Email Setup.');
     return;
   }
   const params = {
     to_email: patEmail, to_name: patName,
     appt_date: appt.date, appt_time: appt.time || '',
     appt_type: appt.type || 'Appointment',
-    doctor_name: currentDoc?.name || 'Your doctor',
+    doctor_name: docName,
     notes: appt.notes || ''
   };
   emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateIdAppt, params)
@@ -5899,6 +5979,7 @@ showPanel = function(name, btn) {
   if (name === 'backup') {
     setTimeout(refreshStorageInfo, 100);
     setTimeout(loadEmailJSConfig, 120);
+    setTimeout(refreshServerEmailStatus, 125);
     setTimeout(populateFHIRPatientSel, 130);
   }
   if (name === 'labs') { renderLabsList(); renderPendingLabs(); updateLabBadge(); }

@@ -17,6 +17,7 @@ import { authRouter } from './routes/auth.js';
 import { syncRouter } from './routes/sync.js';
 import { adminRouter } from './routes/admin.js';
 import { pushRouter } from './routes/push.js';
+import { emailRouter } from './routes/email.js';
 import { initPush } from './push.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -40,7 +41,9 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
       fontSrc: ["'self'", 'https://fonts.gstatic.com'],
       imgSrc: ["'self'", 'data:', 'blob:'],
-      connectSrc: ["'self'"],
+      // api.emailjs.com: the EmailJS fallback sender XHRs there — without
+      // this entry the browser silently blocks every EmailJS send.
+      connectSrc: ["'self'", 'https://api.emailjs.com'],
       manifestSrc: ["'self'"],
       workerSrc: ["'self'"],
     },
@@ -85,6 +88,7 @@ app.use('/api/auth', authLimiter, authRouter);
 app.use('/api/sync', apiLimiter, syncRouter);
 app.use('/api/admin', apiLimiter, adminRouter);
 app.use('/api/push', apiLimiter, pushRouter);
+app.use('/api/email', emailRouter); // has its own per-route limiters
 
 // ── PWA assets: correct headers for manifests & service workers ───
 // One sw.js serves both apps; it reads its own URL to pick cache + shell.

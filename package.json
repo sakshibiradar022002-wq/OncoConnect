@@ -1,7 +1,7 @@
 {
   "name": "chemocure-server",
   "version": "1.0.0",
-  "description": "ChemoCure neuro-oncology EMR \u2014 secure backend (Node + Express + SQLite)",
+  "description": "ChemoCure neuro-oncology EMR — secure backend (Node + Express + SQLite)",
   "type": "module",
   "main": "src/server.js",
   "scripts": {
@@ -23,6 +23,7 @@
     "express-rate-limit": "^7.4.0",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^9.0.3",
     "web-push": "^3.6.7",
     "zod": "^3.23.8"
   },

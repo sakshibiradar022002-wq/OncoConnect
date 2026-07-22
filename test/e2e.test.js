@@ -196,6 +196,35 @@ test('patient scope: triage alerts sync for own MRN only', async () => {
   assert.ok(ppull.data.keys['alerts_DOC-9_KV-42'], 'patient sees own alerts');
 });
 
+test('email: status reports unconfigured, OTP dev-mode round-trips, send is auth-gated', async () => {
+  // No GMAIL_/SMTP_ vars in the test env → unconfigured mode.
+  const status = await call(jar(), 'GET', '/api/email/status');
+  assert.equal(status.status, 200);
+  assert.equal(status.data.configured, false);
+
+  // OTP request returns a devCode instead of sending mail.
+  const otp = await call(jar(), 'POST', '/api/email/otp', { email: 'newdoc@test.dev', name: 'Dr New' });
+  assert.equal(otp.status, 200);
+  assert.equal(otp.data.sent, false);
+  assert.match(otp.data.devCode, /^\d{6}$/);
+
+  // Wrong code rejected, attempts counted; right code verifies and is single-use.
+  const bad = await call(jar(), 'POST', '/api/email/otp/verify', { email: 'newdoc@test.dev', code: '000000' });
+  assert.equal(bad.status, 400);
+  const good = await call(jar(), 'POST', '/api/email/otp/verify', { email: 'newdoc@test.dev', code: otp.data.devCode });
+  assert.equal(good.status, 200);
+  assert.equal(good.data.ok, true);
+  const replay = await call(jar(), 'POST', '/api/email/otp/verify', { email: 'newdoc@test.dev', code: otp.data.devCode });
+  assert.equal(replay.status, 400, 'OTP must be single-use');
+
+  // Outbound send requires authentication…
+  const anon = await call(jar(), 'POST', '/api/email/send', { to: 'x@test.dev', subject: 'hi', text: 'hi' });
+  assert.equal(anon.status, 401);
+  // …and with auth but no mail config, reports 503 (clear config message).
+  const authed = await call(doctor, 'POST', '/api/email/send', { to: 'x@test.dev', subject: 'hi', text: 'hi' });
+  assert.equal(authed.status, 503);
+});
+
 test('cross-origin writes are rejected (CSRF guard)', async () => {
   const res = await fetch(base + '/api/sync', {
     method: 'PUT',

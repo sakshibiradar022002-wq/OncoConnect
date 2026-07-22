@@ -201,3 +201,24 @@ backups — one without the other is useless to an attacker.
   while the app is open (synced across the patient's devices).
 - **Patient: education library** — diagnosis, TMZ, radiotherapy, red-flag
   symptoms, nutrition, fatigue, and caregiver guidance.
+
+## Email (Gmail)
+
+The server sends registration verification codes and appointment reminders
+itself once two env vars are set:
+
+```
+GMAIL_USER=you@gmail.com
+GMAIL_APP_PASSWORD=xxxx xxxx xxxx xxxx
+```
+
+The app password comes from Google Account → Security → 2-Step Verification →
+App passwords (normal Gmail passwords will not work). Any other SMTP provider
+works via `SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS/SMTP_FROM`.
+
+Check it from the app: Data & Backup → Email Setup shows a live status line
+(`/api/email/status?verify=1` runs a real SMTP handshake). With no email
+configured the app falls back to EmailJS (browser-side, keys in the same
+panel) and finally to dev mode, which shows the verification code on screen.
+OTP codes are generated and verified server-side, stored hashed, single-use,
+10-minute expiry, rate-limited.
