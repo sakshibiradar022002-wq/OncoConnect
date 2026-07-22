@@ -229,6 +229,16 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;z-index:9999;box-shadow:0 4px 20px rgba(15,23,42,0.3);white-space:nowrap;pointer-events:none;font-weight:500;}
 ::-webkit-scrollbar{display:none;}
 
+/* ═══ Adaptive diary: quiet symptom sections collapse ═══ */
+.log-sec.collapsed > *:not(.log-sec-hdr):not(.adapt-note){display:none;}
+.log-sec.collapsed .log-sec-hdr{opacity:0.75;}
+
+/* ═══ Accessibility: high-contrast mode ═══ */
+body.high-contrast{--text:#000000;--text-muted:#1e293b;--text-dim:#334155;--border:#64748b;--border2:#475569;--bg:#ffffff;--surface:#ffffff;--surface2:#f1f5f9;}
+body.high-contrast .bubble.in,body.high-contrast .info-card,body.high-contrast .log-card,body.high-contrast .appt-card{border-width:2px;}
+body.high-contrast .nav-btn{color:#334155;}
+body.high-contrast .nav-btn.active{color:#000;font-weight:800;}
+
 /* ═══ Accessibility: larger-text mode ═══ */
 body.big-text #app-shell,body.big-text .sheet{font-size:16px;}
 body.big-text .nav-label{font-size:12px;}
@@ -370,6 +380,17 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
     </div>
 
     <!-- Pending test requests -->
+    <div id="lab-worklist-banner"></div>
+    <details style="margin-bottom:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;">
+      <summary style="font-size:12.5px;font-weight:700;cursor:pointer;color:var(--blue);">🧪 Lab best-practice checklist</summary>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.7;margin-top:8px;">
+        ✓ <strong>Verify patient identity</strong> — match the MRN on the request to the sample before uploading.<br>
+        ✓ <strong>Enter results the same day</strong> — oncology dosing waits on your report; overdue items are flagged red above.<br>
+        ✓ <strong>Check units &amp; reference ranges</strong> — a wrong unit can trigger an unsafe dose decision.<br>
+        ✓ <strong>Flag critical values</strong> — mark abnormal results so the doctor sees them first.<br>
+        ✓ <strong>Attach the source PDF</strong> where possible, so the clinician can see the full report.
+      </div>
+    </details>
     <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);margin-bottom:10px;">📋 Assigned Test Requests</div>
     <div id="lab-tasks-list"></div>
     <div id="lab-tasks-empty" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:40px 20px;text-align:center;margin-bottom:20px;">
@@ -476,6 +497,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
     <button class="log-btn" onclick="openLogSheet()">📋 Log Today's Symptoms</button>
     <button class="log-btn" onclick="openFactBr()" style="background:linear-gradient(135deg,#4a3aa7,#6b5bd4);margin-top:8px;">🧠 Monthly Quality-of-Life Survey (FACT-Br)</button>
     <button class="log-btn" onclick="openTriage()" style="background:linear-gradient(135deg,#b91c1c,#dc2626);margin-top:8px;">🚨 When to Call Your Care Team NOW</button>
+    <div id="edu-card" style="margin:16px 20px 0;display:none;"></div>
     <div id="trend-card" style="margin:16px 20px 12px;display:none;"></div>
     <div class="recent-section" id="recent-logs"></div>
   </div>
@@ -600,9 +622,13 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
         <button class="lang-btn" data-lang="en" onclick="setLang('en')" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--border2);background:transparent;color:var(--text);font-family:inherit;font-size:14px;cursor:pointer;">English</button>
         <button class="lang-btn" data-lang="hi" onclick="setLang('hi')" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--border2);background:transparent;color:var(--text);font-family:inherit;font-size:14px;cursor:pointer;">हिंदी</button>
       </div>
-      <div class="tog-row" style="border-bottom:none;">
+      <div class="tog-row">
         <span style="font-size:13px;">🔎 Larger text / बड़े अक्षर</span>
         <label class="tog"><input type="checkbox" id="bigtext-toggle" onchange="setBigText(this.checked)"><span class="tog-track"></span></label>
+      </div>
+      <div class="tog-row" style="border-bottom:none;">
+        <span style="font-size:13px;">◐ High contrast / अधिक कंट्रास्ट</span>
+        <label class="tog"><input type="checkbox" id="contrast-toggle" onchange="setHighContrast(this.checked)"><span class="tog-track"></span></label>
       </div>
     </div>
     <!-- Data & backup card -->
@@ -1195,6 +1221,29 @@ function refreshLabTasks() {
 
   // Sort: overdue first → due soonest → then priority
   var today = new Date(); today.setHours(0,0,0,0);
+
+  // Worklist banner: how many are due today / overdue right now.
+  var overdue = 0, dueToday = 0;
+  pending.forEach(function(t){
+    if (!t.dueDate) return;
+    var diff = Math.ceil((new Date(t.dueDate+'T00:00') - today) / 86400000);
+    if (diff < 0) overdue++; else if (diff === 0) dueToday++;
+  });
+  var wl = document.getElementById('lab-worklist-banner');
+  if (wl) {
+    if (overdue || dueToday) {
+      wl.innerHTML = '<div style="background:'+(overdue?'rgba(220,38,38,0.08)':'rgba(217,119,6,0.08)')+';border:1.5px solid '+(overdue?'rgba(220,38,38,0.3)':'rgba(217,119,6,0.3)')+';border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:13px;font-weight:700;color:'+(overdue?'var(--red)':'var(--orange)')+';">'
+        + (overdue ? '🔴 '+overdue+' report'+(overdue>1?'s':'')+' overdue' : '')
+        + (overdue && dueToday ? ' · ' : '')
+        + (dueToday ? '🟠 '+dueToday+' due today' : '')
+        + '<div style="font-weight:500;font-size:11.5px;color:var(--text-muted);margin-top:3px;">Clinical dosing may be waiting — please prioritise these.</div></div>';
+    } else if (pending.length) {
+      wl.innerHTML = '<div style="background:rgba(5,150,105,0.06);border:1px solid rgba(5,150,105,0.2);border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:var(--green);font-weight:600;">✅ Nothing overdue — '+pending.length+' request'+(pending.length>1?'s':'')+' scheduled ahead.</div>';
+    } else {
+      wl.innerHTML = '';
+    }
+  }
+
   var prioOrd = { STAT: 0, Urgent: 1, Routine: 2 };
   pending.sort(function(a,b) {
     var da = a.dueDate ? new Date(a.dueDate + 'T00:00') : new Date('9999-12-31');
@@ -1476,7 +1525,7 @@ function initApp(){
   }
   renderCalendar();
   updateLogCount();
-  renderRecentLogs();renderTrends();
+  renderRecentLogs();renderTrends();try{renderEduCard();}catch(e){}
   renderTodayMeds();
   goScreen('calendar');
 }
@@ -1891,6 +1940,7 @@ function openLogSheet(){
   document.getElementById('extra-meds-list').innerHTML='';
   document.getElementById('log-date-lbl').textContent='Date: '+todayStr();
   openSheet('log-sheet');
+  try{adaptLogSheet();}catch(e){}
 }
 
 function updSlider(key,val){
@@ -2304,7 +2354,7 @@ var HI={
   'Difficulty falling asleep':'नींद आने में दिक्कत','Slept more than 10 hrs':'10 घंटे से ज़्यादा सोए',
   'Nightmares/disturbing dreams':'बुरे सपने','Could not take medications':'दवा नहीं ले पाए',
   'Upcoming':'आने वाली','Past':'पिछली','Personal Info':'व्यक्तिगत जानकारी','My Medications':'मेरी दवाइयाँ',
-  'Data & Backup':'डेटा और बैकअप','Sign Out':'साइन आउट','Language / भाषा':'Language / भाषा',
+  'Data & Backup':'डेटा और बैकअप','Sign Out':'साइन आउट','Language / भाषा':'Language / भाषा','Privacy':'प्राइवेसी',
   'Treatment Phase':'उपचार चरण','Doctor':'डॉक्टर','Blood Group':'ब्लड ग्रुप','Gender':'लिंग','Age':'उम्र'
 };
 function getLang(){try{return localStorage.getItem('chemocure-lang')||'en';}catch(e){return 'en';}}
@@ -2340,6 +2390,88 @@ function setBigText(on){
   document.body.classList.toggle('big-text',!!on);
   var t=document.getElementById('bigtext-toggle');if(t)t.checked=!!on;
 }
+function setHighContrast(on){
+  try{localStorage.setItem('chemocure-contrast',on?'1':'');}catch(e){}
+  document.body.classList.toggle('high-contrast',!!on);
+  var t=document.getElementById('contrast-toggle');if(t)t.checked=!!on;
+}
+
+// ── ADAPTIVE DIARY ──
+// Symptoms quiet in the last 5 logs collapse to one line; a spike in the
+// previous entry adds a focused follow-up hint. Less form for stable
+// patients, more attention where something changed.
+var ADAPT_MAP={'s-cog':'cognitive','s-sz':'seizure','s-vis':'vision','s-ha':'headache','s-fatigue':'fatigue','s-nausea':'nausea'};
+function adaptLogSheet(){
+  var logs=getMyLogs().sort(function(a,b){return a.date.localeCompare(b.date);}).slice(-5);
+  var hi=getLang()==='hi';
+  Object.keys(ADAPT_MAP).forEach(function(id){
+    var slider=document.getElementById(id);if(!slider)return;
+    var sec=slider.closest('.log-sec');if(!sec)return;
+    sec.classList.remove('collapsed');
+    var old=sec.querySelector('.adapt-note');if(old)old.remove();
+    var quiet=logs.length>=5&&logs.every(function(l){return (parseInt(l[ADAPT_MAP[id]],10)||0)===0;});
+    if(quiet){
+      sec.classList.add('collapsed');
+      var hdr=sec.querySelector('.log-sec-hdr');
+      hdr.insertAdjacentHTML('afterend','<div class="adapt-note" style="font-size:11.5px;color:var(--text-dim);padding:2px 0 6px;cursor:pointer;" role="button" tabindex="0" onclick="this.parentElement.classList.remove(\'collapsed\');this.remove();">'
+        +(hi?'पिछले 5 लॉग में यह नहीं था — अगर आज अलग है तो यहाँ टैप करें।':'None in your last 5 logs — tap here if today is different.')+'</div>');
+    }
+  });
+  // Spike follow-up: yesterday's severe headache gets a focused prompt.
+  var last=logs[logs.length-1];
+  var haSec=document.getElementById('s-ha');haSec=haSec&&haSec.closest('.log-sec');
+  if(haSec){
+    var oldF=haSec.querySelector('.adapt-followup');if(oldF)oldF.remove();
+    if(last&&(parseInt(last.headache,10)||0)>=7){
+      haSec.insertAdjacentHTML('beforeend','<div class="adapt-followup" style="margin-top:8px;background:rgba(217,119,6,0.08);border:1px solid rgba(217,119,6,0.25);border-radius:10px;padding:9px 12px;font-size:12px;color:var(--orange);line-height:1.5;">'
+        +(hi?'⚠ पिछली बार सिरदर्द तेज़ था ('+last.headache+'/10)। क्या यह आपके आम सिरदर्द जैसा है? अगर अलग या बदतर है, तो नोट्स में लिखें — और लाल बटन ज़रूर देखें।'
+             :'⚠ Your last entry showed severe headache ('+last.headache+'/10). Is today\'s like your usual ones? If it feels different or worse, describe it in the notes — and check the red button below.')
+        +'</div>');
+    }
+  }
+}
+
+// ── MICRO-EDUCATION: watch vs worry, tied to trends ──
+var EDU_CARDS={
+  nausea:{icon:'🤢',
+    en:{t:'About nausea during chemo',watch:'Mild nausea around chemo days is common. Small frequent meals, cold food, and taking your antiemetic BEFORE the dose all help.',worry:'Vomiting for more than a day, unable to keep fluids down, or losing weight — call your care team now.'},
+    hi:{t:'कीमो के दौरान मितली के बारे में',watch:'कीमो के दिनों के आसपास हल्की मितली आम है। थोड़ा-थोड़ा बार-बार खाना, ठंडा खाना, और खुराक से पहले मितली की दवा लेना मदद करता है।',worry:'एक दिन से ज़्यादा उल्टी, पानी भी न टिकना, या वज़न गिरना — तुरंत अपनी केयर टीम को फ़ोन करें।'}},
+  headache:{icon:'🤕',
+    en:{t:'About headaches',watch:'Mild, familiar headaches that respond to your usual medicines can be watched and logged.',worry:'A new kind of headache, the worst of your life, or one with vomiting, vision change, or weakness — call now.'},
+    hi:{t:'सिरदर्द के बारे में',watch:'हल्के, जाने-पहचाने सिरदर्द जो आपकी आम दवा से ठीक हों — उन्हें लॉग करते रहें।',worry:'नए तरह का सिरदर्द, ज़िंदगी का सबसे तेज़ सिरदर्द, या उल्टी/नज़र/कमज़ोरी के साथ — तुरंत फ़ोन करें।'}},
+  fatigue:{icon:'😴',
+    en:{t:'About fatigue',watch:'Fatigue is the most common chemo side effect. Short walks, spaced activities, and rest before you are exhausted genuinely help.',worry:'Too tired to get out of bed, breathless, or pale — this can be low blood counts. Call your team.'},
+    hi:{t:'थकान के बारे में',watch:'थकान कीमो का सबसे आम असर है। छोटी सैर, काम बाँटकर करना, और थकने से पहले आराम — सच में मदद करते हैं।',worry:'बिस्तर से उठा न जाए, साँस फूले, या चेहरा पीला — यह खून की कमी हो सकती है। टीम को फ़ोन करें।'}},
+  seizure:{icon:'⚡',
+    en:{t:'About seizures',watch:'If you have known seizures, take the anti-seizure medicine exactly on time — missed doses are the most common trigger.',worry:'ANY new seizure, or one lasting longer than usual, needs a call to your team today.'},
+    hi:{t:'दौरों के बारे में',watch:'अगर दौरे पहले से हैं, तो दौरे की दवा बिल्कुल समय पर लें — खुराक छूटना सबसे आम कारण है।',worry:'कोई भी नया दौरा, या आम से लंबा दौरा — आज ही टीम को फ़ोन करें।'}},
+  cognitive:{icon:'🧠',
+    en:{t:'About thinking and memory',watch:'Mild "chemo brain" — slower recall, losing the thread — is common and usually improves. Lists and routines help.',worry:'Sudden confusion, trouble speaking, or new weakness on one side — call immediately.'},
+    hi:{t:'सोच और याददाश्त के बारे में',watch:'हल्का "कीमो ब्रेन" — धीमी याद, बात का सिरा खोना — आम है और अक्सर सुधरता है। सूचियाँ और दिनचर्या मदद करती हैं।',worry:'अचानक उलझन, बोलने में दिक्कत, या एक तरफ़ नई कमज़ोरी — तुरंत फ़ोन करें।'}}
+};
+function renderEduCard(){
+  var host=document.getElementById('edu-card');if(!host)return;
+  var since=new Date(Date.now()-13*86400000).toISOString().slice(0,10);
+  var logs=getMyLogs().filter(function(l){return l.date>=since;}).sort(function(a,b){return a.date.localeCompare(b.date);});
+  if(!logs.length){host.innerHTML='';host.style.display='none';return;}
+  var last=logs[logs.length-1];
+  // Pick the most pressing symptom with content to teach about.
+  var pick=null,best=0;
+  Object.keys(EDU_CARDS).forEach(function(k){
+    var val=parseInt(last[k],10)||0;
+    if(val>=4&&val>best){best=val;pick=k;}
+  });
+  if(!pick){host.innerHTML='';host.style.display='none';return;}
+  var card=EDU_CARDS[pick];var t=getLang()==='hi'?card.hi:card.en;var hi=getLang()==='hi';
+  host.style.display='block';
+  host.innerHTML='<div class="info-card" style="margin:0;">'
+    +'<div class="info-card-title">'+card.icon+' '+t.t+'</div>'
+    +'<div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;"><span style="font-size:13px;">👁</span><div style="font-size:12.5px;line-height:1.6;"><strong style="color:var(--green);">'+(hi?'नज़र रखें:':'Watch:')+'</strong> '+t.watch+'</div></div>'
+    +'<div style="display:flex;gap:8px;margin-bottom:10px;align-items:flex-start;"><span style="font-size:13px;">🚨</span><div style="font-size:12.5px;line-height:1.6;"><strong style="color:var(--red);">'+(hi?'चिंता करें:':'Worry:')+'</strong> '+t.worry+'</div></div>'
+    +'<button onclick="openTriage()" style="width:100%;padding:10px;border-radius:10px;background:rgba(220,38,38,0.06);border:1.5px solid rgba(220,38,38,0.25);color:var(--red);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;">'+(hi?'🚨 कब फ़ोन करें — पूरी सूची':'🚨 When to call — full list')+'</button>'
+    +'<div style="font-size:10.5px;color:var(--text-dim);margin-top:8px;text-align:center;">'+(hi?'सामान्य जानकारी — आपकी टीम की सलाह इससे ऊपर है।':'General guidance — your care team\'s advice always comes first.')+'</div>'
+    +'</div>';
+}
 // ── ARIA: labels, dialog roles, keyboard activation ──
 function applyA11y(){
   document.querySelectorAll('.nav-btn').forEach(function(b){
@@ -2364,6 +2496,7 @@ document.addEventListener('DOMContentLoaded',function(){
   applyA11y();
   setLang(getLang());
   try{if(localStorage.getItem('chemocure-bigtext'))setBigText(true);}catch(e){}
+  try{if(localStorage.getItem('chemocure-contrast'))setHighContrast(true);}catch(e){}
 });
 
 document.querySelectorAll('.sheet-overlay').forEach(function(s){

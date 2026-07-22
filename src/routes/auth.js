@@ -20,7 +20,12 @@ export const authRouter = Router();
 const registerSchema = z.object({
   name: z.string().min(2).max(120),
   email: z.string().email().toLowerCase(),
-  password: z.string().min(8).max(200),
+  // Password policy: ≥10 chars with at least one letter and one digit.
+  // Clinician accounts guard PHI, so we reject trivially weak passwords here
+  // as well as in the browser.
+  password: z.string().min(10).max(200)
+    .refine(p => /[A-Za-z]/.test(p) && /\d/.test(p),
+      { message: 'Password must be at least 10 characters and include a letter and a number' }),
   specialty: z.string().max(120).optional(),
   institution: z.string().max(200).optional(),
 });

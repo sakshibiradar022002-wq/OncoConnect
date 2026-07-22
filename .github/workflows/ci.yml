@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: e2e tests (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run the end-to-end test suite
+        run: npm test
+        env:
+          # Ephemeral secrets for the test run only — never real keys.
+          JWT_SECRET: ci-jwt-secret-do-not-use-in-prod
+          PHI_ENCRYPTION_KEY: 0000000000000000000000000000000000000000000000000000000000000000
+          NODE_ENV: test
+
+  static-check:
+    name: static syntax check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax-check server modules
+        run: |
+          for f in src/*.js src/**/*.js scripts/*.js api/*.js; do
+            [ -f "$f" ] && node --check "$f" || true
+          done
+      - name: Syntax-check inline browser scripts
+        run: node scripts/check-html.mjs

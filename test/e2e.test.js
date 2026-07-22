@@ -87,6 +87,20 @@ test('duplicate email is rejected', async () => {
   assert.equal(r.status, 409);
 });
 
+test('weak passwords are rejected by policy', async () => {
+  for (const password of ['short1', 'noдigitshere', 'allletters', '1234567890']) {
+    const r = await call(jar(), 'POST', '/api/auth/register', {
+      name: 'Dr. Weak', email: `weak-${Math.random().toString(36).slice(2)}@onco.test`, password,
+    });
+    assert.equal(r.status, 400, `expected 400 for weak password "${password}"`);
+  }
+  // A compliant password (≥10 chars, letter + digit) is accepted.
+  const ok = await call(jar(), 'POST', '/api/auth/register', {
+    name: 'Dr. Strong', email: `strong-${Math.random().toString(36).slice(2)}@onco.test`, password: 'Strongpass1',
+  });
+  assert.equal(ok.status, 201);
+});
+
 test('wrong password is rejected', async () => {
   const r = await call(stranger, 'POST', '/api/auth/login', {
     email: 'suite@onco.test', password: 'wrong-password',
