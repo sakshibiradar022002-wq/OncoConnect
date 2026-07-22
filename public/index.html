@@ -607,6 +607,32 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
           </div>
         </div>
 
+        <!-- De-identified research export -->
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-title" style="margin-bottom:4px;">🔬 Research Export — de-identified</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;line-height:1.6;">
+            Cohort dataset with <strong>no names, no MRNs, no calendar dates</strong>: patients become stable pseudonyms (P-xxxxxxxx),
+            dates become days relative to each patient's first record, ages become 5-year bands.
+            Includes <strong>only patients who opted in to research use</strong> in their consent.
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px;">
+            <div class="fg" style="margin:0;flex:0 0 170px;"><label>Dataset</label>
+              <select id="rx-dataset">
+                <option value="logs">Symptom logs (CTCAE)</option>
+                <option value="factbr">FACT-Br quality of life</option>
+                <option value="tx">Regimen &amp; toxicity</option>
+              </select>
+            </div>
+            <div class="fg" style="margin:0;flex:1;min-width:160px;"><label>Diagnosis filter (optional)</label>
+              <input id="rx-diag" placeholder="e.g. glioblastoma — blank = all">
+            </div>
+            <div class="fg" style="margin:0;flex:0 0 140px;"><label>From (optional)</label><input type="date" id="rx-from"></div>
+            <div class="fg" style="margin:0;flex:0 0 140px;"><label>To (optional)</label><input type="date" id="rx-to"></div>
+            <button class="btn btn-cyan" onclick="exportResearchCSV()">⬇ Export cohort (.csv)</button>
+          </div>
+          <div id="rx-summary" style="font-size:12px;color:var(--text-muted);"></div>
+        </div>
+
         <!-- Storage meter -->
         <div class="card" style="margin-bottom:20px;">
           <div class="card-header"><div class="card-title">📊 Storage Usage</div><button class="btn btn-ghost btn-sm" onclick="refreshStorageInfo()">↻ Refresh</button></div>
@@ -1576,6 +1602,86 @@ function exportLogsCSV(){
     LS.keys('log_'+p.mrn+'_').map(k=>LS.get(k)).filter(Boolean).forEach(l=>rows.push([p.mrn,p.name,l.date,l.cognitive,l.seizure,l.vision,l.headache,l.mood,l.fatigue,l.nausea,l.appetite,l.sleep,l.temp||'',l.bp_sys||'',l.bp_dia||'',l.weight||'',(l.meds||[]).join('; '),l.notes||'']));
   });
   downloadCSV('chemocure-symptom-logs-'+new Date().toISOString().slice(0,10)+'.csv',rows);
+}
+
+// ── DE-IDENTIFIED RESEARCH EXPORT ──
+// Design: stable pseudonyms via SHA-256(per-doctor random salt + MRN); dates
+// become days relative to each patient's own first record; ages become 5-year
+// bands; free-text fields (notes, toxicity descriptions) are excluded because
+// prose can identify. Only research-opted-in consents are included.
+async function researchPseudonym(mrn){
+  let salt=LS.get('research_salt');
+  if(!salt){salt=Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b=>b.toString(16).padStart(2,'0')).join('');LS.set('research_salt',salt);}
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+'|'+mrn));
+  return 'P-'+Array.from(new Uint8Array(buf)).slice(0,4).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function ageBand(age){age=parseInt(age,10);if(isNaN(age)||age<0)return '';const lo=Math.floor(age/5)*5;return lo+'-'+(lo+4);}
+function researchEligible(p){return p.consent&&p.consent.research&&!p.consent.withdrawn;}
+function patientAnchorDate(p){
+  // Day 0 = the patient's earliest recorded event (diagnosis date if set,
+  // else first symptom log). Relative days carry no calendar information.
+  const dates=[];
+  if(p.dateDiag)dates.push(p.dateDiag);
+  LS.keys('log_'+p.mrn+'_').forEach(k=>{const l=LS.get(k);if(l&&l.date)dates.push(l.date);});
+  return dates.sort()[0]||null;
+}
+function relDay(anchor,date){
+  const a=Date.parse(anchor),d=Date.parse(date);
+  if(isNaN(a)||isNaN(d))return '';
+  return Math.round((d-a)/86400000);
+}
+async function exportResearchCSV(){
+  const ds=v('rx-dataset')||'logs';
+  const diagQ=(v('rx-diag')||'').toLowerCase();
+  const from=v('rx-from')||'',to=v('rx-to')||'';
+  const inWindow=d=>d&&(!from||d>=from)&&(!to||d<=to);
+  const all=getMyPatients();
+  const eligible=all.filter(p=>researchEligible(p)&&(!diagQ||(p.diag||'').toLowerCase().includes(diagQ)));
+  const summaryEl=document.getElementById('rx-summary');
+  if(!eligible.length){
+    if(summaryEl)summaryEl.innerHTML='<span style="color:var(--orange);">No exportable patients: '+all.length+' on record, none matching with research consent. Patients opt in on their consent screen (Patient App → Profile → Privacy).</span>';
+    return;
+  }
+  const rows=[];
+  let rowCount=0;
+  for(const p of eligible){
+    const pid=await researchPseudonym(p.mrn);
+    const anchor=patientAnchorDate(p);
+    const base=[pid,p.sex||p.gender||'',ageBand(p.age),p.diag||'',p.grade||p.whoGrade||''];
+    if(ds==='logs'){
+      LS.keys('log_'+p.mrn+'_').map(k=>LS.get(k)).filter(l=>l&&inWindow(l.date)).forEach(l=>{
+        rows.push(base.concat([relDay(anchor,l.date),
+          l.headache??'',CTCAE_SHORT[ctcaeGrade(l.headache)],l.nausea??'',CTCAE_SHORT[ctcaeGrade(l.nausea)],
+          l.fatigue??'',CTCAE_SHORT[ctcaeGrade(l.fatigue)],l.seizure??'',CTCAE_SHORT[ctcaeGrade(l.seizure)],
+          l.cognitive??'',CTCAE_SHORT[ctcaeGrade(l.cognitive)],l.vision??'',CTCAE_SHORT[ctcaeGrade(l.vision)],
+          l.mood??'',l.appetite??'',l.sleep??'',l.temp||'',(l.meds||[]).length]));
+        rowCount++;
+      });
+    }else if(ds==='factbr'){
+      LS.keys('factbr_'+p.mrn+'_').map(k=>LS.get(k)).filter(f=>f&&inWindow(f.date)).forEach(f=>{
+        rows.push(base.concat([relDay(anchor,f.date),f.total??'',f.maxPossible??'',
+          f.maxPossible?Math.round(100*f.total/f.maxPossible):'' ]));
+        rowCount++;
+      });
+    }else{
+      (p.meds||[]).forEach(m=>{
+        rows.push(base.concat([m.name||'',m.dose||'',m.route||'',m.freq||'',m.status||'',
+          relDay(anchor,m.start),relDay(anchor,m.end),p.txCTCAE||'']));
+        rowCount++;
+      });
+    }
+  }
+  const headers={
+    logs:['pseudo_id','sex','age_band','diagnosis','who_grade','day_rel','headache','headache_ctcae','nausea','nausea_ctcae','fatigue','fatigue_ctcae','seizure','seizure_ctcae','cognitive','cognitive_ctcae','vision','vision_ctcae','mood','appetite','sleep','temp_c','meds_taken_n'],
+    factbr:['pseudo_id','sex','age_band','diagnosis','who_grade','day_rel','factbr_total','factbr_max','factbr_pct'],
+    tx:['pseudo_id','sex','age_band','diagnosis','who_grade','drug','dose','route','frequency','status','start_day_rel','end_day_rel','overall_ctcae']
+  };
+  rows.unshift(headers[ds]);
+  downloadCSV('chemocure-research-'+ds+'-'+new Date().toISOString().slice(0,10)+'.csv',rows);
+  if(summaryEl)summaryEl.innerHTML='✅ Exported <strong>'+rowCount+'</strong> rows from <strong>'+eligible.length+'</strong> consented patient(s). '
+    +(all.length-eligible.length)+' patient(s) excluded (no research opt-in or filtered out). '
+    +'Pseudonyms are stable across exports on this account; the salt never leaves this device.';
+  try{writeAuditLog('research-export',[{field:'De-identified research export',prev:ds,next:rowCount+' rows / '+eligible.length+' patients'}]);}catch(e){}
 }
 
 // ── PATIENT DOCUMENTS LOCKER ──
@@ -7244,19 +7350,120 @@ function buildClinicPanel(){
     <div class="page-header"><div><div class="page-title">Clinic Management</div>
       <div class="page-sub">Day board, tasks, billing, inventory &amp; reports</div></div></div>
     <div id="clinic-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">
-      ${['Day Board','Tasks & Recall','Billing','Inventory','Reports'].map((t,i)=>
+      ${['Day Board','Tasks & Recall','Billing','Inventory','Reports','📊 Impact'].map((t,i)=>
         `<button class="btn ${i?'btn-ghost':'btn-primary'}" data-ct="${i}" onclick="switchClinicTab(${i},this)">${t}</button>`).join('')}
     </div>
     <div id="ct-0"></div><div id="ct-1" style="display:none;"></div><div id="ct-2" style="display:none;"></div>
-    <div id="ct-3" style="display:none;"></div><div id="ct-4" style="display:none;"></div>`;
+    <div id="ct-3" style="display:none;"></div><div id="ct-4" style="display:none;"></div><div id="ct-5" style="display:none;"></div>`;
   host.appendChild(p);
 }
 window.switchClinicTab=function(i,btn){
-  for(let n=0;n<5;n++){const el=document.getElementById('ct-'+n);if(el)el.style.display=n===i?'block':'none';}
+  for(let n=0;n<6;n++){const el=document.getElementById('ct-'+n);if(el)el.style.display=n===i?'block':'none';}
   document.querySelectorAll('#clinic-tabs .btn').forEach(b=>{b.className='btn '+(b===btn?'btn-primary':'btn-ghost');});
-  [renderDayBoard,renderTasksTab,renderBillingTab,renderInventoryTab,renderReportsTab][i]();
+  [renderDayBoard,renderTasksTab,renderBillingTab,renderInventoryTab,renderReportsTab,renderImpactTab][i]();
 };
 window.renderClinic=function(){ buildClinicPanel(); renderDayBoard(); };
+
+/* ── 6. IMPACT ANALYTICS: the evidence for "does this app help?" ────
+   Every metric here maps to the patient/doctor-impact axis of the
+   evaluation matrix: engagement, adherence, alert responsiveness,
+   quality of life, and consent coverage. All computed locally. */
+let impactDays=30;
+window.setImpactWindow=function(d){impactDays=d;renderImpactTab();};
+function renderImpactTab(){
+  const el=document.getElementById('ct-5');if(!el)return;
+  const pats=getMyPatients();
+  const since=new Date(Date.now()-(impactDays-1)*86400000).toISOString().slice(0,10);
+
+  // Engagement
+  const logsByDay={};let totalLogs=0;const activeSet=new Set();
+  pats.forEach(p=>{
+    LS.keys('log_'+p.mrn+'_').forEach(k=>{
+      const d=k.slice(-10);
+      if(d>=since){totalLogs++;activeSet.add(p.mrn);logsByDay[d]=(logsByDay[d]||0)+1;}
+    });
+  });
+  const active=activeSet.size;
+  const completion=active?Math.round(100*totalLogs/(active*impactDays)):0;
+
+  // Medication adherence from the daily med checklists
+  let medDays=0,medTakenPct=0;
+  pats.forEach(p=>{
+    LS.keys('medlog_'+p.mrn+'_').forEach(k=>{
+      const d=k.slice(-10);if(d<since)return;
+      const taken=(LS.get(k)||{}).taken||{};
+      const names=Object.keys(taken);if(!names.length)return;
+      medDays++;medTakenPct+=names.filter(n=>taken[n]).length/names.length;
+    });
+  });
+  const adherence=medDays?Math.round(100*medTakenPct/medDays):null;
+
+  // Alerts (red flags, triage, check-ins)
+  let alerts=0,urgent=0,read=0;
+  LS.keys('alerts_').forEach(k=>{
+    (LS.get(k)||[]).forEach(a=>{
+      if(!a.ts||a.ts.slice(0,10)<since)return;
+      alerts++;if(a.urgent)urgent++;if(a.read)read++;
+    });
+  });
+  const readRate=alerts?Math.round(100*read/alerts):null;
+
+  // FACT-Br quality of life
+  let fbCount=0,fbPctSum=0;
+  pats.forEach(p=>{
+    LS.keys('factbr_'+p.mrn+'_').forEach(k=>{
+      const f=LS.get(k);if(!f||!f.date||f.date<since||!f.maxPossible)return;
+      fbCount++;fbPctSum+=100*f.total/f.maxPossible;
+    });
+  });
+
+  // Consent coverage
+  const consented=pats.filter(p=>p.consent&&!p.consent.withdrawn).length;
+  const research=pats.filter(p=>researchEligible(p)).length;
+
+  // Logs-per-day mini bar chart (inline SVG)
+  let bars='';
+  const maxDay=Math.max(1,...Object.values(logsByDay));
+  for(let i=impactDays-1;i>=0;i--){
+    const d=new Date(Date.now()-i*86400000).toISOString().slice(0,10);
+    const n=logsByDay[d]||0;
+    const h=n?Math.max(2,(n/maxDay)*30):0.8;
+    const x=((impactDays-1-i)/impactDays)*100;
+    bars+=`<rect x="${x.toFixed(2)}" y="${(32-h).toFixed(1)}" width="${(100/impactDays*0.7).toFixed(2)}" height="${h.toFixed(1)}" rx="0.6" fill="${n?'var(--blue)':'var(--border2)'}"/>`;
+  }
+
+  const tile=(label,val,sub,color)=>`<div class="card" style="flex:1;min-width:160px;margin-bottom:0;">
+    <div style="font-size:10.5px;letter-spacing:.06em;color:var(--text-muted);font-weight:700;text-transform:uppercase;">${label}</div>
+    <div style="font-size:26px;font-weight:800;color:${color||'var(--text)'};margin-top:2px;">${val}</div>
+    ${sub?`<div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${sub}</div>`:''}</div>`;
+
+  el.innerHTML=`
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+    <span style="font-size:12px;color:var(--text-muted);font-weight:700;">WINDOW</span>
+    ${[30,90].map(d=>`<button class="btn btn-sm ${impactDays===d?'btn-primary':'btn-ghost'}" onclick="setImpactWindow(${d})">${d} days</button>`).join('')}
+  </div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+    ${tile('Active patients',active+' / '+pats.length,'logged ≥1 time in window','var(--blue)')}
+    ${tile('Symptom logs',totalLogs,'~'+(active?(totalLogs/active/(impactDays/7)).toFixed(1):0)+' per active patient / week','var(--cyan)')}
+    ${tile('Diary completion',completion+'%','of possible daily logs',completion>=50?'var(--green)':'var(--orange)')}
+    ${tile('Med adherence',adherence===null?'—':adherence+'%',medDays+' checklist day(s)',adherence===null?'var(--text-dim)':adherence>=80?'var(--green)':'var(--orange)')}
+  </div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+    ${tile('Alerts raised',alerts,urgent+' urgent','var(--orange)')}
+    ${tile('Alerts reviewed',readRate===null?'—':readRate+'%','marked read by you',readRate===null?'var(--text-dim)':readRate>=90?'var(--green)':'var(--red)')}
+    ${tile('FACT-Br surveys',fbCount,fbCount?'avg wellbeing '+Math.round(fbPctSum/fbCount)+'%':'none in window','var(--purple)')}
+    ${tile('Consent coverage',consented+' / '+pats.length,research+' opted into research','var(--green)')}
+  </div>
+  <div class="card">
+    <div class="card-title" style="margin-bottom:10px;">📈 Symptom logs per day</div>
+    <svg viewBox="0 0 100 33" preserveAspectRatio="none" style="width:100%;height:70px;display:block;">${bars}</svg>
+    <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--text-dim);margin-top:4px;"><span>${since}</span><span>today</span></div>
+  </div>
+  <div style="font-size:11px;color:var(--text-dim);margin-top:10px;line-height:1.6;">
+    These are the engagement / adherence / responsiveness metrics from the ChemoCure evaluation matrix, computed from this account's records only.
+    Diary completion assumes one log per patient per day is the target; alert review rate counts alerts you opened.
+  </div>`;
+}
 
 /* ── 1. DAY BOARD: infusion chairs + arrivals ───────────────── */
 let boardDate=today();

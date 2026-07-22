@@ -138,8 +138,10 @@ function patientOwnsKey(k, mrn) {
   // Red-flag / triage alerts: alerts_<docId>_<mrn>. Without this the
   // patient app's urgent alerts never leave the patient's own browser.
   if (k.startsWith('alerts_') && k.endsWith('_' + mrn)) return true;
-  // date/suffix-scoped families: log_<mrn>_<date>, factbr_<mrn>...
-  return k.startsWith('log_' + mrn + '_') || k.startsWith('factbr_' + mrn);
+  // date/suffix-scoped families: log_<mrn>_<date>, medlog_<mrn>_<date>,
+  // factbr_<mrn>...
+  return k.startsWith('log_' + mrn + '_') || k.startsWith('medlog_' + mrn + '_')
+    || k.startsWith('factbr_' + mrn);
 }
 
 // Everything the patient app needs: their own keys, plus the owning doctor's
