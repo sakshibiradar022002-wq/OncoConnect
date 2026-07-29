@@ -9,7 +9,7 @@ import { createHash, randomInt } from 'node:crypto';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import { db, writeAudit } from '../db/index.js';
-import { mailConfigured, sendMail, verifyMail } from '../mail.js';
+import { mailConfigured, mailProvider, sendMail, verifyMail } from '../mail.js';
 import { authenticate } from '../middleware/auth.js';
 import { validate, asyncHandler } from '../middleware/validate.js';
 
@@ -36,7 +36,7 @@ const hashCode = (email, code) =>
 // ── Status: lets the UI show whether server email is live ─────────
 emailRouter.get('/status', asyncHandler(async (req, res) => {
   if (req.query.verify === '1') return res.json(await verifyMail());
-  res.json({ configured: mailConfigured() });
+  res.json({ configured: mailConfigured(), provider: mailProvider() });
 }));
 
 // ── Registration OTP ──────────────────────────────────────────────

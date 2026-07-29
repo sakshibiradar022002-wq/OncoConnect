@@ -3389,15 +3389,17 @@ async function refreshServerEmailStatus() {
     const r = await fetch('/api/email/status?verify=1', { credentials: 'include' });
     const d = await r.json();
     if (!d.configured) {
-      el.innerHTML = '⚠ <strong>Server email not configured.</strong> Set <code>GMAIL_USER</code> + <code>GMAIL_APP_PASSWORD</code> in the server environment '
-        + '(Google Account → Security → 2-Step Verification → App passwords), then restart. EmailJS below works as a browser-side fallback.';
+      el.innerHTML = '⚠ <strong>Server email not configured</strong> — verification codes are shown on screen (dev mode) instead of emailed.<br>'
+        + 'To send real emails, set one of these in the server environment and restart:<br>'
+        + '&nbsp;&nbsp;• <strong>RESEND_API_KEY</strong> (recommended — free at resend.com, works on any host)<br>'
+        + '&nbsp;&nbsp;• or <code>GMAIL_USER</code> + <code>GMAIL_APP_PASSWORD</code> (a Gmail App Password)';
       el.style.color = 'var(--orange)';
     } else if (d.ok) {
-      el.innerHTML = '✅ <strong>Server email is live</strong> — verification codes and reminders are sent from the server\'s Gmail/SMTP account. EmailJS below is only a fallback.';
+      el.innerHTML = '✅ <strong>Server email is live</strong> (' + esc(d.provider || 'smtp') + ') — real verification codes and reminders are being sent.';
       el.style.color = 'var(--green)';
     } else {
-      el.innerHTML = '❌ <strong>Server email configured but failing:</strong> ' + esc(d.error || 'SMTP verify failed')
-        + '. For Gmail: use an <strong>App Password</strong> (not your normal password) and check the address in GMAIL_USER.';
+      el.innerHTML = '❌ <strong>Email configured but failing:</strong> ' + esc(d.error || 'verify failed')
+        + '.<br>Resend: check the <code>RESEND_API_KEY</code> (starts with re_). Gmail: use an <strong>App Password</strong>, not your normal password.';
       el.style.color = 'var(--red)';
     }
   } catch (e) {
