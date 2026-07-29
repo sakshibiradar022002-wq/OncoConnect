@@ -224,7 +224,18 @@ OTP codes are generated and verified server-side, stored hashed, single-use,
 10-minute expiry, rate-limited.
 
 
-## Deploying to Vercel
+## Deploying
 
-Vercel is serverless — SQLite files do not persist there. Use a free Turso
+**Render (recommended, one-click-ish):**
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/sakshibiradar022002-wq/OncoConnect)
+
+Click the button (or Render → New → Blueprint → this repo → Apply). Render
+auto-generates both app secrets; you only paste a free Turso database URL +
+token. See **render.yaml** (includes a no-Turso persistent-disk alternative).
+
+**Vercel:** serverless, so SQLite files do not persist — use a free Turso
 database and set the environment variables. Full step-by-step: **DEPLOY_VERCEL.md**.
+
+Both hosts need the same secrets. `PHI_ENCRYPTION_KEY` accepts any strong
+secret (a 64-hex value is used as-is; anything else is SHA-256-derived), so
+managed hosts can generate it for you.

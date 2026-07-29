@@ -33,16 +33,21 @@ export const config = {
   jwtSecret: secret('JWT_SECRET'),
 
   // Master key used to encrypt PHI columns at rest (AES-256-GCM).
-  // MUST be a 64-char hex string (32 bytes). Generate with:
+  // The AES-256 master key. Preferred: a 64-char hex string (32 bytes),
   //   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+  // But ANY sufficiently long secret works too — if the value is not exactly
+  // 64 hex chars, a 32-byte key is derived from it deterministically via
+  // SHA-256. This lets managed hosts (Render/Railway) auto-generate the secret
+  // with no format constraints, while an existing 64-hex key is used verbatim
+  // (so already-encrypted data stays readable). The same secret always yields
+  // the same key, so data survives restarts.
   phiKeyHex: (() => {
     const k = process.env.PHI_ENCRYPTION_KEY;
     if (k) {
-      if (!/^[0-9a-fA-F]{64}$/.test(k)) {
-        console.error('[FATAL] PHI_ENCRYPTION_KEY must be 64 hex chars (32 bytes).');
-        process.exit(1);
-      }
-      return k;
+      if (/^[0-9a-fA-F]{64}$/.test(k)) return k;              // exact hex key
+      if (k.length >= 16) return crypto.createHash('sha256').update(k).digest('hex'); // derive
+      console.error('[FATAL] PHI_ENCRYPTION_KEY is too short — use at least 16 characters (64 hex chars recommended).');
+      process.exit(1);
     }
     if (isProd) return required('PHI_ENCRYPTION_KEY');
     const gen = crypto.randomBytes(32).toString('hex');
