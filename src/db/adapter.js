@@ -32,10 +32,11 @@ export async function openDatabase(path) {
   // actionable message instead of a cryptic native crash.
   if (process.env.VERCEL || process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME) {
     throw new Error(
-      'This is a serverless deployment but no TURSO_DATABASE_URL is set. ' +
+      'This is a serverless deployment (e.g. Vercel) but no TURSO_DATABASE_URL is set. ' +
       'SQLite files cannot persist on serverless hosts — create a free Turso ' +
-      'database (https://turso.tech) and set TURSO_DATABASE_URL and ' +
-      'TURSO_AUTH_TOKEN in your host\'s environment variables. ' +
+      'database (https://turso.tech) and set these environment variables in your ' +
+      'host dashboard: TURSO_DATABASE_URL, TURSO_AUTH_TOKEN, JWT_SECRET, PHI_ENCRYPTION_KEY. ' +
+      'Step-by-step: see DEPLOY_VERCEL.md in the repo. ' +
       'Alternatively deploy to a host with a persistent disk (Render, Fly.io, Railway).'
     );
   }

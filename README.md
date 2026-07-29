@@ -222,3 +222,9 @@ configured the app falls back to EmailJS (browser-side, keys in the same
 panel) and finally to dev mode, which shows the verification code on screen.
 OTP codes are generated and verified server-side, stored hashed, single-use,
 10-minute expiry, rate-limited.
+
+
+## Deploying to Vercel
+
+Vercel is serverless — SQLite files do not persist there. Use a free Turso
+database and set the environment variables. Full step-by-step: **DEPLOY_VERCEL.md**.
