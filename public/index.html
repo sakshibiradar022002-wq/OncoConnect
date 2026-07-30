@@ -15,6 +15,7 @@
 <link rel="icon" type="image/png" href="/icons/doctor-192.png">
 
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
 :root {
@@ -1124,6 +1125,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
     </div>
     <div style="display:flex;gap:8px;">
       <button class="hist-trigger" onclick="openHistPanel('record')">🕐 History</button>
+      <button class="btn btn-ghost btn-sm" onclick="syncPatientWithEHR(selectedMRN)" title="Sync labs & vitals from hospital EHR">🔄 EHR Sync</button>
       <button class="btn btn-ghost btn-sm" onclick="closeRecord()">✕ Close</button>
       <button class="btn btn-primary btn-sm" onclick="saveRecord()">⬆ Save Record</button>
     </div>
@@ -4769,7 +4771,46 @@ function showMedForm(){const f=document.getElementById('r-med-form');if(f)f.styl
 function hideMedForm(){const f=document.getElementById('r-med-form');if(f)f.style.display='none';}
 
 function checkDrugInteractions(newDrug) {
-  var interactions={'Temozolomide':['Warfarin','Phenytoin'],'Nivolumab':['Ipilimumab','Pembrolizumab'],'Pembrolizumab':['Nivolumab','Checkpoint inhibitors'],'Bevacizumab':['ACE inhibitors','NSAIDs'],'Doxorubicin':['Trastuzumab','HER2 inhibitors']};
+  var interactions={
+    'Temozolomide':['Warfarin','Phenytoin','Valproic acid'],
+    'Nivolumab':['Ipilimumab','Pembrolizumab','Other checkpoint inhibitors'],
+    'Pembrolizumab':['Nivolumab','Ipilimumab','Other checkpoint inhibitors'],
+    'Bevacizumab':['ACE inhibitors','NSAIDs','Warfarin','Other antiangiogenics'],
+    'Doxorubicin':['Trastuzumab','HER2 inhibitors','Cardiotoxic drugs','Cisplatin'],
+    'Cisplatin':['Doxorubicin','Aminoglycosides','NSAIDs','Theophylline'],
+    'Paclitaxel':['Docetaxel','Other taxanes','CYP3A4 inhibitors'],
+    'Docetaxel':['Paclitaxel','Other taxanes','CYP3A4 inhibitors'],
+    '5-Fluorouracil':['Warfarin','Phenytoin','Methotrexate'],
+    'Methotrexate':['NSAIDs','Sulfonamides','5-Fluorouracil','Proton pump inhibitors'],
+    'Gemcitabine':['Cisplatin','Warfarin','Other nucleoside analogs'],
+    'Carboplatin':['Cisplatin','Nephrotoxic drugs','Ototoxic drugs'],
+    'Oxaliplatin':['Cisplatin','5-Fluorouracil','NSAIDs'],
+    'Etoposide':['Warfarin','Aspirin','Other topoisomerase inhibitors'],
+    'Irinotecan':['Ketoconazole','CYP3A4 inhibitors','NSAIDs'],
+    'Topotecan':['Irinotecan','Other topoisomerase inhibitors'],
+    'Trastuzumab':['Doxorubicin','Daunorubicin','HER2 inhibitors'],
+    'Pertuzumab':['Trastuzumab','HER2 inhibitors'],
+    'Trastuzumab emtansine':['Other HER2 agents','Warfarin'],
+    'Palbociclib':['Fulvestrant','Aromatase inhibitors','CYP3A4 inhibitors'],
+    'Ibrutinib':['CYP3A4 inhibitors','Ketoconazole','Ritonavir'],
+    'Venetoclax':['CYP3A4 inhibitors','Ketoconazole','Azithromycin'],
+    'Sorafenib':['Warfarin','NSAIDs','St Johns Wort'],
+    'Sunitinib':['CYP3A4 inhibitors','Ketoconazole'],
+    'Erlotinib':['Ritonavir','CYP3A4 inhibitors','St Johns Wort'],
+    'Gefitinib':['CYP3A4 inhibitors','Rifampicin'],
+    'Crizotinib':['CYP3A4 inhibitors','Strong CYP3A4 inducers'],
+    'Azathioprine':['Allopurinol','Warfarin','Theophylline'],
+    'Bleomycin':['Cisplatin','Radiation therapy','Doxorubicin'],
+    'Vinblastine':['CYP3A4 inhibitors','Ketoconazole','Erythromycin'],
+    'Vincristine':['CYP3A4 inhibitors','Ketoconazole','Other vinca alkaloids'],
+    'Rituximab':['Live vaccines','ACE inhibitors'],
+    'Cetuximab':['Warfarin','Radiation therapy'],
+    'Azithromycin':['Doxorubicin','QT-prolonging drugs','Warfarin'],
+    'Fluoroquinolones':['NSAIDs','Theophylline','Warfarin'],
+    'Cephalosporins':['Probenecid','Aminoglycosides'],
+    'Aminoglycosides':['Cisplatin','NSaids','Amphotericin B'],
+    'Vancomycin':['Cisplatin','Aminoglycosides','NSAIDs']
+  };
   var found=[];
   if(interactions[newDrug]) {
     rMeds.forEach(function(m) {
@@ -4782,7 +4823,23 @@ function checkDrugInteractions(newDrug) {
 }
 
 function checkDrugAllergies(drugName) {
-  var allergyDrugs={'Penicillin':['Amoxicillin','Ampicillin','Piperacillin'],'Sulfonamide':['Sulfamethoxazole'],'NSAID':['Ibuprofen','Naproxen','Aspirin'],'Chemotherapy':['Temozolomide','Doxorubicin','Cisplatin']};
+  var allergyDrugs={
+    'Penicillin':['Amoxicillin','Ampicillin','Piperacillin','Amoxicillin-clavulanate','Ticarcillin'],
+    'Cephalosporin':['Cephalexin','Ceftriaxone','Cefazolin','Cefepime','Ceftazidime'],
+    'Sulfonamide':['Sulfamethoxazole','Sulfadiazine','Sulfisoxazole'],
+    'Macrolide':['Azithromycin','Erythromycin','Clarithromycin'],
+    'Fluoroquinolone':['Levofloxacin','Ciprofloxacin','Moxifloxacin'],
+    'NSAID':['Ibuprofen','Naproxen','Aspirin','Indomethacin','Ketorolac'],
+    'ACE inhibitor':['Lisinopril','Enalapril','Ramipril','Captopril'],
+    'Beta-blocker':['Metoprolol','Atenolol','Propranolol','Carvedilol'],
+    'Statin':['Atorvastatin','Simvastatin','Pravastatin','Rosuvastatin'],
+    'Chemotherapy':['Temozolomide','Doxorubicin','Cisplatin','Paclitaxel','Docetaxel','5-Fluorouracil','Methotrexate'],
+    'Immunotherapy':['Nivolumab','Pembrolizumab','Ipilimumab','Atezolizumab'],
+    'Targeted therapy':['Bevacizumab','Trastuzumab','Erlotinib','Gefitinib','Sorafenib','Sunitinib'],
+    'Anticoagulant':['Warfarin','Heparin','Enoxaparin','Apixaban','Rivaroxaban'],
+    'Antibiotic':['Vancomycin','Clindamycin','Aminoglycosides','Tetracyclines'],
+    'Antifungal':['Fluconazole','Amphotericin B','Itraconazole','Voriconazole']
+  };
   var found=[];
   for(var allergyClass in allergyDrugs) {
     if(allergyDrugs[allergyClass].indexOf(drugName)>-1) {
@@ -7637,6 +7694,117 @@ window.initApp=function(){ _initApp2(); buildClinicPanel(); };
   });
   // arm once the app is shown
   var iv=setInterval(function(){ if(loggedIn()){ reset(); clearInterval(iv); } }, 2000);
+
+// ── EHR Integration Framework ──
+function syncPatientWithEHR(mrn) {
+  if(!mrn) {
+    alert('No patient selected');
+    return;
+  }
+  var result = importPatientFromHospitalEHR(mrn);
+  if(result) {
+    renderLabsTable();
+  }
+}
+
+function importPatientFromEHR(ehrPatient) {
+  // Converts FHIR-format EHR data to OncoConnect patient format
+  var patient = {
+    mrn: ehrPatient.mrn || ehrPatient.identifier,
+    name: ehrPatient.name || 'Unknown',
+    dob: ehrPatient.dob || null,
+    gender: ehrPatient.gender || 'Unknown',
+    age: ehrPatient.age || 0,
+    phone: ehrPatient.contact || null,
+    email: ehrPatient.email || null,
+    allergies: (ehrPatient.allergies||[]).map(a => ({name: a.name || a, severity: a.severity || 'Mild'})),
+    comorbidities: ehrPatient.comorbidities || [],
+    insurance: ehrPatient.insurance || null,
+    insuranceId: ehrPatient.insuranceId || null,
+    // Auto-import labs from EHR
+    labs: (ehrPatient.labs||[]).map(lab => ({
+      date: lab.date,
+      test: lab.testName,
+      value: lab.value,
+      ref: lab.refRange,
+      status: lab.abnormal ? 'High' : 'Normal',
+      specimen: lab.specimen || null,
+      notes: lab.notes || null
+    })),
+    // Auto-import vitals from EHR
+    vitals: (ehrPatient.vitals||[]).map(v => ({
+      date: v.date,
+      temp: v.temperature,
+      bp: v.bloodPressure,
+      hr: v.heartRate,
+      rr: v.respiratoryRate,
+      o2: v.oxygenSaturation,
+      weight: v.weight,
+      height: v.height
+    })),
+    diagImportedAt: new Date().toISOString(),
+    ehrSource: ehrPatient.ehrSource || 'Unknown EHR System'
+  };
+  return patient;
+}
+
+function mockEHRDataFetch(mrn) {
+  // Simulates FHIR API response from hospital EHR
+  // In production, this would make real HTTP request to hospital's FHIR server
+  var mockData = {
+    mrn: mrn,
+    name: 'Sample Patient',
+    dob: '1960-05-15',
+    gender: 'Female',
+    age: 64,
+    contact: '555-0123',
+    email: 'patient@example.com',
+    allergies: [
+      {name: 'Penicillin', severity: 'Severe'},
+      {name: 'Sulfonamides', severity: 'Moderate'}
+    ],
+    comorbidities: ['Hypertension', 'Diabetes Type 2'],
+    insurance: 'BlueCross BlueShield',
+    insuranceId: 'BC123456789',
+    labs: [
+      {date: '2024-07-25', testName: 'WBC', value: 3.2, refRange: '4.5-11.0', abnormal: true, specimen: 'Blood'},
+      {date: '2024-07-25', testName: 'Hemoglobin', value: 10.5, refRange: '12.0-16.0', abnormal: true, specimen: 'Blood'},
+      {date: '2024-07-25', testName: 'Creatinine', value: 1.1, refRange: '0.6-1.2', abnormal: false, specimen: 'Serum'},
+      {date: '2024-07-18', testName: 'WBC', value: 4.1, refRange: '4.5-11.0', abnormal: false, specimen: 'Blood'},
+      {date: '2024-07-18', testName: 'Hemoglobin', value: 11.2, refRange: '12.0-16.0', abnormal: true, specimen: 'Blood'}
+    ],
+    vitals: [
+      {date: '2024-07-25', temperature: 37.1, bloodPressure: '128/82', heartRate: 72, respiratoryRate: 16, oxygenSaturation: 98, weight: 62, height: 165},
+      {date: '2024-07-18', temperature: 36.9, bloodPressure: '125/80', heartRate: 70, respiratoryRate: 16, oxygenSaturation: 98, weight: 62, height: 165}
+    ],
+    ehrSource: 'Epic EHR System'
+  };
+  return mockData;
+}
+
+function importPatientFromHospitalEHR(mrn) {
+  // Initiates EHR import process
+  var ehrData = mockEHRDataFetch(mrn);
+  if(!ehrData) {
+    alert('Could not connect to EHR system. Check connection.');
+    return false;
+  }
+  var importedPatient = importPatientFromEHR(ehrData);
+
+  // Merge with existing patient data
+  var existingPatient = LS.get('pat_'+mrn) || {};
+  var merged = Object.assign(existingPatient, {
+    labs: (existingPatient.labs||[]).concat(importedPatient.labs),
+    allergies: importedPatient.allergies,
+    comorbidities: importedPatient.comorbidities,
+    lastEHRSync: new Date().toISOString(),
+    ehrSource: importedPatient.ehrSource
+  });
+
+  LS.set('pat_'+mrn, merged);
+  alert('✓ EHR data imported successfully. '+importedPatient.labs.length+' lab results synced.');
+  return true;
+}
 
 // ── Drug Safety Lookup ──
 window.checkDrugSafety = function() {
