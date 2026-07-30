@@ -569,6 +569,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
       <button class="nav-item" onclick="showPanel('calendars',this)"><span class="ni">📅</span>Health Calendars</button>
       <button class="nav-item" onclick="showPanel('messages',this)"><span class="ni">💬</span>Patient Messages<span class="nav-badge" id="msg-badge" style="display:none;"></span></button>
       <button id="nav-labs" class="nav-item" onclick="goToLabsPanel()"><span class="ni">🔬</span>Lab Management<span class="nav-badge" id="lab-badge" style="display:none;background:var(--orange);"></span></button>
+      <button class="nav-item" onclick="showPanel('team',this)"><span class="ni">👥</span>Team Collaboration</button>
 
       <div class="sidebar-section" style="margin-top:8px;">System</div>
       <button class="nav-item" onclick="showPanel('backup',this)"><span class="ni">💾</span>Data &amp; Backup<span class="nav-badge" id="storage-badge" style="display:none;background:var(--orange);">!</span></button>
@@ -1006,6 +1007,55 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
         </div>
       </div>
 
+      <!-- ── TEAM MANAGEMENT ── -->
+      <div class="panel" id="panel-team">
+        <div class="page-header">
+          <div><div class="page-title">Team Collaboration</div><div class="page-sub">Manage team members and shared patient access</div></div>
+          <button class="btn btn-primary" onclick="openInviteTeamModal()">+ Invite Team Member</button>
+        </div>
+
+        <!-- Tabs: Team Members / Shared Patients / Activity -->
+        <div style="display:flex;gap:4px;background:var(--surface2);padding:3px;border-radius:8px;margin-bottom:20px;width:fit-content;">
+          <button class="btn btn-ghost btn-sm team-tab active" id="tt-members" onclick="switchTeamTab('members',this)" style="border-radius:6px;">👥 Team Members</button>
+          <button class="btn btn-ghost btn-sm team-tab" id="tt-access" onclick="switchTeamTab('access',this)" style="border-radius:6px;">🔐 Shared Access</button>
+          <button class="btn btn-ghost btn-sm team-tab" id="tt-activity" onclick="switchTeamTab('activity',this)" style="border-radius:6px;">📊 Activity Log</button>
+        </div>
+
+        <!-- TEAM MEMBERS LIST -->
+        <div id="tv-members">
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-title" style="margin-bottom:12px;">Current Team Members</div>
+            <div id="team-members-list"></div>
+          </div>
+        </div>
+
+        <!-- SHARED ACCESS MANAGEMENT -->
+        <div id="tv-access" style="display:none;">
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-title" style="margin-bottom:12px;">🔐 Patient Access Control</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Grant or revoke access to your patients for team members to view, edit, or manage records.</div>
+
+            <div class="fg" style="margin-bottom:12px;">
+              <label>Select Patient</label>
+              <select id="team-access-patient" onchange="renderPatientAccessList()" style="width:100%;padding:9px 12px;background:var(--surface2);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;font-size:13px;outline:none;">
+                <option value="">— Choose a patient —</option>
+              </select>
+            </div>
+
+            <div id="patient-access-list" style="margin-top:12px;"></div>
+          </div>
+        </div>
+
+        <!-- TEAM ACTIVITY LOG -->
+        <div id="tv-activity" style="display:none;">
+          <div class="card">
+            <div class="card-title" style="margin-bottom:12px;">📊 Team Activity</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Recent team actions: invites sent, members joined, access granted/revoked.</div>
+            <div id="team-activity-list"></div>
+          </div>
+        </div>
+      </div>
+
     </div><!-- /main -->
   </div><!-- /app-body -->
 </div><!-- /app -->
@@ -1032,6 +1082,26 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
     <div style="display:flex;gap:8px;">
       <button class="btn btn-ghost" onclick="closeOverlay('add-lab-modal')">Cancel</button>
       <button class="btn btn-primary" style="flex:1;" onclick="addLab()">Register Lab →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ INVITE TEAM MEMBER MODAL ══ -->
+<div class="overlay" id="invite-team-modal">
+  <div class="modal">
+    <div class="modal-title">Invite Team Member</div>
+    <div class="modal-sub">Add a doctor or specialist to your team.</div>
+    <div class="msg err" id="itm-msg"></div>
+    <div class="fg"><label>Email Address *</label><input id="itm-email" type="email" placeholder="colleague@hospital.com"></div>
+    <div class="fg"><label>Role *</label><select id="itm-role"><option>doctor</option><option>specialist</option></select></div>
+    <div class="fg"><label>Specialty (Optional)</label><input id="itm-specialty" placeholder="e.g. Neuro-Oncology, Radiology"></div>
+    <div style="background:rgba(77,156,248,0.06);border:1px solid rgba(77,156,248,0.2);border-radius:8px;padding:12px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:4px;">📧 Invitation Details</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.6;">An invitation link will be sent to their email. They can accept to join your team and access shared patients.</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="btn btn-ghost" onclick="closeOverlay('invite-team-modal')">Cancel</button>
+      <button class="btn btn-primary" style="flex:1;" onclick="sendTeamInvite()">Send Invite →</button>
     </div>
   </div>
 </div>
@@ -8603,6 +8673,146 @@ window.initApp=function(){ _initApp2(); buildClinicPanel(); };
   });
   window.openPatientSearch=open;
 })();
+</script>
+<script>
+// ── Team Management ──
+let teamMembers = [];
+let teamActivity = [];
+
+function switchTeamTab(tab, btn) {
+  document.querySelectorAll('.team-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tv-members').style.display = tab === 'members' ? 'block' : 'none';
+  document.getElementById('tv-access').style.display = tab === 'access' ? 'block' : 'none';
+  document.getElementById('tv-activity').style.display = tab === 'activity' ? 'block' : 'none';
+  if (tab === 'members') renderTeamMembers();
+  else if (tab === 'access') populatePatientAccessList();
+  else if (tab === 'activity') renderTeamActivity();
+}
+
+function openInviteTeamModal() {
+  document.getElementById('itm-msg').innerHTML = '';
+  document.getElementById('itm-email').value = '';
+  document.getElementById('itm-role').value = 'doctor';
+  document.getElementById('itm-specialty').value = '';
+  openOverlay('invite-team-modal');
+}
+
+async function sendTeamInvite() {
+  const email = (document.getElementById('itm-email').value || '').trim();
+  const role = document.getElementById('itm-role').value || 'doctor';
+  const specialty = (document.getElementById('itm-specialty').value || '').trim();
+  const msgEl = document.getElementById('itm-msg');
+
+  if (!email) { showMsg('itm-msg', '⚠ Please enter an email address.', 'err'); return; }
+
+  try {
+    const res = await fetch('/api/team/invite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, role, specialty })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      showMsg('itm-msg', '⚠ ' + (err.error || 'Failed to send invite'), 'err');
+      return;
+    }
+
+    const data = await res.json();
+    msgEl.innerHTML = '✅ Invitation sent to ' + email + ' (expires in 7 days)';
+    msgEl.className = 'msg ok';
+    msgEl.style.display = 'block';
+    teamActivity.unshift({ action: 'invite_sent', detail: email + ' (' + role + ')', ts: new Date().toISOString() });
+    setTimeout(() => closeOverlay('invite-team-modal'), 2000);
+  } catch (err) {
+    showMsg('itm-msg', '⚠ Network error: ' + err.message, 'err');
+  }
+}
+
+async function renderTeamMembers() {
+  const container = document.getElementById('team-members-list');
+  if (!container) return;
+  try {
+    const res = await fetch('/api/team/members');
+    if (!res.ok) throw new Error('Failed to fetch');
+    const data = await res.json();
+    teamMembers = data.members || [];
+    if (!teamMembers.length) { container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-dim);">No team members yet.</div>'; return; }
+    container.innerHTML = teamMembers.map(m => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid var(--border);">
+        <div style="flex:1;">
+          <div style="font-weight:600;font-size:13px;">${esc(m.email)}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${m.specialty ? m.specialty + ' · ' : ''}${m.role} • Joined ${new Date(m.joined_at).toLocaleDateString()}</div>
+        </div>
+        <span style="font-size:11px;padding:4px 10px;border-radius:6px;background:${m.role==='owner'?'var(--cyan)15':'var(--blue)15'};color:${m.role==='owner'?'var(--cyan)':'var(--blue)'};">${m.role}</span>
+      </div>
+    `).join('');
+  } catch (err) {
+    container.innerHTML = '<div style="color:var(--red);padding:12px;">⚠ Error: ' + err.message + '</div>';
+  }
+}
+
+function populatePatientAccessList() {
+  const sel = document.getElementById('team-access-patient');
+  if (!sel) return;
+  const pats = getMyPatients();
+  sel.innerHTML = '<option value="">— Choose a patient —</option>';
+  pats.forEach(p => { sel.innerHTML += '<option value="' + p.mrn + '">' + p.mrn + ' · ' + p.name + '</option>'; });
+}
+
+function renderPatientAccessList() {
+  const mrn = document.getElementById('team-access-patient').value;
+  const container = document.getElementById('patient-access-list');
+  if (!container || !mrn) { if (container) container.innerHTML = ''; return; }
+  if (!teamMembers.length) { container.innerHTML = '<div style="color:var(--text-muted);font-size:12px;">No team members to share with.</div>'; return; }
+  container.innerHTML = teamMembers.map(m => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;border:1px solid var(--border2);border-radius:6px;margin-bottom:8px;">
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:500;">${esc(m.email)}</div>
+        <div style="font-size:10px;color:var(--text-muted);">${m.role}</div>
+      </div>
+      <select id="access-${m.user_id}" value="view" onchange="grantAccess('${mrn}', '${m.user_id}', this.value)" style="padding:4px 8px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--text);font-size:11px;">
+        <option value="">— No access —</option>
+        <option value="view">👁 View only</option>
+        <option value="edit">✏ Edit</option>
+        <option value="manage">🔧 Manage</option>
+      </select>
+    </div>
+  `).join('');
+}
+
+async function grantAccess(mrn, doctorId, accessType) {
+  try {
+    if (!accessType) {
+      const res = await fetch('/api/team/patients/' + mrn + '/access/' + doctorId, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed');
+      flash('✅ Access revoked');
+    } else {
+      const res = await fetch('/api/team/patients/' + mrn + '/grant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patientMrn: mrn, doctorId, accessType })
+      });
+      if (!res.ok) throw new Error('Failed');
+      flash('✅ Access granted: ' + accessType);
+    }
+    teamActivity.unshift({ action: accessType ? 'access_granted' : 'access_revoked', detail: (accessType || 'none') + ' for MRN ' + mrn, ts: new Date().toISOString() });
+  } catch (err) {
+    flash('⚠ ' + err.message);
+  }
+}
+
+function renderTeamActivity() {
+  const container = document.getElementById('team-activity-list');
+  if (!container) return;
+  if (!teamActivity.length) { container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-dim);">No activity yet.</div>'; return; }
+  const labels = { invite_sent: '📧 Sent', invite_accepted: '✅ Joined', access_granted: '🔓 Granted', access_revoked: '🔒 Revoked' };
+  container.innerHTML = teamActivity.map(a => {
+    const d = new Date(a.ts);
+    return `<div style="padding:10px;border-bottom:1px solid var(--border);"><div style="font-weight:500;font-size:12.5px;">${labels[a.action] || a.action}</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${a.detail} · ${d.toLocaleString()}</div></div>`;
+  }).join('');
+}
 </script>
 <script>
 // ── Idle auto-logout: protect an unattended record on a shared screen ──
