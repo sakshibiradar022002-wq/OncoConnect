@@ -9,8 +9,7 @@ test.describe('Patient App — OncoConnect', () => {
     await page.goto('/patient.html');
 
     // Should show login screen
-    await expect(page.locator('text=MRN')).toBeVisible();
-    await expect(page.locator('text=Patient MRN')).toBeVisible();
+    await expect(page.locator('#screen-login')).toBeVisible();
 
     // Fill credentials - patient.html uses id="l-mrn" and id="l-pass"
     await page.fill('#l-mrn', testMRN);
@@ -19,8 +18,8 @@ test.describe('Patient App — OncoConnect', () => {
     // Submit
     await page.click('button:has-text("Sign In as Patient")');
 
-    // Should be logged in (check for app shell or patient content)
-    await expect(page.locator('#app-shell, .patient-nav')).toBeVisible({ timeout: 5000 });
+    // Should be logged in (check for app shell)
+    await expect(page.locator('#app-shell')).toBeVisible({ timeout: 5000 });
   });
 
   test('patient can view dashboard after login', async ({ page }) => {
@@ -32,7 +31,7 @@ test.describe('Patient App — OncoConnect', () => {
     await page.click('button:has-text("Sign In as Patient")');
 
     // Should see app shell (patient dashboard)
-    await expect(page.locator('#app-shell, .screen-home, .patient-nav')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('#app-shell')).toBeVisible({ timeout: 5000 });
   });
 
   test('patient with invalid credentials cannot login', async ({ page }) => {
@@ -43,8 +42,9 @@ test.describe('Patient App — OncoConnect', () => {
     await page.fill('#l-pass', 'wrongpass');
     await page.click('button:has-text("Sign In as Patient")');
 
-    // Should stay on login page (not logged in)
+    // Should stay on login screen (not see app shell)
     await expect(page.locator('#screen-login')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('#app-shell')).not.toBeVisible();
   });
 
   test('patient can logout', async ({ page }) => {
@@ -58,8 +58,8 @@ test.describe('Patient App — OncoConnect', () => {
     // Wait for login to complete
     await expect(page.locator('#app-shell')).toBeVisible({ timeout: 5000 });
 
-    // Logout - look for logout button in the UI
-    const logoutBtn = page.locator('button:has-text("Logout"), button:has-text("Sign out")').first();
+    // Look for logout button - it's usually in a menu or header
+    const logoutBtn = page.locator('button:has-text("Logout"), button:has-text("Sign out"), button:has-text("Log out")').first();
     if (await logoutBtn.isVisible().catch(() => false)) {
       await logoutBtn.click();
 
