@@ -11,7 +11,7 @@ import rateLimit from 'express-rate-limit';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-import { initSchema } from './db/index.js';
+import { initSchema, initTestData } from './db/index.js';
 import { errorHandler } from './middleware/validate.js';
 import { authenticate } from './middleware/auth.js';
 import { authRouter } from './routes/auth.js';
@@ -27,6 +27,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Ensure DB & tables exist before serving.
 await initSchema();
+await initTestData(); // Auto-populate test data if using ephemeral DB
 await initPush();
 
 const app = express();

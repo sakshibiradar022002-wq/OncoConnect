@@ -59,7 +59,8 @@ export const config = {
   sessionTtlMinutes: parseInt(process.env.SESSION_TTL_MIN || '120', 10),
 
   // Path to the SQLite database file.
-  dbPath: process.env.DB_PATH || './chemocure.db',
+  // If DB_EPHEMERAL=true, uses :memory: (for testing/preview, data lost on restart)
+  dbPath: process.env.DB_EPHEMERAL === 'true' ? ':memory:' : (process.env.DB_PATH || './chemocure.db'),
 
   // Password hashing cost (PBKDF2 iterations).
   pbkdf2Iterations: 210000,

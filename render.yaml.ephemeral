@@ -1,0 +1,22 @@
+# Render deployment with EPHEMERAL database (for testing/preview)
+# Data is lost on every redeploy, but no external setup needed.
+# For production: use render.yaml (requires Turso setup)
+
+services:
+  - type: web
+    name: oncoconnect-server
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node src/server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PHI_ENCRYPTION_KEY
+        generateValue: true
+      # Use in-memory SQLite for testing (data lost on redeploy)
+      - key: DB_EPHEMERAL
+        value: "true"
