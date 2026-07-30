@@ -9,6 +9,10 @@
     "dev": "node --watch src/server.js",
     "init-db": "node src/db/init.js",
     "test": "node --test test/e2e.test.js",
+    "test:api": "node --test test/e2e.test.js",
+    "test:ui": "playwright test",
+    "test:ui:debug": "playwright test --debug",
+    "test:ui:headed": "playwright test --headed",
     "test:security": "npm audit --production && npm test",
     "audit": "npm audit --production",
     "audit:fix": "npm audit fix --production",
@@ -36,5 +40,8 @@
   },
   "optionalDependencies": {
     "better-sqlite3": "^11.3.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.0"
   }
 }
