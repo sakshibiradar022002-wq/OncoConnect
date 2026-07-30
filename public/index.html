@@ -809,7 +809,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
       <div class="panel active" id="panel-overview">
         <div class="page-header">
           <div><div class="page-title" id="greet-text">Welcome back</div><div class="page-sub">Neuro-oncology command center</div></div>
-          <div style="display:flex;gap:8px;">
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div id="server-status" style="font-size:11px;font-weight:600;padding:6px 12px;border-radius:8px;background:rgba(34,197,94,0.1);color:#16a34a;display:none;">✅ Connected</div>
             <button class="hist-trigger" onclick="openHistPanel('overview')">🕐 History <span class="hist-trigger-badge" id="ov-hist-count">0</span></button>
             <button class="btn btn-primary" onclick="openAddPat()">+ Add Patient</button>
           </div>
@@ -1482,10 +1483,15 @@ async function doRegister() {
 async function doLogin(){
   const email=v('li-email').toLowerCase().trim(), pass=v('li-pass');
   if(!email||!pass){showMsg('login-msg','Enter your credentials.');return;}
-  // Server sync: sign in and pull this account's data first, so login works
-  // on any device. If the server is unreachable, fall back to local-only.
+  // Authenticate with backend server for cross-device sync
   let serverErr=null;
-  try{ await CCSync.doctorLogin(email,pass); }catch(e){ serverErr=e; }
+  try{
+    await CCSync.doctorLogin(email,pass);
+    // Backend auth successful - data is being synced
+  }catch(e){
+    serverErr=e;
+    showMsg('login-msg','⚠️ Server unreachable. Using local data only. Some features may be limited.');
+  }
   const docId=LS.get('doc_email_'+emailKey(email));
   if(!docId){showMsg('login-msg','No account found for this email.');return;}
   const doc=LS.get('doc_'+docId);
@@ -1514,14 +1520,32 @@ function doLogout(){
   document.getElementById('app').style.display='none';
   document.getElementById('auth-screen').style.display='flex';
 }
+function updateServerStatus(){
+  const el=document.getElementById('server-status');
+  if(!el)return;
+  if(window.CCSync&&CCSync.online){
+    el.style.display='block';
+    el.style.background='rgba(34,197,94,0.1)';
+    el.style.color='#16a34a';
+    el.textContent='✅ Connected';
+  }else{
+    el.style.display='block';
+    el.style.background='rgba(249,115,22,0.1)';
+    el.style.color='#ea580c';
+    el.textContent='⚠️ Offline Mode';
+  }
+}
 function initApp(){
   document.getElementById('greet-text').textContent='Welcome back, '+currentDoc.name;
   document.getElementById('doc-name').textContent=currentDoc.name;
   document.getElementById('doc-role').textContent=currentDoc.spec;
   document.getElementById('doc-av').textContent=currentDoc.name.charAt(0).toUpperCase();
   document.getElementById('tb-doctor-id').textContent='ID: '+currentDoc.docId;
+  updateServerStatus();
   renderNotifs();
   updateStats();renderPatList();renderOvPatients();renderCalSel();renderConvos();
+  // Poll server status every 10 seconds
+  setInterval(updateServerStatus,10000);
 }
 
 // ═══════════════════════════════════════════════
