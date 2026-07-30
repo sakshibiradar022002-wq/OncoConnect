@@ -4455,11 +4455,19 @@ function saveLabResult() {
   const idx = parseInt(document.getElementById('r-lab-idx')?.value || '-1');
   const test = document.getElementById('r-lab-test')?.value?.trim();
   if (!test) { flash('Enter a test name.'); return; }
+  var ref=v('r-lab-ref');
+  if(!ref) {
+    var autoRef=getLabReferenceRange(test);
+    if(autoRef) {
+      ref=autoRef[0]+' '+autoRef[1];
+      document.getElementById('r-lab-ref').value=ref;
+    }
+  }
   const lab = {
     date: v('r-lab-date'),
     test,
     value: v('r-lab-val'),
-    ref: v('r-lab-ref'),
+    ref: ref,
     status: v('r-lab-status') || 'Normal',
     specimen: v('r-lab-specimen'),
     notes: v('r-lab-notes')
@@ -4576,6 +4584,34 @@ async function renderLabTrend(){
       <span>Trend: <strong style="color:${trendCol};">${trend}</strong></span>
       <span>${points.length} readings</span>`;
   }
+}
+
+function getLabReferenceRange(testName) {
+  var ranges={
+    'WBC':['4.5–11.0','K/µL'],
+    'Hemoglobin':['12.0–16.0','g/dL (F), 13.5–17.5 (M)'],
+    'Hematocrit':['36–46%','(F), 41–53% (M)'],
+    'Platelets':['150–400','K/µL'],
+    'Creatinine':['0.6–1.2','mg/dL'],
+    'eGFR':['≥60','mL/min/1.73m²'],
+    'BUN':['7–20','mg/dL'],
+    'Glucose':['70–100','mg/dL (fasting)'],
+    'ALT':['7–56','U/L'],
+    'AST':['10–40','U/L'],
+    'ALP':['30–120','U/L'],
+    'TSH':['0.4–4.0','mIU/L'],
+    'Albumin':['3.4–5.4','g/dL'],
+    'Calcium':['8.5–10.2','mg/dL'],
+    'Phosphorus':['2.5–4.5','mg/dL'],
+    'Magnesium':['1.7–2.2','mg/dL'],
+    'Potassium':['3.5–5.0','mEq/L'],
+    'Sodium':['136–145','mEq/L'],
+    'PSA':['<4.0','ng/mL'],
+    'CEA':['<5.0','ng/mL'],
+    'CA 19-9':['<37','U/mL'],
+    'AFP':['<10','ng/mL']
+  };
+  return ranges[testName]||null;
 }
 
 function renderLabsTable() {
@@ -4731,6 +4767,36 @@ function importReport() {
 // ── MEDS ──
 function showMedForm(){const f=document.getElementById('r-med-form');if(f)f.style.display='block';}
 function hideMedForm(){const f=document.getElementById('r-med-form');if(f)f.style.display='none';}
+
+function checkDrugInteractions(newDrug) {
+  var interactions={'Temozolomide':['Warfarin','Phenytoin'],'Nivolumab':['Ipilimumab','Pembrolizumab'],'Pembrolizumab':['Nivolumab','Checkpoint inhibitors'],'Bevacizumab':['ACE inhibitors','NSAIDs'],'Doxorubicin':['Trastuzumab','HER2 inhibitors']};
+  var found=[];
+  if(interactions[newDrug]) {
+    rMeds.forEach(function(m) {
+      if(interactions[newDrug].indexOf(m.name)>-1) {
+        found.push(m.name);
+      }
+    });
+  }
+  return found;
+}
+
+function checkDrugAllergies(drugName) {
+  var allergyDrugs={'Penicillin':['Amoxicillin','Ampicillin','Piperacillin'],'Sulfonamide':['Sulfamethoxazole'],'NSAID':['Ibuprofen','Naproxen','Aspirin'],'Chemotherapy':['Temozolomide','Doxorubicin','Cisplatin']};
+  var found=[];
+  for(var allergyClass in allergyDrugs) {
+    if(allergyDrugs[allergyClass].indexOf(drugName)>-1) {
+      var matchingAllergies=rAllergies.filter(function(a) {
+        return a.name.toLowerCase().indexOf(allergyClass.toLowerCase())>-1 || a.name.toLowerCase()===allergyClass.toLowerCase();
+      });
+      if(matchingAllergies.length) {
+        found=found.concat(matchingAllergies.map(function(a) {return a.name+' ('+a.severity+')';}));
+      }
+    }
+  }
+  return found;
+}
+
 function saveMed(){
   const med={
     name:v('r-med-name'),dose:v('r-med-dose'),
@@ -4738,7 +4804,25 @@ function saveMed(){
     start:v('r-med-start'),end:v('r-med-end'),
     indication:v('r-med-indication'),status:v('r-med-status')||'Active'
   };
-  if(!med.name)return;rMeds.push(med);renderMedList();hideMedForm();
+  if(!med.name)return;
+
+  var interactions=checkDrugInteractions(med.name);
+  var allergies=checkDrugAllergies(med.name);
+  var banner=document.getElementById('r-drug-interaction-banner');
+
+  var warnings=[];
+  if(allergies.length)warnings.push('<strong style="color:var(--red);">🚨 ALLERGY WARNING:</strong> Patient has documented allergy to: '+allergies.join(', '));
+  if(interactions.length)warnings.push('<strong>⚠️ INTERACTION:</strong> '+med.name+' may interact with: '+interactions.join(', '));
+
+  if(warnings.length&&banner) {
+    banner.style.display='block';
+    banner.innerHTML=warnings.join('<div style="margin-top:6px;"></div>');
+    if(allergies.length)banner.style.borderColor='rgba(220,38,38,0.4)';
+  }else if(banner) {
+    banner.style.display='none';
+  }
+
+  rMeds.push(med);renderMedList();hideMedForm();
   ['r-med-name','r-med-dose','r-med-start','r-med-end','r-med-indication'].forEach(id=>sv(id,''));
 }
 function delMed(idx){rMeds.splice(idx,1);renderMedList();}
