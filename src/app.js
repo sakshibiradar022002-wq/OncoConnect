@@ -21,6 +21,7 @@ import { pushRouter } from './routes/push.js';
 import { emailRouter } from './routes/email.js';
 import { initPush } from './push.js';
 import { observability, metricsSnapshot } from './observability.js';
+import { initSentry, sentryRequestHandler, sentryErrorHandler } from './observability/sentry.js';
 import { db } from './db/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -29,9 +30,13 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 await initSchema();
 await initTestData(); // Auto-populate test data if using ephemeral DB
 await initPush();
+initSentry(); // Initialize error tracking (no-op if SENTRY_DSN not set)
 
 const app = express();
 app.set('trust proxy', 1); // needed for correct req.ip behind cloud proxies
+
+// ── Error tracking (Sentry) ────────────────────────────────────────
+app.use(sentryRequestHandler()); // Capture request metadata
 
 // ── Security headers ──────────────────────────────────────────────
 app.use(helmet({
@@ -138,6 +143,8 @@ app.get('*', (req, res, next) => {
   res.sendFile(join(__dirname, '..', 'public', 'index.html'));
 });
 
-app.use(errorHandler);
+// ── Error handlers (order matters: Sentry before custom) ────────────
+app.use(sentryErrorHandler()); // Sentry error handler
+app.use(errorHandler);         // Custom error handler
 
 export { app };

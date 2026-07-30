@@ -58,7 +58,11 @@ CREATE TABLE IF NOT EXISTS kv_store (
   updated_at TEXT NOT NULL,
   PRIMARY KEY (owner_id, k)
 );
+-- Indexes optimized for common query patterns
 CREATE INDEX IF NOT EXISTS idx_kv_key ON kv_store(k);
+CREATE INDEX IF NOT EXISTS idx_kv_owner_key ON kv_store(owner_id, k);
+CREATE INDEX IF NOT EXISTS idx_kv_owner_updated ON kv_store(owner_id, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_kv_pattern ON kv_store(k COLLATE NOCASE);  -- for LIKE queries
 
 -- ── Web push subscriptions (one row per device) ──
 CREATE TABLE IF NOT EXISTS push_subs (
