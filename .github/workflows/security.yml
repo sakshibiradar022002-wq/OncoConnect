@@ -1,0 +1,167 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: [main, claude/**]
+  pull_request:
+    branches: [main, claude/**]
+  schedule:
+    - cron: '0 2 * * 0'  # Weekly Sunday at 2 AM UTC
+
+jobs:
+  npm-audit:
+    name: NPM Audit & Dependencies
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: NPM Audit (production only)
+        continue-on-error: true
+        run: |
+          echo "Checking production dependencies for known vulnerabilities..."
+          npm audit --audit-level=moderate --production || EXIT_CODE=$?
+
+          if [ ${EXIT_CODE:-0} -ne 0 ]; then
+            echo "⚠️ Found security issues. Review with: npm audit --production"
+            exit 1
+          fi
+
+      - name: Generate SBOM (Software Bill of Materials)
+        run: npm ls --all --long --production > sbom.txt || true
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.txt
+
+  secrets-check:
+    name: Secrets & Credentials Detection
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Truffleog3 Secrets Detection
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  code-quality:
+    name: Code Quality & Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests (security regression check)
+        run: npm test
+
+      - name: Check for console.logs in production code
+        continue-on-error: true
+        run: |
+          echo "Checking for console.* calls (potential info leaks)..."
+          if grep -r "console\.\(log\|debug\)" src/ --include="*.js" | grep -v "console\.error" | grep -v "console\.warn"; then
+            echo "⚠️ Found console.log() calls. Use console.error() for errors only."
+            exit 1
+          fi
+
+      - name: Check for hardcoded secrets
+        continue-on-error: true
+        run: |
+          echo "Checking for hardcoded credentials..."
+          if grep -r "password\s*=" src/ --include="*.js" | grep -v "password:"; then
+            echo "⚠️ Possible hardcoded password found"
+            exit 1
+          fi
+
+  dependency-check:
+    name: OWASP Dependency Check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run OWASP Dependency Check
+        uses: jeremylong/DependencyCheck_Action@main
+        with:
+          project: 'OncoConnect'
+          path: '.'
+          format: 'SARIF'
+          args: >
+            --enable-retired
+            --enablePackageManager
+
+      - name: Upload SARIF report
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: dependency-check-report.sarif
+          category: dependency-check
+
+  security-summary:
+    name: Security Summary
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [npm-audit, secrets-check, code-quality, dependency-check]
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check security status
+        run: |
+          echo "## 🔒 Security Scan Summary"
+          echo ""
+          echo "### Results"
+          echo "- NPM Audit: ${{ needs.npm-audit.result }}"
+          echo "- Secrets Check: ${{ needs.secrets-check.result }}"
+          echo "- Code Quality: ${{ needs.code-quality.result }}"
+          echo "- Dependency Check: ${{ needs.dependency-check.result }}"
+          echo ""
+          echo "### Recommendations"
+          echo "1. Review all security findings before merging"
+          echo "2. Update dependencies regularly with \`npm update\`"
+          echo "3. Run \`npm audit fix\` for automatic patches"
+          echo "4. Never commit credentials; use environment variables"
+          echo ""
+
+          if [[ "${{ needs.npm-audit.result }}" == "failure" ]]; then
+            echo "⚠️ **Action Required:** Security vulnerabilities found. Run locally:"
+            echo "\`\`\`bash"
+            echo "npm audit"
+            echo "npm audit fix"
+            echo "\`\`\`"
+            exit 1
+          fi
