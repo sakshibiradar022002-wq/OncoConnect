@@ -852,6 +852,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
             <select id="pat-phase-filter" onchange="renderPatList()" style="padding:10px 12px;border:1px solid var(--border2);border-radius:8px;font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);"><option value="">All phases</option><option>Diagnosis</option><option>Pre-Treatment</option><option>Treatment Phase</option><option>Post-Treatment</option><option>Monitoring</option><option>Palliative</option></select>
           </div>
           <div id="pat-list"></div>
+          <div id="pat-list-controls" style="display:none;gap:4px;justify-content:center;margin-top:14px;flex-wrap:wrap;"></div>
         </div>
       </div>
 
@@ -1642,7 +1643,12 @@ function renderPatList(){
   let f=pats.filter(p=>(p.name.toLowerCase().includes(q)||p.mrn.toLowerCase().includes(q)||(p.diag||'').toLowerCase().includes(q))&&(!ph||(p.phase||'')===ph));
   if(_svFilter==='highrisk')f=f.filter(patientIsHighRisk);
   const c=document.getElementById('pat-list');
-  c.innerHTML=f.length?f.map(renderPatRow).join(''):`<div style="text-align:center;padding:32px;color:var(--text-dim);">No patients found. Add your first patient.</div>`;
+  const state=PAGINATION_STATE.patList;
+  const pag=paginate(f,state);
+  if(state.page>=pag.totalPages)state.page=Math.max(0,pag.totalPages-1);
+  const pag2=paginate(f,state);
+  c.innerHTML=pag2.items.length?pag2.items.map(renderPatRow).join(''):`<div style="text-align:center;padding:32px;color:var(--text-dim);">No patients found. Add your first patient.</div>`;
+  renderPaginationControls('pat-list-controls',state,pag2.totalPages);
 }
 function renderOvPatients(){
   const pats=getMyPatients().slice(0,5);
@@ -2669,6 +2675,7 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
       </thead>
       <tbody id="r-labs-body"></tbody>
     </table>
+    <div id="r-labs-list-controls" style="display:none;gap:4px;justify-content:center;margin-top:14px;flex-wrap:wrap;"></div>
 
     <!-- Stored Lab Files Section -->
     <div id="r-lab-files-section" style="margin-top:24px;display:none;">
@@ -2726,6 +2733,7 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
       <div style="display:flex;gap:6px;"><button class="btn btn-ghost btn-sm" onclick="hideMedForm()">Cancel</button><button class="btn btn-primary btn-sm" onclick="saveMed()">Save</button></div>
     </div>
     <div id="r-med-list"></div>
+    <div id="r-med-list-controls" style="display:none;gap:4px;justify-content:center;margin-top:14px;flex-wrap:wrap;"></div>
   </div>
 
   <!-- TREATMENT -->
@@ -4825,7 +4833,11 @@ function renderLabsTable() {
   }
   if (empty) empty.style.display = 'none';
   if (table) table.style.display = '';
-  tbody.innerHTML = rLabs.map((l, i) => `
+  const state=PAGINATION_STATE.labsList;
+  const pag=paginate(rLabs,state);
+  if(state.page>=pag.totalPages)state.page=Math.max(0,pag.totalPages-1);
+  const pag2=paginate(rLabs,state);
+  tbody.innerHTML = pag2.items.map((l, i) => `
     <tr>
       <td style="white-space:nowrap;">${l.date || '—'}</td>
       <td style="font-weight:500;">${esc(l.test)}</td>
@@ -4838,6 +4850,7 @@ function renderLabsTable() {
         <button class="btn btn-danger btn-sm" onclick="delLab(${i})">🗑</button>
       </td>
     </tr>`).join('');
+  renderPaginationControls('r-labs-list-controls',state,pag2.totalPages);
 }
 
 // ── REPORT PARSER ──
@@ -5530,6 +5543,60 @@ const ICD_DB = [
 let icdActiveFilter = 'all';
 let icdSelectedCode = null;
 
+const PAGINATION_STATE = {
+  patList: { page: 0, pageSize: 10 },
+  medList: { page: 0, pageSize: 10 },
+  labsList: { page: 0, pageSize: 10 }
+};
+
+function paginate(items, state) {
+  const start = state.page * state.pageSize;
+  const end = start + state.pageSize;
+  return { items: items.slice(start, end), totalPages: Math.ceil(items.length / state.pageSize), totalItems: items.length };
+}
+
+function renderPaginationControls(elementId, state, totalPages) {
+  const controls = document.getElementById(elementId);
+  if (!controls || totalPages <= 1) { if (controls) controls.style.display = 'none'; return; }
+  controls.style.display = 'flex';
+  let html = `<button class="btn btn-ghost btn-sm" ${state.page === 0 ? 'disabled' : ''} onclick="prevPage('${elementId.replace('-controls','')}')">← Previous</button>`;
+  const maxPages = Math.min(5, totalPages);
+  const start = Math.max(0, state.page - 2);
+  for (let i = start; i < start + maxPages && i < totalPages; i++) {
+    html += `<button class="btn ${i === state.page ? 'btn-primary' : 'btn-ghost'} btn-sm" onclick="goToPage('${elementId.replace('-controls','')}', ${i})">${i + 1}</button>`;
+  }
+  html += `<button class="btn btn-ghost btn-sm" ${state.page >= totalPages - 1 ? 'disabled' : ''} onclick="nextPage('${elementId.replace('-controls','')}')">Next →</button>`;
+  controls.innerHTML = html;
+}
+
+function nextPage(listName) {
+  const state = PAGINATION_STATE[listName];
+  const totalPages = getListTotalPages(listName);
+  if (state.page < totalPages - 1) { state.page++; renderList(listName); }
+}
+function prevPage(listName) { const state = PAGINATION_STATE[listName]; if (state.page > 0) { state.page--; renderList(listName); } }
+function goToPage(listName, page) { PAGINATION_STATE[listName].page = page; renderList(listName); }
+
+function getListTotalPages(listName) {
+  if (listName === 'patList') {
+    const pats = getMyPatients(), q = (v('pat-search')||'').toLowerCase(), ph = v('pat-phase-filter')||'';
+    let f = pats.filter(p=>(p.name.toLowerCase().includes(q)||p.mrn.toLowerCase().includes(q)||(p.diag||'').toLowerCase().includes(q))&&(!ph||(p.phase||'')===ph));
+    if (_svFilter === 'highrisk') f = f.filter(patientIsHighRisk);
+    return Math.ceil(f.length / PAGINATION_STATE.patList.pageSize);
+  } else if (listName === 'medList') {
+    return Math.ceil(rMeds.length / PAGINATION_STATE.medList.pageSize);
+  } else if (listName === 'labsList') {
+    return Math.ceil(rLabs.length / PAGINATION_STATE.labsList.pageSize);
+  }
+  return 1;
+}
+
+function renderList(listName) {
+  if (listName === 'patList') renderPatList();
+  else if (listName === 'medList') renderMedList();
+  else if (listName === 'labsList') renderLabsTable();
+}
+
 function openICDLookup(){
   icdSelectedCode = null;
   document.getElementById('icd-search').value = '';
@@ -5992,23 +6059,33 @@ function renderMedList() {
   });
   const groups = { Active:[], OnHold:[], Discontinued:[] };
   sorted.forEach(m => { const g = m.status==='Active'?'Active':m.status==='On Hold'?'OnHold':'Discontinued'; groups[g].push(m); });
-  let html = '';
+  let allMeds = [];
   [['Active','Active','#00d4b4'],['OnHold','On Hold','#f0a04b'],['Discontinued','Discontinued','#ff5c5c']].forEach(([key,label,col]) => {
     const items = groups[key];
-    if (!items.length) return;
-    html += '<div class="med-group-label" style="color:' + col + ';">' + label + ' (' + items.length + ')</div>';
-    items.forEach(m => {
-      html += '<div class="med-item" style="margin-bottom:6px;">'
-        + '<div style="flex:1;">'
-        + '<div style="font-weight:600;font-size:13px;">' + m.name + ' <span style="font-size:10px;padding:1px 6px;border-radius:6px;background:' + (scColor[m.status]||'#6b7f99') + '18;color:' + (scColor[m.status]||'#6b7f99') + ';">' + (m.status||'Active') + '</span></div>'
-        + '<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">' + (m.dose||'—') + ' · ' + (m.route||'—') + ' · ' + (m.freq||'—') + (m.indication?' · '+m.indication:'') + '</div>'
-        + ((m.start||m.end) ? '<div class="med-date-badge">📅 ' + (m.start||'') + (m.end?' → '+m.end:'') + '</div>' : '')
-        + '</div>'
-        + '<button class="btn btn-danger btn-sm" onclick="delMed(' + m._orig + ')">Remove</button>'
-        + '</div>';
-    });
+    if (items.length) { allMeds.push({type:'header',label,col,count:items.length}); allMeds.push(...items.map(m=>({...m,type:'item'}))); }
   });
-  c.innerHTML = adhHtml + html;
+  const state=PAGINATION_STATE.medList;
+  const pag=paginate(allMeds,state);
+  if(state.page>=pag.totalPages)state.page=Math.max(0,pag.totalPages-1);
+  const pag2=paginate(allMeds,state);
+  let html='';
+  pag2.items.forEach(m=>{
+    if(m.type==='header'){
+      html+='<div class="med-group-label" style="color:'+m.col+';">'+m.label+' ('+m.count+')</div>';
+    }else{
+      const scCol=scColor[m.status]||'#6b7f99';
+      html+='<div class="med-item" style="margin-bottom:6px;">'
+        +'<div style="flex:1;">'
+        +'<div style="font-weight:600;font-size:13px;">'+m.name+' <span style="font-size:10px;padding:1px 6px;border-radius:6px;background:'+scCol+'18;color:'+scCol+';">'+(m.status||'Active')+'</span></div>'
+        +'<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">'+(m.dose||'—')+' · '+(m.route||'—')+' · '+(m.freq||'—')+(m.indication?' · '+m.indication:'')+' </div>'
+        +((m.start||m.end)?'<div class="med-date-badge">📅 '+(m.start||'')+(m.end?' → '+m.end:'')+' </div>':'')
+        +'</div>'
+        +'<button class="btn btn-danger btn-sm" onclick="delMed('+m._orig+')">Remove</button>'
+        +'</div>';
+    }
+  });
+  c.innerHTML=adhHtml+html;
+  renderPaginationControls('r-med-list-controls',state,pag2.totalPages);
 }
 
 // ── Save Record + Audit ──
