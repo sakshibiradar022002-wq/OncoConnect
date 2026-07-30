@@ -49,3 +49,50 @@ jobs:
           done
       - name: Syntax-check inline browser scripts
         run: node scripts/check-html.mjs
+
+  handlers:
+    name: inline handler resolution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      # Fails the build if any inline onclick points at something that is not a
+      # function on window. That failure mode is silent in the browser — no
+      # error, no crash — so nothing else in CI can see it.
+      - name: Check every inline handler resolves
+        run: node scripts/check-handlers.mjs
+        env:
+          JWT_SECRET: ci-jwt-secret-do-not-use-in-prod
+          PHI_ENCRYPTION_KEY: '0000000000000000000000000000000000000000000000000000000000000000'
+
+  ui:
+    name: browser end-to-end
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run Playwright suite
+        run: npm run test:ui
+        env:
+          JWT_SECRET: ci-jwt-secret-do-not-use-in-prod
+          PHI_ENCRYPTION_KEY: '0000000000000000000000000000000000000000000000000000000000000000'
+          DB_EPHEMERAL: 'true'
+      - name: Upload report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: test-results/
+          retention-days: 7

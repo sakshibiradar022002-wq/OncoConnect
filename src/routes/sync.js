@@ -319,7 +319,10 @@ async function upgradeStoredPassword(ownerId, key, rec, password, passField) {
 // loose substring. Substring matching (instr / includes) was safe only while
 // every MRN was the same length; exact patterns keep patients isolated even
 // if the MRN format ever changes, and stop a patient injecting arbitrary keys.
-function patientOwnsKey(k, mrn) {
+// Exported so the isolation boundary can be unit-tested directly. This is the
+// check that stops one patient reading or writing another's records, so it
+// deserves tests that don't depend on standing up a server.
+export function patientOwnsKey(k, mrn) {
   const exact = ['pat_', 'msgs_', 'appts_', 'lab_subs_', 'pat_tokens_',
     'reminders_', 'invoices_', 'checkin_', 'travel_'].map(pre => pre + mrn);
   if (exact.includes(k)) return true;

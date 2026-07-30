@@ -7459,6 +7459,28 @@ function generatePatientLink() { sendToLabPortal(); }
 
 
 
+// Lab Results tabs in the patient record: "+ Add result" / "Paste report" /
+// "Upload files". Three static buttons referenced this and it was never
+// defined, so all three were dead clicks.
+function switchLabTab(tab){
+  const panes={result:'r-lab-form',report:'r-report-form',upload:'r-upload-form'};
+  Object.entries(panes).forEach(([k,id])=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display=(k===tab)?'block':'none';
+  });
+  document.querySelectorAll('.lab-tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('lab-tab-'+tab)?.classList.add('active');
+  if(tab==='result') showLabForm(-1);   // reset to a blank entry form
+}
+
+// The "🧪 Portal" button on each registered lab passes a labId; openLabWindow
+// takes the lab record itself.
+function openLabWindowForLab(labId){
+  const lab=getMyLabs().find(l=>l.labId===labId);
+  if(!lab){flash('Laboratory not found.');return;}
+  openLabWindow(lab);
+}
+
 function openLabWindow(lab) {
   if (!lab) { const labs=getMyLabs(); if(!labs.length){flash('Register a lab first.');return;} lab=labs[0]; }
   const docId = currentDoc.docId;
@@ -7973,7 +7995,9 @@ window.renderClinic=function(){ buildClinicPanel(); renderDayBoard(); };
    The compliance view: what a hospital's data-protection officer or an
    ethics committee would ask to see. All computed locally from the
    account's own records. */
-function renderGovernanceTab(){
+// On window, not a bare declaration: this block is inside the clinic IIFE, so
+// a plain `function` here is invisible to the inline onclick that calls it.
+window.renderGovernanceTab=function renderGovernanceTab(){
   const el=document.getElementById('ct-6');if(!el)return;
   const pats=getMyPatients();
   const consented=pats.filter(p=>p.consent&&!p.consent.withdrawn).length;
@@ -8057,7 +8081,8 @@ window.setImpactWindow=function(d){impactDays=d;renderImpactTab();};
 let _impactMetrics=null;
 // Pilot summary: the headline metrics as a CSV, for a slide deck or a grant
 // report. Uses whatever window (30/90 days) is currently selected.
-function exportPilotSummary(){
+// Also inside the clinic IIFE — same reason as renderGovernanceTab above.
+window.exportPilotSummary=function exportPilotSummary(){
   if(!_impactMetrics){flash('Open the Impact tab first.');return;}
   const m=_impactMetrics;
   const rows=[

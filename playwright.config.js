@@ -24,8 +24,11 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        launchArgs: ['--no-sandbox'],
-        executablePath: '/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux/headless_shell',
+        launchOptions: { args: ['--no-sandbox'] },
+        // Only pin a binary when the environment provides one. A hardcoded path
+        // resolves on exactly one machine and breaks everywhere else, CI
+        // included — let Playwright find its own browser by default.
+        ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}),
       },
     },
   ],
