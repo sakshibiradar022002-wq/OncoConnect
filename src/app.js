@@ -17,6 +17,7 @@ import { authenticate } from './middleware/auth.js';
 import { authRouter } from './routes/auth.js';
 import { syncRouter } from './routes/sync.js';
 import { adminRouter } from './routes/admin.js';
+import { teamRouter } from './routes/team.js';
 import { pushRouter } from './routes/push.js';
 import { emailRouter } from './routes/email.js';
 import { initPush } from './push.js';
@@ -117,6 +118,7 @@ app.get('/api/metrics', apiLimiter, authenticate, async (req, res) => {
 // ── API routes ────────────────────────────────────────────────────
 app.use('/api/auth', authLimiter, authRouter);
 app.use('/api/sync', apiLimiter, syncRouter);
+app.use('/api/team', apiLimiter, teamRouter);
 app.use('/api/admin', apiLimiter, adminRouter);
 app.use('/api/push', apiLimiter, pushRouter);
 app.use('/api/email', emailRouter); // has its own per-route limiters

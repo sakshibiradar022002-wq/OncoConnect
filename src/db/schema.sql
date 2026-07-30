@@ -80,3 +80,50 @@ CREATE TABLE IF NOT EXISTS email_otps (
   expires_at TEXT NOT NULL,
   attempts   INTEGER NOT NULL DEFAULT 0
 );
+
+-- ── Team members: doctors can invite colleagues to share patients ──
+CREATE TABLE IF NOT EXISTS team_members (
+  id         TEXT PRIMARY KEY,             -- uuid
+  team_id    TEXT NOT NULL,                -- clinic/practice identifier
+  user_id    TEXT NOT NULL,
+  role       TEXT NOT NULL CHECK (role IN ('owner', 'doctor', 'specialist')),
+  specialty  TEXT,                         -- e.g., 'Neuro-oncology', 'Oncology Nurse'
+  joined_at  TEXT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE(team_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_team_members_team ON team_members(team_id);
+CREATE INDEX IF NOT EXISTS idx_team_members_user ON team_members(user_id);
+
+-- ── Team invitations: email invites sent but not yet accepted ──
+CREATE TABLE IF NOT EXISTS team_invites (
+  id         TEXT PRIMARY KEY,             -- uuid
+  team_id    TEXT NOT NULL,
+  email      TEXT NOT NULL,                -- invitee email
+  role       TEXT NOT NULL CHECK (role IN ('doctor', 'specialist')),
+  invite_code TEXT NOT NULL,               -- unique code for accepting invite
+  invited_by TEXT NOT NULL,                -- inviter user id
+  created_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  accepted_at TEXT,                        -- null if not yet accepted
+  FOREIGN KEY (invited_by) REFERENCES users(id),
+  UNIQUE(team_id, email)
+);
+CREATE INDEX IF NOT EXISTS idx_invites_code ON team_invites(invite_code);
+CREATE INDEX IF NOT EXISTS idx_invites_team ON team_invites(team_id);
+
+-- ── Patient access permissions: who can see which patients ──
+-- By default, patient owner can see their own patients.
+-- This table grants explicit access to other doctors.
+CREATE TABLE IF NOT EXISTS patient_access (
+  patient_mrn TEXT NOT NULL,              -- patient MRN key
+  owner_id    TEXT NOT NULL,              -- original patient owner
+  doctor_id   TEXT NOT NULL,              -- doctor who can access
+  access_type TEXT NOT NULL CHECK (access_type IN ('view', 'edit', 'manage')),
+  granted_at  TEXT NOT NULL,
+  PRIMARY KEY (patient_mrn, owner_id, doctor_id),
+  FOREIGN KEY (owner_id) REFERENCES users(id),
+  FOREIGN KEY (doctor_id) REFERENCES users(id)
+);
+CREATE INDEX IF NOT EXISTS idx_access_doctor ON patient_access(doctor_id);
+CREATE INDEX IF NOT EXISTS idx_access_owner ON patient_access(owner_id);
