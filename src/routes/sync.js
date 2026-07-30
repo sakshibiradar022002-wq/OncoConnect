@@ -230,13 +230,41 @@ async function applyChanges(ownerId, changes, allow) {
 
 const pushSchema = z.object({ changes: z.record(z.any()) });
 
-// ── Doctor: pull the whole keyspace ───────────────────────────────
+// ── Doctor: pull the keyspace, in full or incrementally ───────────
+//
+// Without ?since, this returns and decrypts EVERY key the doctor owns. A busy
+// clinician accumulates thousands, and the 45s background poll paid that cost
+// each time just to notice one new lab result.
+//
+// ?since=<ISO timestamp> returns only keys modified after it, served by the
+// idx_kv_owner_updated index. The response carries the server's own clock as
+// `now`; clients echo that back on the next poll rather than using their own,
+// so client/server clock skew can't skip a write.
+//
+// Deletions are not reported by either mode — a deleted row simply isn't
+// there. That is unchanged behaviour: the client merge only adds and updates,
+// so a full pull never propagated deletions either.
 syncRouter.get('/', authenticate, requireRole('doctor', 'admin'), asyncHandler(async (req, res) => {
-  const rows = await db.prepare('SELECT k, v_enc, updated_at FROM kv_store WHERE owner_id = ?')
-    .all(req.auth.subjectId);
+  const since = typeof req.query.since === 'string' ? req.query.since : null;
+
+  // Reject an unparseable timestamp rather than silently falling back to a
+  // full pull — a client sending garbage should find out, not just get slower.
+  if (since !== null && Number.isNaN(Date.parse(since))) {
+    return res.status(400).json({ error: 'Invalid `since` timestamp; expected ISO 8601' });
+  }
+
+  const now = new Date().toISOString();
+  const rows = since
+    ? await db.prepare(
+        'SELECT k, v_enc, updated_at FROM kv_store WHERE owner_id = ? AND updated_at > ? ORDER BY updated_at'
+      ).all(req.auth.subjectId, since)
+    : await db.prepare(
+        'SELECT k, v_enc, updated_at FROM kv_store WHERE owner_id = ?'
+      ).all(req.auth.subjectId);
+
   const keys = {};
   for (const r of rows) keys[r.k] = { v: decryptPHI(r.v_enc), ts: r.updated_at };
-  res.json({ keys });
+  res.json({ keys, now, partial: Boolean(since) });
 }));
 
 // ── Doctor: push changes (value null = delete) ────────────────────

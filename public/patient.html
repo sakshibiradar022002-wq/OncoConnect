@@ -2463,8 +2463,16 @@ function setLang(l){
   document.documentElement.lang=(l==='hi'?'hi':'en');
   translatePage();
   document.querySelectorAll('.lang-btn').forEach(function(b){
-    b.style.fontWeight=b.dataset.lang===l?'800':'500';
-    b.style.background=b.dataset.lang===l?'var(--blue-pale)':'transparent';
+    // Remember the button's own resting colour once — in the header these are
+    // white on a coloured band, elsewhere they inherit --text.
+    if(b.dataset.baseColor===undefined) b.dataset.baseColor=b.style.color||'';
+    var on=b.dataset.lang===l;
+    b.style.fontWeight=on?'800':'500';
+    b.style.background=on?'var(--blue-pale)':'transparent';
+    // The active pill fills with a pale tint, so the label must go dark. The
+    // header buttons kept their white text and became invisible on it (1.07:1).
+    b.style.color=on?'var(--text)':b.dataset.baseColor;
+    b.setAttribute('aria-pressed', on?'true':'false');
   });
 }
 function swapText(node){

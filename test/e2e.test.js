@@ -302,6 +302,56 @@ test('plaintext patient password is upgraded to a v2 hash on login', async () =>
   assert.equal(again.status, 200);
 });
 
+test('full sync pull reports the server clock and is not partial', async () => {
+  const r = await call(doctor, 'GET', '/api/sync');
+  assert.equal(r.status, 200);
+  assert.equal(r.data.partial, false);
+  assert.ok(!Number.isNaN(Date.parse(r.data.now)), 'now must be an ISO timestamp');
+});
+
+test('incremental pull returns only what changed after `since`', async () => {
+  const first = await call(doctor, 'GET', '/api/sync');
+  const mark = first.data.now;
+
+  // Nothing has changed since the server's own clock reading.
+  const empty = await call(doctor, 'GET', `/api/sync?since=${encodeURIComponent(mark)}`);
+  assert.equal(empty.status, 200);
+  assert.equal(empty.data.partial, true);
+  assert.equal(Object.keys(empty.data.keys).length, 0);
+
+  // Write one key; only that key comes back.
+  await new Promise(r => setTimeout(r, 1100)); // updated_at has second precision
+  await call(doctor, 'PUT', '/api/sync', { changes: { incr_probe: { v: 1 } } });
+
+  const delta = await call(doctor, 'GET', `/api/sync?since=${encodeURIComponent(mark)}`);
+  assert.equal(delta.status, 200);
+  assert.deepEqual(Object.keys(delta.data.keys), ['incr_probe']);
+
+  // The full pull still holds everything, so the delta is an optimisation
+  // rather than a different source of truth.
+  const full = await call(doctor, 'GET', '/api/sync');
+  assert.ok(Object.keys(full.data.keys).length > 1);
+  assert.ok('incr_probe' in full.data.keys);
+});
+
+test('a malformed `since` is rejected rather than silently falling back', async () => {
+  const r = await call(doctor, 'GET', '/api/sync?since=not-a-date');
+  assert.equal(r.status, 400);
+});
+
+test('incremental sync never crosses between doctors', async () => {
+  // A second doctor's delta must not contain the first doctor's keys.
+  const other = jar();
+  const email = `other_${Date.now()}@test.local`;
+  await call(other, 'POST', '/api/auth/register', {
+    name: 'Other Doctor', email, password: 'OtherPass123',
+  });
+  await call(other, 'POST', '/api/auth/login', { email, password: 'OtherPass123' });
+  const r = await call(other, 'GET', '/api/sync?since=1970-01-01T00:00:00.000Z');
+  assert.equal(r.status, 200);
+  assert.ok(!('incr_probe' in r.data.keys), 'must not see another doctor\'s keys');
+});
+
 test('logout revokes the session server-side', async () => {
   const out = await call(doctor, 'POST', '/api/auth/logout');
   assert.equal(out.status, 200);

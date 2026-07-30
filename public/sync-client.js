@@ -18,6 +18,7 @@
     dirty: new Set(),
     timer: null,
     pushing: false,
+    lastPullAt: null,  // server clock from the last pull; drives incremental polls
   };
 
   function pushUrl() {
@@ -129,7 +130,17 @@
   setInterval(function () {
     if (!state.online || !state.mode) return;
     var pullUrl = state.mode === 'patient' ? API + '/patient' : state.mode === 'lab' ? API + '/lab' : API;
+    // Doctors own the keyspace that grows without bound, so poll them
+    // incrementally: ask only for what changed since the server's own last
+    // reported clock. Patient and lab keyspaces are scoped to one record and
+    // stay small, so they keep pulling in full.
+    if (state.mode === 'doctor' && state.lastPullAt) {
+      pullUrl += '?since=' + encodeURIComponent(state.lastPullAt);
+    }
     req('GET', pullUrl).then(function (d) {
+      // Trust the server's clock, never the browser's — skew between them
+      // would otherwise silently skip writes in the gap.
+      if (d.now) state.lastPullAt = d.now;
       var applied = mergeKeys(d.keys);
       if (!applied) return;
       if (state.mode === 'lab' && typeof window.refreshLabTasks === 'function') {
@@ -219,7 +230,10 @@
       state.authLost = false;
       state.online = true;
       enablePush();
+      // Login always pulls in full — this is the one point where the client
+      // may hold nothing, so a delta would leave it empty.
       var pulled = await req('GET', API);
+      if (pulled.now) state.lastPullAt = pulled.now;
       mergeKeys(pulled.keys);
       var local = collectAllLocal();
       var missing = {};

@@ -12,7 +12,8 @@
     "test:api": "node --test test/e2e.test.js",
     "test:unit": "node --test test/unit.test.js",
     "test:handlers": "node scripts/check-handlers.mjs",
-    "test:all": "npm run test && npm run test:handlers && npm run test:ui",
+    "test:a11y": "node scripts/check-a11y.mjs",
+    "test:all": "npm run test && npm run test:handlers && npm run test:a11y && npm run test:ui",
     "test:ui": "playwright test",
     "test:ui:debug": "playwright test --debug",
     "test:ui:headed": "playwright test --headed",
@@ -47,6 +48,8 @@
     "better-sqlite3": "^11.3.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.62.0"
+    "@axe-core/playwright": "^4.12.1",
+    "@playwright/test": "^1.62.0",
+    "axe-core": "^4.12.1"
   }
 }

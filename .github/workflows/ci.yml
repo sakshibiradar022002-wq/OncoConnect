@@ -71,6 +71,24 @@ jobs:
           JWT_SECRET: ci-jwt-secret-do-not-use-in-prod
           PHI_ENCRYPTION_KEY: '0000000000000000000000000000000000000000000000000000000000000000'
 
+  a11y:
+    name: accessibility (WCAG 2.1 AA)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Audit every surface with axe-core
+        run: node scripts/check-a11y.mjs
+        env:
+          JWT_SECRET: ci-jwt-secret-do-not-use-in-prod
+          PHI_ENCRYPTION_KEY: '0000000000000000000000000000000000000000000000000000000000000000'
+
   ui:
     name: browser end-to-end
     runs-on: ubuntu-latest
