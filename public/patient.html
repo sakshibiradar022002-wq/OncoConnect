@@ -52,6 +52,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 .bottom-nav{display:flex;background:var(--surface);border-top:1px solid var(--border);padding-bottom:calc(10px + var(--safe-bot));flex-shrink:0;box-shadow:0 -4px 20px rgba(62,95,68,0.07);}
 .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 4px 4px;cursor:pointer;border:none;background:transparent;color:var(--text-dim);transition:color 0.15s;}
 .nav-btn.active{color:var(--blue);}
+.nav-btn:focus{outline:2px solid var(--blue-light);outline-offset:2px;border-radius:4px;}
 .nav-icon{font-size:22px;margin-bottom:3px;}
 .nav-label{font-size:10px;font-weight:700;}
 
@@ -302,15 +303,15 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
     </div>
     <div class="err-box" id="login-err"></div>
     <div class="fg">
-      <label>Patient MRN</label>
-      <input id="l-mrn" type="text" placeholder="e.g. DOC-8718-928"
+      <label for="l-mrn">Patient MRN</label>
+      <input id="l-mrn" type="text" placeholder="e.g. DOC-8718-928" aria-label="Patient Medical Record Number"
         autocorrect="off" autocapitalize="characters" spellcheck="false"
         oninput="this.value=this.value.toUpperCase()"
         onkeydown="if(event.key==='Enter')document.getElementById('l-pass').focus()">
     </div>
     <div class="fg" style="margin-bottom:20px;">
-      <label>Password</label>
-      <input id="l-pass" type="password" placeholder="••••••••"
+      <label for="l-pass">Password</label>
+      <input id="l-pass" type="password" placeholder="••••••••" aria-label="Patient password"
         onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <button class="big-btn" onclick="doLogin()" style="margin-bottom:10px;">Sign In as Patient →</button>
@@ -585,10 +586,10 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
       <div><div style="font-weight:600;font-size:13px;" id="msg-doc-name">Your Doctor</div><div style="font-size:11px;color:var(--text-muted);">Care Team</div></div>
       <div style="margin-left:auto;width:8px;height:8px;border-radius:50%;background:var(--green);"></div>
     </div>
-    <div class="chat-area" id="chat-area"></div>
+    <div class="chat-area" id="chat-area" role="log" aria-label="Message history"></div>
     <div class="chat-bar">
-      <input id="chat-inp" placeholder="Message your doctor…" onkeydown="if(event.key==='Enter')sendMsg()">
-      <button class="send-btn" onclick="sendMsg()">&#8593;</button>
+      <input id="chat-inp" placeholder="Message your doctor…" aria-label="Message input box" onkeydown="if(event.key==='Enter')sendMsg()">
+      <button class="send-btn" onclick="sendMsg()" aria-label="Send message">&#8593;</button>
     </div>
   </div>
 
@@ -597,6 +598,10 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
       <div class="prof-av" id="prof-av">&#128522;</div>
       <div class="prof-name" id="prof-name">Patient</div>
       <div class="prof-mrn" id="prof-mrn">MRN: ---</div>
+      <!-- QR Code for patient identification -->
+      <div id="qr-code-container" style="margin-top:16px;display:none;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;">
+        <div id="qr-code" style="display:inline-block;"></div>
+      </div>
     </div>
     <div class="info-card">
       <div class="info-card-title">Personal Info</div>
@@ -610,6 +615,16 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
       <div class="info-card-title">My Medications</div>
       <div id="prof-meds"><div style="color:var(--text-dim);font-size:12.5px;padding:4px 0;">No medications on record yet.</div></div>
     </div>
+    <!-- Share with caregivers -->
+    <div class="info-card">
+      <div class="info-card-title">👪 Share Access</div>
+      <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:12px;line-height:1.6;">
+        Share your health data with caregivers, family members, or emergency contacts.
+      </div>
+      <button class="outline-btn" onclick="generateCaregiverLink()" style="background:var(--blue-pale);border-color:rgba(62,95,68,0.25);color:var(--blue);margin-bottom:12px;">Generate Shareable Link</button>
+      <div id="caregiver-link-display" style="display:none;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;font-size:12px;word-break:break-all;font-family:monospace;color:var(--text);margin-top:8px;"></div>
+    </div>
+
     <!-- Privacy & consent (DPDP) -->
     <div class="info-card">
       <div class="info-card-title">🔒 Privacy</div>
@@ -890,10 +905,13 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
 </div>
 
 <script src="/sync-client.js"></script>
+<!-- QR Code library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNczi9PCXsystem/BRBcoDLY6pDFur7L8/qsrukXZfRxRS" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
 var LS={get:function(k){try{var v=localStorage.getItem('cc_'+k);return v?JSON.parse(v):null;}catch(e){return null;}},set:function(k,v){try{localStorage.setItem('cc_'+k,JSON.stringify(v));}catch(e){}},keys:function(pre){return Object.keys(localStorage).filter(function(k){return k.startsWith('cc_'+pre);}).map(function(k){return k.slice(3);});}};
 var PAT=null;
 var extraMeds=[];
+var PATIENT_SESSION_VALID = false;
 
 function exportPatientData() {
   if (!PAT) return;
@@ -1501,12 +1519,31 @@ function submitLabReport() {
 
 
 
+function generateQRCode(){
+  if (!PAT || !PAT.mrn) return;
+  try {
+    var qrContainer = document.getElementById('qr-code');
+    qrContainer.innerHTML = '';
+    new QRCode(qrContainer, {
+      text: PAT.mrn,
+      width: 120,
+      height: 120,
+      colorDark: '#0f172a',
+      colorLight: '#ffffff'
+    });
+    document.getElementById('qr-code-container').style.display = 'block';
+  } catch(e) {
+    console.log('QR code generation not available');
+  }
+}
+
 function initApp(){
   var p=PAT;
   document.getElementById('cal-greeting').textContent='Hello, '+p.name.split(' ')[0]+'!';
   document.getElementById('cal-phase').textContent=p.phase||'Treatment Phase';
   document.getElementById('prof-name').textContent=p.name;
   document.getElementById('prof-mrn').textContent='MRN: '+p.mrn;
+  generateQRCode();
   document.getElementById('prof-phase').textContent=p.phase||'---';
   document.getElementById('prof-blood').textContent=p.blood||'---';
   document.getElementById('prof-gender').textContent=p.gender||'---';
@@ -2111,8 +2148,40 @@ function renderChat(){
 function sendMsg(){
   var inp=document.getElementById('chat-inp');var text=inp.value.trim();if(!text)return;
   var msgs=LS.get('msgs_'+PAT.mrn)||[];
-  msgs.push({from:'patient',text:text,time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),read:false});
+  var timestamp=new Date().toISOString();
+  msgs.push({
+    from:'patient',
+    text:text,
+    time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
+    ts:timestamp,
+    read:false,
+    synced:false
+  });
+  LS.set('msgs_'+PAT.mrn,msgs);
+  inp.value='';
+  renderMsgs();
+  // Mark for backend sync
+  if(state.dirty)state.dirty.add('msgs_'+PAT.mrn);
   LS.set('msgs_'+PAT.mrn,msgs);inp.value='';renderChat();
+}
+
+function generateCaregiverLink(){
+  if(!PAT||!PAT.mrn)return;
+  try {
+    // Generate a unique caregiver token
+    var token='cg_'+PAT.mrn+'_'+(new Date().getTime()).toString(36)+'_'+(Math.random().toString(36).slice(2));
+    var link=window.location.origin+'/patient.html?cg='+token;
+    var caregivers=(LS.get('caregivers_'+PAT.mrn)||[]);
+    caregivers.push({token:token,created:new Date().toISOString(),status:'active'});
+    LS.set('caregivers_'+PAT.mrn,caregivers);
+
+    var display=document.getElementById('caregiver-link-display');
+    display.textContent=link;
+    display.style.display='block';
+
+    // Copy to clipboard
+    if(navigator.clipboard){navigator.clipboard.writeText(link).catch(function(){});}
+  }catch(e){console.error('Caregiver link generation failed:',e);}
 }
 
 function openSheet(id){document.getElementById(id).classList.add('open');}
