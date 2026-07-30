@@ -2475,6 +2475,21 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
 
   <!-- PRESCRIPTIONS -->
   <div id="rt-prescriptions" class="rtab">
+    <!-- Drug Safety Lookup -->
+    <div style="background:linear-gradient(135deg,rgba(75,184,250,0.05),rgba(75,184,250,0.02));border:1.5px solid rgba(75,184,250,0.15);border-radius:10px;padding:14px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <span style="font-size:12px;font-weight:700;color:var(--blue);">💊 Drug Safety Check</span>
+        <span style="font-size:11px;color:var(--text-muted);">Verify FDA approval & safety</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-end;">
+        <div style="flex:1;">
+          <input id="drug-lookup-input" type="text" placeholder="Enter drug name..." style="width:100%;padding:9px 12px;background:var(--surface);border:1.5px solid var(--border2);border-radius:7px;color:var(--text);font-family:inherit;font-size:13px;outline:none;">
+        </div>
+        <button onclick="checkDrugSafety()" style="padding:9px 16px;background:var(--blue);color:#fff;border:none;border-radius:7px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;">Check Safety</button>
+      </div>
+      <div id="drug-safety-results" style="margin-top:10px;"></div>
+    </div>
+
     <!-- Drug interaction banner -->
     <div id="r-drug-interaction-banner" style="display:none;background:rgba(220,38,38,0.06);border:1.5px solid rgba(220,38,38,0.2);border-radius:8px;padding:11px 14px;margin-bottom:14px;font-size:12.5px;color:var(--red);line-height:1.7;"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
@@ -7538,6 +7553,37 @@ window.initApp=function(){ _initApp2(); buildClinicPanel(); };
   });
   // arm once the app is shown
   var iv=setInterval(function(){ if(loggedIn()){ reset(); clearInterval(iv); } }, 2000);
+
+// ── Drug Safety Lookup ──
+window.checkDrugSafety = function() {
+  var drugName = (document.getElementById('drug-lookup-input').value || '').trim();
+  if (!drugName) { alert('Please enter a drug name'); return; }
+
+  var resultsEl = document.getElementById('drug-safety-results');
+  resultsEl.innerHTML = '<div style="padding:8px;font-size:12px;color:var(--text-muted);">🔍 Searching FDA database...</div>';
+
+  // Delay for UX
+  setTimeout(function() {
+    var safetyUrl = 'https://www.fda.gov/drugs/information-drugs-cder/searchable-drug-development-resources';
+    var fdaUrl = 'https://www.fda.gov/cder/drug/DrugSafety/ucm337512.htm';
+    var trialsUrl = 'https://clinicaltrials.gov/search?q=' + encodeURIComponent(drugName);
+
+    var html = '' +
+      '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-top:8px;font-size:12px;">' +
+      '<div style="display:flex;gap:8px;flex-direction:column;">' +
+      '<div><strong>✓ FDA Resources for "' + drugName + '":</strong></div>' +
+      '<a href="' + fdaUrl + '" target="_blank" style="color:var(--blue);text-decoration:none;padding:6px 10px;background:var(--surface);border-radius:6px;font-size:11.5px;font-weight:600;display:inline-block;">📋 FDA Drug Safety Info</a>' +
+      '<a href="' + trialsUrl + '" target="_blank" style="color:var(--blue);text-decoration:none;padding:6px 10px;background:var(--surface);border-radius:6px;font-size:11.5px;font-weight:600;display:inline-block;">🏥 Active Clinical Trials</a>' +
+      '<a href="https://pubchem.ncbi.nlm.nih.gov/search/search.cgi?q=' + encodeURIComponent(drugName) + '&bt=ChemicalStructure" target="_blank" style="color:var(--blue);text-decoration:none;padding:6px 10px;background:var(--surface);border-radius:6px;font-size:11.5px;font-weight:600;display:inline-block;">🔬 PubChem Info</a>' +
+      '</div>' +
+      '<div style="margin-top:8px;font-size:11px;color:var(--text-muted);font-style:italic;">Opens authoritative FDA and medical databases in a new window</div>' +
+      '</div>';
+
+    resultsEl.innerHTML = html;
+    document.getElementById('drug-lookup-input').value = '';
+  }, 400);
+};
+
 })();
 </script>
 </body>

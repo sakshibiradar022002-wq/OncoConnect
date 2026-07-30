@@ -556,6 +556,27 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
     </div>
   </div>
 
+  <div id="screen-trials" class="screen">
+    <div style="padding:20px 20px 80px;">
+      <div class="page-title">Clinical Trials</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">Find clinical trials matching your condition</div>
+      <div style="background:var(--surface);border-radius:14px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow);">
+        <div style="margin-bottom:12px;">
+          <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Your Diagnosis</label>
+          <input id="trial-diagnosis" type="text" placeholder="e.g., lung cancer" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:9px;font-family:inherit;font-size:13px;">
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Your City/State</label>
+          <input id="trial-location" type="text" placeholder="e.g., Boston, MA" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:9px;font-family:inherit;font-size:13px;">
+        </div>
+        <button onclick="searchClinicalTrials()" style="width:100%;padding:12px;border-radius:9px;background:var(--blue);color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;border:none;">🔍 Search Trials</button>
+      </div>
+      <div id="trial-results" style=""></div>
+      <div id="trial-loading" style="display:none;text-align:center;padding:20px;color:var(--text-muted);">Searching trials...</div>
+      <div id="trial-empty" style="display:none;text-align:center;padding:20px;background:var(--surface);border-radius:14px;color:var(--text-muted);">Enter your diagnosis and location to find trials</div>
+    </div>
+  </div>
+
   <div id="screen-profile" class="screen">
     <div class="prof-hero">
       <div class="prof-av" id="prof-av">&#128522;</div>
@@ -596,9 +617,9 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
   <div class="bottom-nav">
     <button class="nav-btn active" id="nav-calendar" onclick="goScreen('calendar')"><div class="nav-icon">📅</div><div class="nav-label">Symptoms</div></button>
     <button class="nav-btn" id="nav-treatment" onclick="goScreen('treatment')"><div class="nav-icon">⚡</div><div class="nav-label">Treatment</div></button>
+    <button class="nav-btn" id="nav-trials" onclick="goScreen('trials')"><div class="nav-icon">🏥</div><div class="nav-label">Trials</div></button>
     <button class="nav-btn" id="nav-appointments" onclick="goScreen('appointments')"><div class="nav-icon">🗓</div><div class="nav-label">Visits</div></button>
     <button class="nav-btn" id="nav-messages" onclick="goScreen('messages')"><div class="nav-icon">💬</div><div class="nav-label">Messages</div></button>
-    <button class="nav-btn" id="nav-profile" onclick="goScreen('profile')"><div class="nav-icon">👤</div><div class="nav-label">Profile</div></button>
   </div>
 </div>
 
@@ -2269,6 +2290,41 @@ if (typeof window.initApp==='function'){
   var _initApp3=window.initApp;
   window.initApp=function(){ _initApp3(); buildMgmtCards(); };
 }
+
+// ── Clinical Trials Finder ──
+function searchClinicalTrials() {
+  var diagnosis = (document.getElementById('trial-diagnosis').value || '').trim();
+  var location = (document.getElementById('trial-location').value || '').trim();
+
+  if (!diagnosis) { alert('Please enter your diagnosis'); return; }
+  if (!location) { alert('Please enter your city/state'); return; }
+
+  var resultEl = document.getElementById('trial-results');
+  var loadingEl = document.getElementById('trial-loading');
+  var emptyEl = document.getElementById('trial-empty');
+
+  resultEl.innerHTML = '';
+  emptyEl.style.display = 'none';
+  loadingEl.style.display = 'block';
+
+  // Redirect to ClinicalTrials.gov with search parameters
+  var searchUrl = 'https://clinicaltrials.gov/search?q=' + encodeURIComponent(diagnosis) + '&locn=' + encodeURIComponent(location) + '&status=recruiting&stdy_type=int';
+
+  setTimeout(function() {
+    loadingEl.style.display = 'none';
+
+    var trialCard = document.createElement('div');
+    trialCard.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow);';
+    trialCard.innerHTML = '' +
+      '<div style="font-weight:700;font-size:14px;margin-bottom:8px;">🔗 View Trials on ClinicalTrials.gov</div>' +
+      '<div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Searching for <strong>' + diagnosis + '</strong> trials in <strong>' + location + '</strong></div>' +
+      '<button onclick="window.open(\'' + searchUrl + '\', \'_blank\')" style="width:100%;padding:12px;border-radius:9px;background:var(--green);color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;border:none;">Open Trial Search</button>' +
+      '<div style="font-size:11px;color:var(--text-dim);margin-top:10px;">💡 You\'ll find detailed information about each trial, including eligibility criteria and contact information.</div>';
+
+    resultEl.appendChild(trialCard);
+  }, 500);
+}
+
 })();
 
 </script>
