@@ -8,6 +8,72 @@ import { getVapidPublicKey, saveSubscription, removeSubscription } from '../push
 
 export const pushRouter = Router();
 
+/**
+ * @swagger
+ * /push/vapid-public-key:
+ *   get:
+ *     summary: Get VAPID public key for push subscriptions
+ *     tags: [Push]
+ *     responses:
+ *       200:
+ *         description: VAPID public key for web push
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 key: { type: string, description: 'Base64-encoded VAPID public key' }
+ *       503:
+ *         description: Push notifications not configured
+
+ * /push/subscribe:
+ *   post:
+ *     summary: Subscribe to push notifications
+ *     tags: [Push]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [subscription]
+ *             properties:
+ *               subscription:
+ *                 type: object
+ *                 required: [endpoint, keys]
+ *                 properties:
+ *                   endpoint: { type: string, format: uri }
+ *                   keys:
+ *                     type: object
+ *                     properties:
+ *                       p256dh: { type: string }
+ *                       auth: { type: string }
+ *     responses:
+ *       200:
+ *         description: Subscription registered
+
+ * /push/unsubscribe:
+ *   post:
+ *     summary: Unsubscribe from push notifications
+ *     tags: [Push]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [endpoint]
+ *             properties:
+ *               endpoint: { type: string, format: uri }
+ *     responses:
+ *       200:
+ *         description: Subscription removed
+ */
+
 pushRouter.get('/vapid-public-key', (req, res) => {
   const key = getVapidPublicKey();
   if (!key) return res.status(503).json({ error: 'Push not configured' });

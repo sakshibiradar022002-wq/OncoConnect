@@ -16,6 +16,54 @@ import { config } from '../config.js';
 
 export const authRouter = Router();
 
+/**
+ * @swagger
+ * /auth/register:
+ *   post:
+ *     summary: Register a new doctor account
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name, email, password]
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Doctor's full name
+ *                 minLength: 2
+ *                 maxLength: 120
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Unique email address
+ *               password:
+ *                 type: string
+ *                 description: Strong password (≥10 chars, letter + digit)
+ *                 minLength: 10
+ *               specialty:
+ *                 type: string
+ *                 description: Medical specialty (optional)
+ *               institution:
+ *                 type: string
+ *                 description: Hospital/Institution name (optional)
+ *     responses:
+ *       201:
+ *         description: Account created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 ok: { type: boolean }
+ *                 message: { type: string }
+ *       409:
+ *         description: Email already registered
+ *       400:
+ *         description: Invalid input (weak password, bad email)
+ */
 // ── Doctor registration ───────────────────────────────────────────
 const registerSchema = z.object({
   name: z.string().min(2).max(120),
@@ -62,6 +110,43 @@ authRouter.post('/register', validate(registerSchema), asyncHandler(async (req, 
   });
 }));
 
+/**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: Login with email and password
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *               totpCode:
+ *                 type: string
+ *                 description: TOTP code if 2FA enabled (optional)
+ *     responses:
+ *       200:
+ *         description: Login successful, returns JWT token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 ok: { type: boolean }
+ *                 token: { type: string, description: 'JWT bearer token' }
+ *       401:
+ *         description: Invalid credentials or account inactive
+ *       429:
+ *         description: Too many login attempts
+ */
 // ── Doctor / admin / lab login (by email) ─────────────────────────
 const loginSchema = z.object({
   email: z.string().email().toLowerCase(),

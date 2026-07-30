@@ -24,6 +24,8 @@ import { initPush } from './push.js';
 import { observability, metricsSnapshot } from './observability.js';
 import { initSentry, sentryRequestHandler, sentryErrorHandler } from './observability/sentry.js';
 import { db } from './db/index.js';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './swagger.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -113,6 +115,21 @@ app.get('/api/metrics', apiLimiter, authenticate, async (req, res) => {
     if (!first || first.id !== req.auth.subjectId) return res.status(403).json({ error: 'Admin access required' });
   }
   res.json(metricsSnapshot());
+});
+
+// ── Swagger UI / OpenAPI documentation ────────────────────────────
+app.use('/api/docs', swaggerUi.serve);
+app.get('/api/docs', swaggerUi.setup(swaggerSpec, {
+  swaggerOptions: { persistAuthorization: true },
+  customCss: `
+    .topbar { background-color: #1a1f2e; }
+    .topbar h1 { color: #00d4b4; }
+    .scheme-container { background: #0f131b; border: 1px solid #1e3a5a; }
+    button { background: #00d4b4; color: #0a0e16; }
+  `
+}));
+app.get('/api/docs.json', (req, res) => {
+  res.json(swaggerSpec);
 });
 
 // ── API routes ────────────────────────────────────────────────────

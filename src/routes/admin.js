@@ -11,6 +11,102 @@ import { validate, asyncHandler } from '../middleware/validate.js';
 export const adminRouter = Router();
 adminRouter.use(authenticate);
 
+/**
+ * @swagger
+ * /admin/users:
+ *   get:
+ *     summary: List all users (admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all users with status and metadata
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 users:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id: { type: string }
+ *                       email: { type: string }
+ *                       role: { type: string, enum: [doctor, admin, kv-lab] }
+ *                       active: { type: boolean }
+ *                       createdAt: { type: string, format: 'date-time' }
+ *                       lastLogin: { type: string, format: 'date-time' }
+ *                       name: { type: string }
+ *       403:
+ *         description: Admin access required
+
+ * /admin/users/{id}/active:
+ *   post:
+ *     summary: Approve or deactivate a user (admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [active]
+ *             properties:
+ *               active: { type: boolean }
+ *     responses:
+ *       200:
+ *         description: User status updated
+ *       400:
+ *         description: Cannot deactivate own account
+ *       403:
+ *         description: Admin access required
+ *       404:
+ *         description: User not found
+
+ * /admin/audit:
+ *   get:
+ *     summary: Retrieve audit log (admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - name: limit
+ *         in: query
+ *         schema: { type: integer, default: 100, maximum: 500 }
+ *         description: Maximum audit entries to return
+ *     responses:
+ *       200:
+ *         description: Audit log entries
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 entries:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       ts: { type: string, format: 'date-time' }
+ *                       actorId: { type: string }
+ *                       actorRole: { type: string }
+ *                       action: { type: string }
+ *                       targetId: { type: string }
+ *                       ip: { type: string }
+ *                       detail: { type: object }
+ *       403:
+ *         description: Admin access required
+ */
+
 async function requireAdmin(req, res, next) {
   if (req.auth.role === 'admin') return next();
   const first = await db.prepare('SELECT id FROM users ORDER BY created_at ASC LIMIT 1').get();

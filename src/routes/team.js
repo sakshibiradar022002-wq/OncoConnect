@@ -10,6 +10,120 @@ import { encryptPHI, randomToken } from '../crypto.js';
 
 export const teamRouter = Router();
 
+/**
+ * @swagger
+ * /team/invite:
+ *   post:
+ *     summary: Send a team invitation
+ *     tags: [Team]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, role]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Invitee's email
+ *               role:
+ *                 type: string
+ *                 enum: [doctor, specialist]
+ *               specialty:
+ *                 type: string
+ *                 description: Medical specialty (optional)
+ *     responses:
+ *       200:
+ *         description: Invitation sent successfully
+ *       409:
+ *         description: User already a team member
+ */
+
+/**
+ * @swagger
+ * /team/members:
+ *   get:
+ *     summary: List all team members
+ *     tags: [Team]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Team members list
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 members:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       user_id: { type: string }
+ *                       email: { type: string }
+ *                       role: { type: string }
+ *                       specialty: { type: string }
+ *                       joined_at: { type: string, format: 'date-time' }
+ */
+
+/**
+ * @swagger
+ * /team/patients/{mrn}/grant:
+ *   post:
+ *     summary: Grant patient access to team member
+ *     tags: [Team]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - name: mrn
+ *         in: path
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [patientMrn, doctorId, accessType]
+ *             properties:
+ *               patientMrn: { type: string }
+ *               doctorId: { type: string }
+ *               accessType: { type: string, enum: [view, edit, manage] }
+ *     responses:
+ *       200:
+ *         description: Access granted successfully
+ *       403:
+ *         description: Doctor not on your team
+ */
+
+/**
+ * @swagger
+ * /team/patients/{mrn}/access/{doctorId}:
+ *   delete:
+ *     summary: Revoke patient access from team member
+ *     tags: [Team]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - name: mrn
+ *         in: path
+ *         required: true
+ *         schema: { type: string }
+ *       - name: doctorId
+ *         in: path
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Access revoked successfully
+ */
+
 // Helper: Get or create team_id for a doctor (default: user_id)
 async function getOrCreateTeamId(doctorId) {
   const user = await db.prepare('SELECT id FROM users WHERE id = ?').get(doctorId);

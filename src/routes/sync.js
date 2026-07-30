@@ -35,6 +35,169 @@ function pushDoctorForChanges(ownerId, changes) {
 
 export const syncRouter = Router();
 
+/**
+ * @swagger
+ * /sync:
+ *   get:
+ *     summary: Doctor - Sync pull keyspace
+ *     tags: [Sync]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Complete encrypted keyspace for doctor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 keys:
+ *                   type: object
+ *   put:
+ *     summary: Doctor - Sync push changes
+ *     tags: [Sync]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [changes]
+ *             properties:
+ *               changes:
+ *                 type: object
+ *                 description: Key-value changes (null value = delete)
+ *     responses:
+ *       200:
+ *         description: Changes synced successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 ok: { type: boolean }
+ *                 count: { type: integer, description: 'Number of keys synced' }
+ *                 warnings: { type: array, items: { type: string } }
+ *       400:
+ *         description: Lab result validation failed or too many keys
+
+ * /sync/patient-login:
+ *   post:
+ *     summary: Patient login against synced records
+ *     tags: [Sync]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [mrn, password]
+ *             properties:
+ *               mrn:
+ *                 type: string
+ *                 description: Patient Medical Record Number
+ *               password:
+ *                 type: string
+ *                 description: Patient password
+ *     responses:
+ *       200:
+ *         description: Login successful with patient keyspace
+ *       401:
+ *         description: Invalid MRN or password
+ *       429:
+ *         description: Too many login attempts
+
+ * /sync/patient:
+ *   get:
+ *     summary: Patient - Refresh own keys
+ *     tags: [Sync]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Patient's encrypted keyspace
+ *   put:
+ *     summary: Patient - Push changes to own keys
+ *     tags: [Sync]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [changes]
+ *             properties:
+ *               changes:
+ *                 type: object
+ *                 description: Key-value changes (null value = delete)
+ *     responses:
+ *       200:
+ *         description: Changes synced successfully
+ *       400:
+ *         description: Lab result validation failed
+
+ * /sync/lab-login:
+ *   post:
+ *     summary: Lab technician login
+ *     tags: [Sync]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [username, password]
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: Lab account username
+ *               password:
+ *                 type: string
+ *                 description: Lab account password
+ *     responses:
+ *       200:
+ *         description: Login successful with lab keyspace
+ *       401:
+ *         description: Invalid username or password
+ *       429:
+ *         description: Too many login attempts
+
+ * /sync/lab:
+ *   get:
+ *     summary: Lab - Refresh own keys
+ *     tags: [Sync]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lab's encrypted keyspace
+ *   put:
+ *     summary: Lab - Push changes (submissions & task tokens)
+ *     tags: [Sync]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [changes]
+ *             properties:
+ *               changes:
+ *                 type: object
+ *                 description: Lab submissions and task token updates
+ *     responses:
+ *       200:
+ *         description: Changes synced successfully
+ *       400:
+ *         description: Lab result validation failed
+ */
+
 const MAX_KEYS_PER_PUSH = 500;
 const MAX_KEY_LENGTH = 200;
 

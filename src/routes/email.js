@@ -15,6 +15,102 @@ import { validate, asyncHandler } from '../middleware/validate.js';
 
 export const emailRouter = Router();
 
+/**
+ * @swagger
+ * /email/status:
+ *   get:
+ *     summary: Check email configuration status
+ *     tags: [Email]
+ *     parameters:
+ *       - name: verify
+ *         in: query
+ *         schema: { type: string, enum: ['0', '1'] }
+ *         description: Verify email configuration (0=no, 1=yes)
+ *     responses:
+ *       200:
+ *         description: Email configuration status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 configured: { type: boolean }
+ *                 provider: { type: string }
+
+ * /email/otp:
+ *   post:
+ *     summary: Request registration OTP code
+ *     tags: [Email]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email: { type: string, format: email }
+ *               name: { type: string, description: 'User name (optional)' }
+ *     responses:
+ *       200:
+ *         description: OTP sent or available (dev mode)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 sent: { type: boolean }
+ *                 devCode: { type: string, description: 'Code for dev mode only' }
+ *                 expiresMin: { type: integer }
+ *       429:
+ *         description: Too many code requests
+
+ * /email/otp/verify:
+ *   post:
+ *     summary: Verify OTP code
+ *     tags: [Email]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, code]
+ *             properties:
+ *               email: { type: string, format: email }
+ *               code: { type: string, minLength: 6, maxLength: 6 }
+ *     responses:
+ *       200:
+ *         description: Code verified successfully
+ *       400:
+ *         description: Code expired or incorrect
+ *       429:
+ *         description: Too many wrong attempts
+
+ * /email/send:
+ *   post:
+ *     summary: Send authenticated email (doctors only)
+ *     tags: [Email]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [to, subject, text]
+ *             properties:
+ *               to: { type: string, format: email }
+ *               subject: { type: string, maxLength: 200 }
+ *               text: { type: string, maxLength: 5000 }
+ *     responses:
+ *       200:
+ *         description: Email sent successfully
+ *       503:
+ *         description: Email not configured on this server
+ */
+
 const otpLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 8, // 8 OTP requests / 15 min / IP — codes go to inboxes, keep it tight
