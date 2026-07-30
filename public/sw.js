@@ -5,10 +5,10 @@
 //   - Everything else (fonts, CDN libs): stale-while-revalidate.
 
 const APP = self.location.pathname.includes('doctor') ? 'doctor' : 'patient';
-const CACHE = `oncoconnect-${APP}-v3`;
+const CACHE = `oncoconnect-${APP}-v4`;
 const SHELL = APP === 'doctor'
   ? ['/', '/index.html', '/sync-client.js', '/doctor.webmanifest', '/icons/doctor-192.png', '/icons/doctor-512.png']
-  : ['/patient.html', '/sync-client.js', '/patient.webmanifest', '/icons/patient-192.png', '/icons/patient-512.png'];
+  : ['/patient.html', '/sync-client.js', '/vendor/qrcode.min.js', '/patient.webmanifest', '/icons/patient-192.png', '/icons/patient-512.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

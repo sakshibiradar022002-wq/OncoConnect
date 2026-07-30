@@ -906,7 +906,12 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
 
 <script src="/sync-client.js"></script>
 <!-- QR Code library -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNczi9PCXsystem/BRBcoDLY6pDFur7L8/qsrukXZfRxRS" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!-- qrcodejs 1.0.0, self-hosted. Was loaded from cdnjs with a corrupted SRI
+     hash, which made the browser reject the script every time — QRCode stayed
+     undefined and generateQRCode()'s catch swallowed it silently. Serving it
+     ourselves also keeps the MRN QR working offline, which matters for a PWA
+     used on poor connections. -->
+<script src="/vendor/qrcode.min.js"></script>
 <script>
 var LS={get:function(k){try{var v=localStorage.getItem('cc_'+k);return v?JSON.parse(v):null;}catch(e){return null;}},set:function(k,v){try{localStorage.setItem('cc_'+k,JSON.stringify(v));}catch(e){}},keys:function(pre){return Object.keys(localStorage).filter(function(k){return k.startsWith('cc_'+pre);}).map(function(k){return k.slice(3);});}};
 var PAT=null;

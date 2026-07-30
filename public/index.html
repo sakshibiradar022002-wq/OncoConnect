@@ -2090,6 +2090,16 @@ function showPanel(name,btn){
   if(name==='messages'){renderConvos();}
   if(name==='calendars'){renderCalSel();document.getElementById('cal-view').innerHTML='';}
 }
+// Lab Management entry point. Both the sidebar item and the "Manage Labs →"
+// shortcut call this, so it highlights the sidebar entry itself rather than
+// relying on a `this` that the shortcut button cannot supply.
+function goToLabsPanel(){
+  showPanel('labs',document.getElementById('nav-labs'));
+  const tab=document.getElementById('lmt-labs');
+  switchLabMainTab('labs',tab);   // reset to Registered Labs on entry
+  renderLabsList();               // panel ships with placeholder markup only
+}
+
 function showInstallGuide(){openOverlay('install-modal');}
 
 // ═══════════════════════════════════════════════
@@ -8073,7 +8083,10 @@ function exportPilotSummary(){
 }
 
 // ── "Why OncoConnect" — per-stakeholder value, in-product ──
-function openAboutModal(){
+// Declared as a window property, not a bare declaration: this whole block runs
+// inside the clinic-management IIFE, so a plain `function` here stays private
+// and the nav button's inline onclick could never reach it.
+window.openAboutModal=function openAboutModal(){
   const existing=document.getElementById('about-modal');if(existing)existing.remove();
   const card=(icon,who,points)=>`<div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;background:var(--surface);">
     <div style="font-weight:700;font-size:13.5px;margin-bottom:6px;">${icon} ${who}</div>
