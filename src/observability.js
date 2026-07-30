@@ -65,6 +65,34 @@ export function observability(req, res, next) {
   next();
 }
 
+// Prometheus text exposition. The JSON snapshot below is per-instance and
+// resets on restart, which makes it a live view rather than a record. Scraping
+// this into a time-series store is what gives retention and cross-replica
+// aggregation — the labels carry the instance so replicas sum correctly.
+export function metricsPrometheus() {
+  const lines = [
+    '# HELP oncoconnect_uptime_seconds Seconds since this instance started.',
+    '# TYPE oncoconnect_uptime_seconds gauge',
+    `oncoconnect_uptime_seconds ${Math.round((Date.now() - startedAt) / 1000)}`,
+    '# HELP oncoconnect_memory_rss_bytes Resident set size.',
+    '# TYPE oncoconnect_memory_rss_bytes gauge',
+    `oncoconnect_memory_rss_bytes ${process.memoryUsage().rss}`,
+    '# HELP oncoconnect_flow_requests_total Requests per clinical flow.',
+    '# TYPE oncoconnect_flow_requests_total counter',
+  ];
+  for (const [name, f] of flows) lines.push(`oncoconnect_flow_requests_total{flow="${name}"} ${f.count}`);
+  lines.push('# HELP oncoconnect_flow_errors_total 5xx responses per clinical flow.');
+  lines.push('# TYPE oncoconnect_flow_errors_total counter');
+  for (const [name, f] of flows) lines.push(`oncoconnect_flow_errors_total{flow="${name}"} ${f.errors}`);
+  lines.push('# HELP oncoconnect_flow_latency_ms_sum Cumulative latency per flow.');
+  lines.push('# TYPE oncoconnect_flow_latency_ms_sum counter');
+  for (const [name, f] of flows) lines.push(`oncoconnect_flow_latency_ms_sum{flow="${name}"} ${Math.round(f.totalMs)}`);
+  lines.push('# HELP oncoconnect_flow_latency_ms_max Slowest observed request per flow.');
+  lines.push('# TYPE oncoconnect_flow_latency_ms_max gauge');
+  for (const [name, f] of flows) lines.push(`oncoconnect_flow_latency_ms_max{flow="${name}"} ${Math.round(f.maxMs)}`);
+  return lines.join('\n') + '\n';
+}
+
 export function metricsSnapshot() {
   const perFlow = {};
   for (const [name, f] of flows) {

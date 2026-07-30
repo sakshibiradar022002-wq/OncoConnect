@@ -21,7 +21,8 @@ import { teamRouter } from './routes/team.js';
 import { pushRouter } from './routes/push.js';
 import { emailRouter } from './routes/email.js';
 import { initPush } from './push.js';
-import { observability, metricsSnapshot } from './observability.js';
+import { observability, metricsSnapshot, metricsPrometheus } from './observability.js';
+import { initRateLimitStore, limiterStore, rateLimitMode } from './rateLimitStore.js';
 import { initSentry, sentryRequestHandler, sentryErrorHandler } from './observability/sentry.js';
 import { db } from './db/index.js';
 import swaggerUi from 'swagger-ui-express';
@@ -34,6 +35,8 @@ await initSchema();
 await initTestData(); // Auto-populate test data if using ephemeral DB
 await initPush();
 initSentry(); // Initialize error tracking (no-op if SENTRY_DSN not set)
+// Shared rate-limit counters when REDIS_URL is set; per-instance otherwise.
+await initRateLimitStore();
 
 const app = express();
 app.set('trust proxy', 1); // needed for correct req.ip behind cloud proxies
@@ -90,8 +93,9 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many attempts, please try again later' },
+  ...limiterStore(),          // shared across replicas when REDIS_URL is set
 });
-const apiLimiter = rateLimit({ windowMs: 60 * 1000, max: 300 });
+const apiLimiter = rateLimit({ windowMs: 60 * 1000, max: 300, ...limiterStore() });
 
 // ── Health check (for cloud hosts) ────────────────────────────────
 // Shallow by default (fast, for load-balancer pings); ?deep=1 also checks
@@ -114,7 +118,17 @@ app.get('/api/metrics', apiLimiter, authenticate, async (req, res) => {
     const first = await db.prepare('SELECT id FROM users ORDER BY created_at ASC LIMIT 1').get();
     if (!first || first.id !== req.auth.subjectId) return res.status(403).json({ error: 'Admin access required' });
   }
-  res.json(metricsSnapshot());
+  res.json({ ...metricsSnapshot(), rateLimitMode: rateLimitMode() });
+});
+
+// Prometheus scrape target. Same admin gate as /api/metrics — flow names and
+// error rates describe clinical activity and are not public.
+app.get('/api/metrics/prometheus', apiLimiter, authenticate, async (req, res) => {
+  if (req.auth.role !== 'admin') {
+    const first = await db.prepare('SELECT id FROM users ORDER BY created_at ASC LIMIT 1').get();
+    if (!first || first.id !== req.auth.subjectId) return res.status(403).json({ error: 'Admin access required' });
+  }
+  res.set('Content-Type', 'text/plain; version=0.0.4').send(metricsPrometheus());
 });
 
 // ── Swagger UI / OpenAPI documentation ────────────────────────────

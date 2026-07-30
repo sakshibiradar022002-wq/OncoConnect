@@ -45,9 +45,12 @@ async function call(j, method, path, body) {
     body: body ? JSON.stringify(body) : undefined,
   });
   j.absorb(res);
+  // Most routes answer JSON, but the Prometheus scrape is text/plain — keep
+  // the raw body available rather than swallowing it as null.
+  const raw = await res.text();
   let data = null;
-  try { data = await res.json(); } catch { /* non-JSON responses */ }
-  return { status: res.status, data };
+  try { data = JSON.parse(raw); } catch { /* non-JSON responses */ }
+  return { status: res.status, data, text: raw };
 }
 
 before(async () => {
@@ -350,6 +353,24 @@ test('incremental sync never crosses between doctors', async () => {
   const r = await call(other, 'GET', '/api/sync?since=1970-01-01T00:00:00.000Z');
   assert.equal(r.status, 200);
   assert.ok(!('incr_probe' in r.data.keys), 'must not see another doctor\'s keys');
+});
+
+test('prometheus metrics are exposed to admin and gated from others', async () => {
+  const r = await call(doctor, 'GET', '/api/metrics/prometheus');
+  assert.equal(r.status, 200, 'first registered account acts as admin');
+  assert.match(r.text, /oncoconnect_uptime_seconds/);
+  assert.match(r.text, /oncoconnect_flow_requests_total\{flow=/);
+
+  const denied = await call(stranger, 'GET', '/api/metrics/prometheus');
+  assert.equal(denied.status, 401, 'unauthenticated scrape must be rejected');
+});
+
+test('metrics report which rate-limit store is active', async () => {
+  const r = await call(doctor, 'GET', '/api/metrics');
+  assert.equal(r.status, 200);
+  // Without REDIS_URL this is per-instance; the field exists so operators can
+  // tell which mode a running instance is in.
+  assert.equal(r.data.rateLimitMode, 'memory');
 });
 
 test('logout revokes the session server-side', async () => {

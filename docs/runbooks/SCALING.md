@@ -68,22 +68,20 @@ memory-bound, not contended.
 Watch `memory` in `/api/metrics` across a full day. Steady growth without
 restart indicates a leak worth diagnosing before adding capacity to mask it.
 
-### Stage 3 — Reduce sync cost
+### Stage 3 — Reduce sync cost ✅ implemented
 
-This is usually the highest-value change, and it is a code change rather than an
-infrastructure one.
+`GET /api/sync?since=<ISO timestamp>` returns only keys modified after that
+point, served by the `idx_kv_owner_updated` index. The client's 45-second
+background poll uses it, so routine syncs are proportional to what changed
+rather than to the size of the keyspace.
 
-`GET /api/sync` returns and decrypts a doctor's **entire** keyspace on every
-pull. A doctor with 5,000 keys pays for all 5,000 to fetch one new lab result.
+Login still pulls in full — it is the one point where the client may hold
+nothing. The response carries the server's clock as `now`, and clients echo that
+back rather than using the browser's, so clock skew cannot skip a write.
 
-The `idx_kv_owner_updated` index (`owner_id, updated_at DESC`) already exists to
-support the fix: accept a `?since=<timestamp>` parameter and return only keys
-modified after it, with the client merging deltas. This turns routine syncs into
-near-constant-cost operations.
-
-Lower-effort mitigations available today:
-- Reduce client sync frequency
+Remaining sync work if the keyspace keeps growing:
 - Archive completed patients out of the active keyspace
+- Paginate the full login pull for doctors with very large histories
 
 ### Stage 4 — Horizontal scaling
 
@@ -93,15 +91,17 @@ must change first, or multiple replicas will misbehave:
 1. **Database must be Turso** (or another shared backend). A local SQLite file
    cannot be shared between instances — this is non-negotiable.
 
-2. **Rate limiting must move to shared state.** `express-rate-limit` defaults to
-   an in-memory store, so each replica counts independently: three replicas
-   means an attacker gets three times the configured attempts. Move to a Redis
-   store before adding the second instance.
+2. **Rate limiting must use the shared store.** ✅ available — set `REDIS_URL`
+   and every instance shares one counter (`src/rateLimitStore.js`). Without it
+   each replica counts independently, so three replicas grant three times the
+   configured attempts on credential endpoints. Check `rateLimitMode` in
+   `/api/metrics` to confirm which mode a running instance is in.
 
-3. **Metrics must move to a shared store.** `/api/metrics` reports only the
-   instance that served the request, so with replicas you get a random sample
-   rather than a system view. Export to Prometheus/OpenTelemetry — the
-   `metricsSnapshot()` shape maps cleanly onto a scrape endpoint.
+3. **Metrics must be scraped, not read per-instance.** ✅ available —
+   `GET /api/metrics/prometheus` exposes the flow counters in Prometheus text
+   format, admin-gated like `/api/metrics`. Scrape it into a time-series store:
+   that gives both retention across restarts and correct aggregation across
+   replicas. The JSON endpoint remains a per-instance live view.
 
 Sessions are already safe to scale: they live in the database, not in process
 memory, so any replica can validate and revoke any session.

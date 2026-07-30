@@ -77,6 +77,28 @@ because their filesystems are read-only and ephemeral.
 registration endpoint gets a working clinical account. The first account is
 always auto-approved so the instance owner cannot lock themselves out.
 
+## Scaling
+
+| Variable | Default | Description |
+|---|---|---|
+| `REDIS_URL` | — | Shared backing store for rate limits across replicas |
+
+`express-rate-limit` counts in process memory by default. That is correct for a
+single instance and quietly wrong for several: each replica keeps its own tally,
+so **N replicas grant N× the configured attempts** on the endpoints that guard
+credentials — a security regression that appears on scale-out with no error and
+nothing in the logs.
+
+Set `REDIS_URL` before adding a second instance. The app logs which mode it is
+in at startup, warns in production when the variable is unset, and reports
+`rateLimitMode` in `/api/metrics`. An unreachable Redis or a missing package
+falls back to per-instance counting rather than refusing to boot.
+
+Requires the optional packages:
+```bash
+npm install redis rate-limit-redis
+```
+
 ## Email
 
 | Variable | Description |
