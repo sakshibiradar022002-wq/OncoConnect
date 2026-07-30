@@ -15,6 +15,7 @@ import { encryptPHI, decryptPHI } from '../crypto.js';
 import { authenticate, requireRole, createSession } from '../middleware/auth.js';
 import { validate, asyncHandler } from '../middleware/validate.js';
 import { notifySubject } from '../push.js';
+import { validateLabSubmission } from '../validators/labResults.js';
 
 // Fire-and-forget doctor notifications for incoming alert / lab-result keys.
 function pushDoctorForChanges(ownerId, changes) {
@@ -77,9 +78,33 @@ syncRouter.get('/', authenticate, requireRole('doctor', 'admin'), asyncHandler(a
 
 // ── Doctor: push changes (value null = delete) ────────────────────
 syncRouter.put('/', authenticate, requireRole('doctor', 'admin'), validate(pushSchema), asyncHandler(async (req, res) => {
-  const count = await applyChanges(req.auth.subjectId, req.valid.changes);
-  await writeAudit({ actorId: req.auth.subjectId, actorRole: req.auth.role, action: 'sync.push', detail: { count }, ip: req.ip });
-  res.json({ ok: true, count });
+  const changes = req.valid.changes;
+  const warnings = [];
+
+  // Validate lab submissions for physiological ranges
+  for (const [k, v] of Object.entries(changes)) {
+    if (k.startsWith('lab_subs_') && v && typeof v === 'object') {
+      const validation = validateLabSubmission(v);
+      if (!validation.valid) {
+        const e = new Error(`Lab result validation failed: ${validation.errors.join('; ')}`);
+        e.status = 400;
+        throw e;
+      }
+      if (validation.warnings.length > 0) {
+        warnings.push(...validation.warnings);
+      }
+    }
+  }
+
+  const count = await applyChanges(req.auth.subjectId, changes);
+  await writeAudit({
+    actorId: req.auth.subjectId,
+    actorRole: req.auth.role,
+    action: 'sync.push',
+    detail: { count, labWarnings: warnings.length > 0 ? warnings : undefined },
+    ip: req.ip,
+  });
+  res.json({ ok: true, count, warnings: warnings.length > 0 ? warnings : undefined });
 }));
 
 // ── Patient login against the synced records ──────────────────────
@@ -221,10 +246,35 @@ syncRouter.get('/patient', authenticate, requireRole('kv-patient'), patientScope
 // ── Patient: push changes — only keys that mention their MRN ──────
 syncRouter.put('/patient', authenticate, requireRole('kv-patient'), patientScope, validate(pushSchema), asyncHandler(async (req, res) => {
   const { ownerId, mrn } = req.patientScope;
-  const count = await applyChanges(ownerId, req.valid.changes, k => patientOwnsKey(k, mrn));
-  pushDoctorForChanges(ownerId, req.valid.changes);
-  await writeAudit({ actorId: mrn, actorRole: 'kv-patient', action: 'sync.patient_push', targetId: ownerId, detail: { count }, ip: req.ip });
-  res.json({ ok: true, count });
+  const changes = req.valid.changes;
+  const warnings = [];
+
+  // Validate lab submissions for physiological ranges
+  for (const [k, v] of Object.entries(changes)) {
+    if ((k.startsWith('lab_subs_') || k === `lab_subs_${mrn}`) && v && typeof v === 'object') {
+      const validation = validateLabSubmission(v);
+      if (!validation.valid) {
+        const e = new Error(`Lab result validation failed: ${validation.errors.join('; ')}`);
+        e.status = 400;
+        throw e;
+      }
+      if (validation.warnings.length > 0) {
+        warnings.push(...validation.warnings);
+      }
+    }
+  }
+
+  const count = await applyChanges(ownerId, changes, k => patientOwnsKey(k, mrn));
+  pushDoctorForChanges(ownerId, changes);
+  await writeAudit({
+    actorId: mrn,
+    actorRole: 'kv-patient',
+    action: 'sync.patient_push',
+    targetId: ownerId,
+    detail: { count, labWarnings: warnings.length > 0 ? warnings : undefined },
+    ip: req.ip,
+  });
+  res.json({ ok: true, count, warnings: warnings.length > 0 ? warnings : undefined });
 }));
 
 // ── Lab technician login against the synced records ───────────────
@@ -307,8 +357,33 @@ syncRouter.get('/lab', authenticate, requireRole('kv-lab'), labScope, asyncHandl
 syncRouter.put('/lab', authenticate, requireRole('kv-lab'), labScope, validate(pushSchema), asyncHandler(async (req, res) => {
   const { ownerId, docId, labId } = req.labScope;
   const allowed = new Set([`pat_tokens_${docId}`, `lab_subs_${docId}`]);
-  const count = await applyChanges(ownerId, req.valid.changes, k => allowed.has(k));
-  pushDoctorForChanges(ownerId, req.valid.changes);
-  await writeAudit({ actorId: labId, actorRole: 'kv-lab', action: 'sync.lab_push', targetId: ownerId, detail: { count }, ip: req.ip });
-  res.json({ ok: true, count });
+  const changes = req.valid.changes;
+  const warnings = [];
+
+  // Validate lab submissions for physiological ranges
+  for (const [k, v] of Object.entries(changes)) {
+    if (k === `lab_subs_${docId}` && v && typeof v === 'object') {
+      const validation = validateLabSubmission(v);
+      if (!validation.valid) {
+        const e = new Error(`Lab result validation failed: ${validation.errors.join('; ')}`);
+        e.status = 400;
+        throw e;
+      }
+      if (validation.warnings.length > 0) {
+        warnings.push(...validation.warnings);
+      }
+    }
+  }
+
+  const count = await applyChanges(ownerId, changes, k => allowed.has(k));
+  pushDoctorForChanges(ownerId, changes);
+  await writeAudit({
+    actorId: labId,
+    actorRole: 'kv-lab',
+    action: 'sync.lab_push',
+    targetId: ownerId,
+    detail: { count, labWarnings: warnings.length > 0 ? warnings : undefined },
+    ip: req.ip,
+  });
+  res.json({ ok: true, count, warnings: warnings.length > 0 ? warnings : undefined });
 }));
