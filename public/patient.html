@@ -265,13 +265,21 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
   #app-shell,#screen-lab-shell,#screen-lab{border-radius:28px;box-shadow:0 24px 80px rgba(15,23,42,.35);margin:24px auto;height:calc(100% - 48px);overflow:hidden;}
   .sheet{border-radius:24px;}
 }
+
+/* ── State that used to be written as inline style from on* attributes ──
+   Focus rings, hover tints and drag highlighting are presentation, so they
+   belong here. Moving them out of markup is what let the CSP drop
+   script-src-attr 'unsafe-inline'. */
+.field-focus:focus{border-color:var(--blue-light);outline:none;}
+.hover-tint:hover{background:var(--blue-pale);color:var(--blue);}
+.drop-zone.drag{border-color:var(--blue-light);background:var(--blue-pale);}
 </style>
 </head>
 <body>
 <div id="screen-login">
   <div style="text-align:right;margin-bottom:4px;">
-    <button class="lang-btn" data-lang="en" onclick="setLang('en')" style="padding:6px 12px;border-radius:9px;border:1.5px solid rgba(255,255,255,0.3);background:transparent;color:#fff;font-family:inherit;font-size:12px;cursor:pointer;">English</button>
-    <button class="lang-btn" data-lang="hi" onclick="setLang('hi')" style="padding:6px 12px;border-radius:9px;border:1.5px solid rgba(255,255,255,0.3);background:transparent;color:#fff;font-family:inherit;font-size:12px;cursor:pointer;">हिंदी</button>
+    <button class="lang-btn" data-lang="en" data-click="setLang('en')" style="padding:6px 12px;border-radius:9px;border:1.5px solid rgba(255,255,255,0.3);background:transparent;color:#fff;font-family:inherit;font-size:12px;cursor:pointer;">English</button>
+    <button class="lang-btn" data-lang="hi" data-click="setLang('hi')" style="padding:6px 12px;border-radius:9px;border:1.5px solid rgba(255,255,255,0.3);background:transparent;color:#fff;font-family:inherit;font-size:12px;cursor:pointer;">हिंदी</button>
   </div>
   <div class="logo-wrap">
     <div class="logo-circle">💊</div>
@@ -286,11 +294,11 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
 
   <!-- Role cards -->
   <div style="display:flex;gap:10px;margin-bottom:24px;">
-    <button id="ltab-patient" onclick="switchLoginTab('patient')"
+    <button id="ltab-patient" data-click="switchLoginTab('patient')"
       style="flex:1;padding:14px 8px;border-radius:14px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;border:2px solid rgba(255,255,255,0.9);background:rgba(255,255,255,0.9);color:var(--blue2);transition:all 0.2s;">
       🧑‍⚕️ Patient Login
     </button>
-    <button id="ltab-lab" onclick="switchLoginTab('lab')"
+    <button id="ltab-lab" data-click="switchLoginTab('lab')"
       style="flex:1;padding:14px 8px;border-radius:14px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;border:2px solid rgba(255,255,255,0.25);background:transparent;color:rgba(255,255,255,0.7);transition:all 0.2s;">
       🔬 Lab Technician
     </button>
@@ -306,15 +314,15 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
       <label for="l-mrn">Patient MRN</label>
       <input id="l-mrn" type="text" placeholder="e.g. DOC-8718-928" aria-label="Patient Medical Record Number"
         autocorrect="off" autocapitalize="characters" spellcheck="false"
-        oninput="this.value=this.value.toUpperCase()"
-        onkeydown="if(event.key==='Enter')document.getElementById('l-pass').focus()">
+        data-input="upperCaseInput()"
+        data-enter="focusField('l-pass')">
     </div>
     <div class="fg" style="margin-bottom:20px;">
       <label for="l-pass">Password</label>
       <input id="l-pass" type="password" placeholder="••••••••" aria-label="Patient password"
-        onkeydown="if(event.key==='Enter')doLogin()">
+        data-enter="doLogin()">
     </div>
-    <button class="big-btn" onclick="doLogin()" style="margin-bottom:10px;">Sign In as Patient →</button>
+    <button class="big-btn" data-click="doLogin()" style="margin-bottom:10px;">Sign In as Patient →</button>
     <p style="text-align:center;margin-top:14px;font-size:11px;color:rgba(255,255,255,0.35);">🔒 Open OncoConnect Pro Enhanced in the same browser to sync</p>
   </div>
 
@@ -329,14 +337,14 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
       <label>Lab Username</label>
       <input id="lab-l-user" type="text" placeholder="e.g. citylab611"
         autocorrect="off" autocapitalize="none" spellcheck="false"
-        onkeydown="if(event.key==='Enter')document.getElementById('lab-l-pass').focus()">
+        data-enter="focusField('lab-l-pass')">
     </div>
     <div class="fg" style="margin-bottom:18px;">
       <label>Lab Password</label>
       <input id="lab-l-pass" type="password" placeholder="••••••••"
-        onkeydown="if(event.key==='Enter')doLabLogin()">
+        data-enter="doLabLogin()">
     </div>
-    <button class="big-btn" style="background:linear-gradient(135deg,rgba(255,255,255,0.95),rgba(255,255,255,0.85));color:var(--blue2);" onclick="doLabLogin()">Sign In as Lab Technician →</button>
+    <button class="big-btn" style="background:linear-gradient(135deg,rgba(255,255,255,0.95),rgba(255,255,255,0.85));color:var(--blue2);" data-click="doLabLogin()">Sign In as Lab Technician →</button>
     <p style="text-align:center;margin-top:14px;font-size:11px;color:rgba(255,255,255,0.3);line-height:1.7;">⚠ OncoConnect Pro must be open in this same browser<br>on the same device to share data</p>
   </div>
 </div>
@@ -352,13 +360,13 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
       <div style="font-weight:800;font-size:15px;color:#fff;">🔬 Lab Portal</div>
       <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:1px;" id="lab-topbar-sub">Logged in</div>
     </div>
-    <button onclick="doLabLogout()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:8px;padding:7px 14px;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;">Sign Out</button>
+    <button data-click="doLabLogout()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:8px;padding:7px 14px;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;">Sign Out</button>
   </div>
 
   <!-- Tab bar -->
   <div style="display:flex;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;">
-    <button id="lab-nav-tasks" onclick="switchLabScreen('tasks')" style="flex:1;padding:13px 4px;border:none;background:transparent;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--blue);border-bottom:2px solid var(--blue);">📋 Assigned Tasks</button>
-    <button id="lab-nav-upload" onclick="switchLabScreen('upload')" style="flex:1;padding:13px 4px;border:none;background:transparent;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--text-muted);border-bottom:2px solid transparent;">📤 Upload Report</button>
+    <button id="lab-nav-tasks" data-click="switchLabScreen('tasks')" style="flex:1;padding:13px 4px;border:none;background:transparent;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--blue);border-bottom:2px solid var(--blue);">📋 Assigned Tasks</button>
+    <button id="lab-nav-upload" data-click="switchLabScreen('upload')" style="flex:1;padding:13px 4px;border:none;background:transparent;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--text-muted);border-bottom:2px solid transparent;">📤 Upload Report</button>
   </div>
 
   <!-- ── TASKS SCREEN ── -->
@@ -418,7 +426,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
       <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--blue);margin-bottom:4px;">📋 Uploading for assigned task</div>
       <div style="font-weight:700;font-size:13.5px;color:var(--text);" id="lab-active-task-title">—</div>
       <div style="font-size:12px;color:var(--text-muted);margin-top:3px;" id="lab-active-task-sub">—</div>
-      <button onclick="clearActiveTask()" style="margin-top:8px;background:none;border:none;color:var(--text-muted);font-family:inherit;font-size:12px;cursor:pointer;padding:0;text-decoration:underline;">✕ Clear — upload without task</button>
+      <button data-click="clearActiveTask()" style="margin-top:8px;background:none;border:none;color:var(--text-muted);font-family:inherit;font-size:12px;cursor:pointer;padding:0;text-decoration:underline;">✕ Clear — upload without task</button>
     </div>
 
     <!-- Patient -->
@@ -449,15 +457,15 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
 
     <!-- Upload zone -->
     <div id="lab-drop-zone" style="border:2px dashed var(--border2);border-radius:14px;padding:30px 20px;text-align:center;cursor:pointer;margin-bottom:12px;transition:all 0.2s;background:var(--surface);"
-         onclick="document.getElementById('lab-file-inp').click()"
-         ondragover="event.preventDefault();this.style.borderColor='var(--blue-light)';this.style.background='var(--blue-pale)';"
-         ondragleave="this.style.borderColor='var(--border2)';this.style.background='var(--surface)';"
-         ondrop="event.preventDefault();this.style.borderColor='var(--border2)';this.style.background='var(--surface)';handleLabFiles(event.dataTransfer.files)">
+         data-click="clickEl('lab-file-inp')"
+         class="drop-zone" data-dragover="dragEnterZone(event)"
+         data-dragleave="dragLeaveZone()"
+         data-drop="dropOnZone(event,'handleLabFiles')">
       <div style="font-size:40px;margin-bottom:8px;">📂</div>
       <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px;">Tap to upload files</div>
       <div style="font-size:12px;color:var(--text-muted);">PDF, JPG, PNG, DOCX · Max 4MB each</div>
     </div>
-    <input type="file" id="lab-file-inp" multiple accept=".pdf,.jpg,.jpeg,.png,.docx,.doc" style="display:none;" onchange="handleLabFiles(this.files)">
+    <input type="file" id="lab-file-inp" multiple accept=".pdf,.jpg,.jpeg,.png,.docx,.doc" style="display:none;" data-change="handleLabFiles(this.files)">
 
     <div id="lab-file-list" style="margin-bottom:12px;"></div>
 
@@ -470,7 +478,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
 
   <!-- Fixed submit bar (only on upload screen) -->
   <div id="lab-submit-bar-wrap" style="display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;padding:14px 18px;background:var(--surface);border-top:1px solid var(--border);box-shadow:0 -4px 20px rgba(62,95,68,0.08);">
-    <button onclick="submitLabReport()" style="width:100%;padding:15px;border-radius:14px;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;border:none;background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;box-shadow:0 4px 20px rgba(62,95,68,0.3);">📤 Submit Report</button>
+    <button data-click="submitLabReport()" style="width:100%;padding:15px;border-radius:14px;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;border:none;background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;box-shadow:0 4px 20px rgba(62,95,68,0.3);">📤 Submit Report</button>
   </div>
 </div>
 
@@ -495,9 +503,9 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
       <div class="info-card-title">💊 Today's Medications <span id="meds-adherence" style="float:right;font-size:11px;color:var(--text-muted);font-weight:600;"></span></div>
       <div id="today-meds-list"></div>
     </div>
-    <button class="log-btn" onclick="openLogSheet()">📋 Log Today's Symptoms</button>
-    <button class="log-btn" onclick="openFactBr()" style="background:linear-gradient(135deg,#4a3aa7,#6b5bd4);margin-top:8px;">🧠 Monthly Quality-of-Life Survey (FACT-Br)</button>
-    <button class="log-btn" onclick="openTriage()" style="background:linear-gradient(135deg,#b91c1c,#dc2626);margin-top:8px;">🚨 When to Call Your Care Team NOW</button>
+    <button class="log-btn" data-click="openLogSheet()">📋 Log Today's Symptoms</button>
+    <button class="log-btn" data-click="openFactBr()" style="background:linear-gradient(135deg,#4a3aa7,#6b5bd4);margin-top:8px;">🧠 Monthly Quality-of-Life Survey (FACT-Br)</button>
+    <button class="log-btn" data-click="openTriage()" style="background:linear-gradient(135deg,#b91c1c,#dc2626);margin-top:8px;">🚨 When to Call Your Care Team NOW</button>
     <div id="edu-card" style="margin:16px 20px 0;display:none;"></div>
     <div id="trend-card" style="margin:16px 20px 12px;display:none;"></div>
     <div class="recent-section" id="recent-logs"></div>
@@ -506,12 +514,12 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
   <!-- FACT-Br QUALITY OF LIFE SHEET -->
   <div class="sheet-overlay" id="factbr-sheet">
     <div class="sheet">
-      <div class="sheet-title">Quality of Life — FACT-Br <button class="sheet-x" onclick="closeSheet('factbr-sheet')">X</button></div>
+      <div class="sheet-title">Quality of Life — FACT-Br <button class="sheet-x" data-click="closeSheet('factbr-sheet')">X</button></div>
       <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:16px;line-height:1.6;">
         The FACT-Br is a validated brain-tumour quality-of-life questionnaire. For each statement, choose how true it has been for you <strong>during the past 7 days</strong>. 0 = Not at all, 4 = Very much.
       </div>
       <div id="factbr-questions"></div>
-      <button class="log-btn" onclick="saveFactBr()" style="margin-top:16px;">Save Assessment</button>
+      <button class="log-btn" data-click="saveFactBr()" style="margin-top:16px;">Save Assessment</button>
     </div>
   </div>
 
@@ -576,7 +584,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
     <div id="upcoming-appts"><div class="empty-card">📅 No upcoming appointments.</div></div>
     <div class="sec-head" style="margin-top:16px;">Past Visits</div>
     <div id="past-appts"><div class="empty-card">📋 No past visits on record.</div></div>
-    <button class="outline-btn" style="margin-top:8px;" onclick="openSheet('appt-sheet')">+ Request New Appointment</button>
+    <button class="outline-btn" style="margin-top:8px;" data-click="openSheet('appt-sheet')">+ Request New Appointment</button>
   </div>
 
   <div id="screen-messages" class="screen" style="overflow:hidden;">
@@ -588,8 +596,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
     </div>
     <div class="chat-area" id="chat-area" role="log" aria-label="Message history"></div>
     <div class="chat-bar">
-      <input id="chat-inp" placeholder="Message your doctor…" aria-label="Message input box" onkeydown="if(event.key==='Enter')sendMsg()">
-      <button class="send-btn" onclick="sendMsg()" aria-label="Send message">&#8593;</button>
+      <input id="chat-inp" placeholder="Message your doctor…" aria-label="Message input box" data-enter="sendMsg()">
+      <button class="send-btn" data-click="sendMsg()" aria-label="Send message">&#8593;</button>
     </div>
   </div>
 
@@ -621,7 +629,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
       <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:12px;line-height:1.6;">
         Share your health data with caregivers, family members, or emergency contacts.
       </div>
-      <button class="outline-btn" onclick="generateCaregiverLink()" style="background:var(--blue-pale);border-color:rgba(62,95,68,0.25);color:var(--blue);margin-bottom:12px;">Generate Shareable Link</button>
+      <button class="outline-btn" data-click="generateCaregiverLink()" style="background:var(--blue-pale);border-color:rgba(62,95,68,0.25);color:var(--blue);margin-bottom:12px;">Generate Shareable Link</button>
       <div id="caregiver-link-display" style="display:none;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;font-size:12px;word-break:break-all;font-family:monospace;color:var(--text);margin-top:8px;"></div>
     </div>
 
@@ -634,16 +642,16 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
     <div class="info-card">
       <div class="info-card-title">Language / भाषा</div>
       <div style="display:flex;gap:8px;margin-bottom:14px;">
-        <button class="lang-btn" data-lang="en" onclick="setLang('en')" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--border2);background:transparent;color:var(--text);font-family:inherit;font-size:14px;cursor:pointer;">English</button>
-        <button class="lang-btn" data-lang="hi" onclick="setLang('hi')" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--border2);background:transparent;color:var(--text);font-family:inherit;font-size:14px;cursor:pointer;">हिंदी</button>
+        <button class="lang-btn" data-lang="en" data-click="setLang('en')" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--border2);background:transparent;color:var(--text);font-family:inherit;font-size:14px;cursor:pointer;">English</button>
+        <button class="lang-btn" data-lang="hi" data-click="setLang('hi')" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--border2);background:transparent;color:var(--text);font-family:inherit;font-size:14px;cursor:pointer;">हिंदी</button>
       </div>
       <div class="tog-row">
         <span style="font-size:13px;">🔎 Larger text / बड़े अक्षर</span>
-        <label class="tog"><input type="checkbox" id="bigtext-toggle" onchange="setBigText(this.checked)"><span class="tog-track"></span></label>
+        <label class="tog"><input type="checkbox" id="bigtext-toggle" data-change="setBigText(this.checked)"><span class="tog-track"></span></label>
       </div>
       <div class="tog-row" style="border-bottom:none;">
         <span style="font-size:13px;">◐ High contrast / अधिक कंट्रास्ट</span>
-        <label class="tog"><input type="checkbox" id="contrast-toggle" onchange="setHighContrast(this.checked)"><span class="tog-track"></span></label>
+        <label class="tog"><input type="checkbox" id="contrast-toggle" data-change="setHighContrast(this.checked)"><span class="tog-track"></span></label>
       </div>
     </div>
     <!-- Data & backup card -->
@@ -659,154 +667,154 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
           <div id="pat-storage-bar" style="height:100%;background:var(--blue-light);border-radius:3px;transition:width 0.5s;width:0%;"></div>
         </div>
       </div>
-      <button onclick="exportPatientData()" style="width:100%;padding:12px;border-radius:12px;background:var(--blue-pale);border:1.5px solid rgba(62,95,68,0.25);color:var(--blue);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px;">⬇ Export My Data</button>
+      <button data-click="exportPatientData()" style="width:100%;padding:12px;border-radius:12px;background:var(--blue-pale);border:1.5px solid rgba(62,95,68,0.25);color:var(--blue);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px;">⬇ Export My Data</button>
       <div style="font-size:11px;color:var(--text-dim);text-align:center;">Downloads as OncoConnect_MyData_[date].json — send this to a new device to restore your data</div>
     </div>
-    <button class="sign-out-btn" onclick="doLogout()">Sign Out</button>
+    <button class="sign-out-btn" data-click="doLogout()">Sign Out</button>
   </div>
 
   <div class="bottom-nav">
-    <button class="nav-btn active" id="nav-calendar" onclick="goScreen('calendar')"><div class="nav-icon">📅</div><div class="nav-label">Symptoms</div></button>
-    <button class="nav-btn" id="nav-treatment" onclick="goScreen('treatment')"><div class="nav-icon">⚡</div><div class="nav-label">Treatment</div></button>
-    <button class="nav-btn" id="nav-appointments" onclick="goScreen('appointments')"><div class="nav-icon">🗓</div><div class="nav-label">Visits</div></button>
-    <button class="nav-btn" id="nav-messages" onclick="goScreen('messages')"><div class="nav-icon">💬</div><div class="nav-label">Messages</div></button>
-    <button class="nav-btn" id="nav-profile" onclick="goScreen('profile')"><div class="nav-icon">👤</div><div class="nav-label">Profile</div></button>
+    <button class="nav-btn active" id="nav-calendar" data-click="goScreen('calendar')"><div class="nav-icon">📅</div><div class="nav-label">Symptoms</div></button>
+    <button class="nav-btn" id="nav-treatment" data-click="goScreen('treatment')"><div class="nav-icon">⚡</div><div class="nav-label">Treatment</div></button>
+    <button class="nav-btn" id="nav-appointments" data-click="goScreen('appointments')"><div class="nav-icon">🗓</div><div class="nav-label">Visits</div></button>
+    <button class="nav-btn" id="nav-messages" data-click="goScreen('messages')"><div class="nav-icon">💬</div><div class="nav-label">Messages</div></button>
+    <button class="nav-btn" id="nav-profile" data-click="goScreen('profile')"><div class="nav-icon">👤</div><div class="nav-label">Profile</div></button>
   </div>
 </div>
 
 <div class="sheet-overlay" id="log-sheet">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">Daily Health Log <button class="sheet-x" onclick="closeSheet('log-sheet')">X</button></div>
+    <div class="sheet-title">Daily Health Log <button class="sheet-x" data-click="closeSheet('log-sheet')">X</button></div>
     <div class="sheet-body">
       <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:16px;" id="log-date-lbl">Date: ---</div>
       <div class="log-sec">
         <div class="log-sec-hdr"><div class="log-sec-title">Cognitive Issues</div><div class="log-sec-score" style="color:var(--orange);" id="sc-cog">0/10</div></div>
-        <input class="slider" type="range" min="0" max="10" value="0" id="s-cog" oninput="updSlider('cog',this.value)">
+        <input class="slider" type="range" min="0" max="10" value="0" id="s-cog" data-input="updSlider('cog',this.value)">
         <div class="slider-ends"><span>None</span><span>Severe</span></div>
         <div class="check-grid">
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Forgetting recent</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Misplacing objects</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Difficulty focusing</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Word-finding issues</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Slurred speech</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Date/time confusion</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Irritability</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Forgetting recent</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Misplacing objects</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Difficulty focusing</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Word-finding issues</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Slurred speech</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Date/time confusion</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Irritability</div>
         </div>
       </div>
       <div class="divider"></div>
       <div class="log-sec">
         <div class="log-sec-hdr"><div class="log-sec-title">Seizure Activity</div><div class="log-sec-score" style="color:var(--red);" id="sc-sz">0/10</div></div>
-        <input class="slider" type="range" min="0" max="10" value="0" id="s-sz" oninput="updSlider('sz',this.value)">
+        <input class="slider" type="range" min="0" max="10" value="0" id="s-sz" data-input="updSlider('sz',this.value)">
         <div class="slider-ends"><span>None</span><span>Severe</span></div>
         <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-muted);margin:8px 0 4px;">Seizure Type</div>
         <div class="pill-row" id="sz-type-pills">
-          <div class="tag-pill sel" onclick="togglePill(this)">None</div>
-          <div class="tag-pill" onclick="togglePill(this)">Focal aware</div>
-          <div class="tag-pill" onclick="togglePill(this)">Focal impaired</div>
-          <div class="tag-pill" onclick="togglePill(this)">Generalized</div>
-          <div class="tag-pill" onclick="togglePill(this)">Myoclonic</div>
-          <div class="tag-pill" onclick="togglePill(this)">Aura only</div>
+          <div class="tag-pill sel" data-click="togglePill(this)">None</div>
+          <div class="tag-pill" data-click="togglePill(this)">Focal aware</div>
+          <div class="tag-pill" data-click="togglePill(this)">Focal impaired</div>
+          <div class="tag-pill" data-click="togglePill(this)">Generalized</div>
+          <div class="tag-pill" data-click="togglePill(this)">Myoclonic</div>
+          <div class="tag-pill" data-click="togglePill(this)">Aura only</div>
         </div>
       </div>
       <div class="divider"></div>
       <div class="log-sec">
         <div class="log-sec-hdr"><div class="log-sec-title">Vision and Balance</div><div class="log-sec-score" style="color:var(--blue);" id="sc-vis">0/10</div></div>
-        <input class="slider" type="range" min="0" max="10" value="0" id="s-vis" oninput="updSlider('vis',this.value)">
+        <input class="slider" type="range" min="0" max="10" value="0" id="s-vis" data-input="updSlider('vis',this.value)">
         <div class="check-grid">
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Blurred vision</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Double vision</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Partial vision loss</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Seeing flashes</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Unsteady gait</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Dizziness vertigo</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Nausea dizziness</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Blurred vision</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Double vision</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Partial vision loss</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Seeing flashes</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Unsteady gait</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Dizziness vertigo</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Nausea dizziness</div>
         </div>
       </div>
       <div class="divider"></div>
       <div class="log-sec">
         <div class="log-sec-hdr"><div class="log-sec-title">Headache Intensity</div><div class="log-sec-score" style="color:var(--orange);" id="sc-ha">0/10</div></div>
-        <input class="slider" type="range" min="0" max="10" value="0" id="s-ha" oninput="updSlider('ha',this.value)">
+        <input class="slider" type="range" min="0" max="10" value="0" id="s-ha" data-input="updSlider('ha',this.value)">
         <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-muted);margin:8px 0 4px;">Location</div>
         <div class="pill-row">
-          <div class="tag-pill" onclick="togglePill(this)">Frontal</div>
-          <div class="tag-pill" onclick="togglePill(this)">Temporal</div>
-          <div class="tag-pill" onclick="togglePill(this)">Occipital</div>
-          <div class="tag-pill" onclick="togglePill(this)">Whole Head</div>
+          <div class="tag-pill" data-click="togglePill(this)">Frontal</div>
+          <div class="tag-pill" data-click="togglePill(this)">Temporal</div>
+          <div class="tag-pill" data-click="togglePill(this)">Occipital</div>
+          <div class="tag-pill" data-click="togglePill(this)">Whole Head</div>
         </div>
         <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-muted);margin:12px 0 4px;">Characteristics</div>
         <div class="check-grid">
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Throbbing</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Pressure</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Worse with movement</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Relieved by meds</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Throbbing</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Pressure</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Worse with movement</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Relieved by meds</div>
         </div>
       </div>
       <div class="divider"></div>
       <div class="log-sec">
         <div class="log-sec-hdr"><div class="log-sec-title">Fatigue</div><div class="log-sec-score" style="color:var(--orange);" id="sc-fatigue">0/10</div></div>
-        <input class="slider" type="range" min="0" max="10" value="0" id="s-fatigue" oninput="updSlider('fatigue',this.value)">
+        <input class="slider" type="range" min="0" max="10" value="0" id="s-fatigue" data-input="updSlider('fatigue',this.value)">
         <div class="slider-ends"><span>No fatigue</span><span>Cannot function</span></div>
         <div class="check-grid">
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Cannot get out of bed</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Fatigue limits activities</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Needed daytime rest</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Too tired to eat</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Cannot get out of bed</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Fatigue limits activities</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Needed daytime rest</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Too tired to eat</div>
         </div>
       </div>
       <div class="divider"></div>
       <div class="log-sec">
         <div class="log-sec-hdr"><div class="log-sec-title">Nausea / Vomiting</div><div class="log-sec-score" style="color:var(--red);" id="sc-nausea">0/10</div></div>
-        <input class="slider" type="range" min="0" max="10" value="0" id="s-nausea" oninput="updSlider('nausea',this.value)">
+        <input class="slider" type="range" min="0" max="10" value="0" id="s-nausea" data-input="updSlider('nausea',this.value)">
         <div class="slider-ends"><span>None</span><span>Severe/Vomiting</span></div>
         <div class="check-grid">
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Mild nausea only</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Vomited once</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Vomited multiple times</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Could not take medications</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Mild nausea only</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Vomited once</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Vomited multiple times</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Could not take medications</div>
         </div>
       </div>
       <div class="divider"></div>
       <div class="log-sec">
         <div class="log-sec-hdr"><div class="log-sec-title">Appetite</div><div class="log-sec-score" style="color:var(--blue);" id="sc-appetite">5/10</div></div>
-        <input class="slider" type="range" min="0" max="10" value="5" id="s-appetite" oninput="updSlider('appetite',this.value)">
+        <input class="slider" type="range" min="0" max="10" value="5" id="s-appetite" data-input="updSlider('appetite',this.value)">
         <div class="slider-ends"><span>No appetite</span><span>Normal appetite</span></div>
         <div class="check-grid">
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Ate less than half usual</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Skipped a meal</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Food aversions</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Weight loss concerns</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Ate less than half usual</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Skipped a meal</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Food aversions</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Weight loss concerns</div>
         </div>
       </div>
       <div class="divider"></div>
       <div class="log-sec">
         <div class="log-sec-hdr"><div class="log-sec-title">Sleep Quality</div><div class="log-sec-score" style="color:var(--blue);" id="sc-sleep">5/10</div></div>
-        <input class="slider" type="range" min="0" max="10" value="5" id="s-sleep" oninput="updSlider('sleep',this.value)">
+        <input class="slider" type="range" min="0" max="10" value="5" id="s-sleep" data-input="updSlider('sleep',this.value)">
         <div class="slider-ends"><span>No sleep</span><span>Restful</span></div>
         <div class="check-grid">
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Difficulty falling asleep</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Woke multiple times</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Nightmares/disturbing dreams</div>
-          <div class="check-item" onclick="toggle(this)"><div class="cb">v</div>Slept more than 10 hrs</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Difficulty falling asleep</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Woke multiple times</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Nightmares/disturbing dreams</div>
+          <div class="check-item" data-click="toggle(this)"><div class="cb">v</div>Slept more than 10 hrs</div>
         </div>
       </div>
       <div class="divider"></div>
       <div class="log-sec">
         <div class="log-sec-hdr"><div class="log-sec-title">Mood and Wellbeing</div><div class="log-sec-score" style="color:var(--green);" id="sc-mood">5/10</div></div>
-        <input class="slider" type="range" min="0" max="10" value="5" id="s-mood" oninput="updSlider('mood',this.value);syncMood(this.value)">
+        <input class="slider" type="range" min="0" max="10" value="5" id="s-mood" data-input="updSlider('mood',this.value);syncMood(this.value)">
         <div class="mood-row">
-          <span class="mood-f" onclick="pickMood(0)">&#128547;</span>
-          <span class="mood-f" onclick="pickMood(3)">&#128532;</span>
-          <span class="mood-f sel" onclick="pickMood(5)">&#128528;</span>
-          <span class="mood-f" onclick="pickMood(7)">&#128578;</span>
-          <span class="mood-f" onclick="pickMood(10)">&#128522;</span>
+          <span class="mood-f" data-click="pickMood(0)">&#128547;</span>
+          <span class="mood-f" data-click="pickMood(3)">&#128532;</span>
+          <span class="mood-f sel" data-click="pickMood(5)">&#128528;</span>
+          <span class="mood-f" data-click="pickMood(7)">&#128578;</span>
+          <span class="mood-f" data-click="pickMood(10)">&#128522;</span>
         </div>
       </div>
       <div class="divider"></div>
       <div class="log-sec">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
           <div class="log-sec-title">Medications Taken Today</div>
-          <button onclick="openSheet('addmed-sheet')" style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.3);color:var(--green);padding:5px 12px;border-radius:10px;font-family:inherit;font-size:11.5px;font-weight:600;cursor:pointer;">+ Add Med</button>
+          <button data-click="openSheet('addmed-sheet')" style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.3);color:var(--green);padding:5px 12px;border-radius:10px;font-family:inherit;font-size:11.5px;font-weight:600;cursor:pointer;">+ Add Med</button>
         </div>
         <div class="tog-row"><span style="font-size:13.5px;font-weight:500;">Anti-seizure</span><label class="tog"><input type="checkbox" id="med-as"><span class="tog-track"></span></label></div>
         <div class="tog-row"><span style="font-size:13.5px;font-weight:500;">Chemo (TMZ)</span><label class="tog"><input type="checkbox" id="med-tmz"><span class="tog-track"></span></label></div>
@@ -829,7 +837,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
         <div class="log-sec-title" style="margin-bottom:8px;">Daily Notes</div>
         <textarea class="notes-inp" id="log-notes" rows="3" placeholder="Any symptoms, triggers, or concerns..."></textarea>
       </div>
-      <button class="big-btn" onclick="saveLog()">Save Health Log</button>
+      <button class="big-btn" data-click="saveLog()">Save Health Log</button>
       <div style="height:16px;"></div>
     </div>
   </div>
@@ -838,14 +846,14 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
 <div class="sheet-overlay" id="addmed-sheet">
   <div class="sheet" style="max-height:60vh;">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">Add Medication <button class="sheet-x" onclick="closeSheet('addmed-sheet')">X</button></div>
+    <div class="sheet-title">Add Medication <button class="sheet-x" data-click="closeSheet('addmed-sheet')">X</button></div>
     <div class="sheet-body">
       <div class="fg"><label>Medication Name</label><input id="am-name" type="text" placeholder="e.g. Dexamethasone"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div class="fg"><label>Dose</label><input id="am-dose" type="text" placeholder="4 mg"></div>
         <div class="fg"><label>Time Taken</label><input id="am-time" type="time"></div>
       </div>
-      <button class="big-btn" onclick="addExtraMed()">Add to Today's Log</button>
+      <button class="big-btn" data-click="addExtraMed()">Add to Today's Log</button>
       <div style="height:8px;"></div>
     </div>
   </div>
@@ -854,12 +862,12 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
 <div class="sheet-overlay" id="appt-sheet">
   <div class="sheet" style="max-height:70vh;">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">Request Appointment <button class="sheet-x" onclick="closeSheet('appt-sheet')">X</button></div>
+    <div class="sheet-title">Request Appointment <button class="sheet-x" data-click="closeSheet('appt-sheet')">X</button></div>
     <div class="sheet-body">
       <div class="fg"><label>Preferred Date</label><input id="ra-date" type="date"></div>
       <div class="fg"><label>Preferred Time</label><input id="ra-time" type="time"></div>
       <div class="fg"><label>Reason</label><textarea id="ra-reason" class="notes-inp" rows="3" placeholder="Describe the reason..."></textarea></div>
-      <button class="big-btn" onclick="submitApptReq()">Send Request</button>
+      <button class="big-btn" data-click="submitApptReq()">Send Request</button>
       <div style="height:8px;"></div>
     </div>
   </div>
@@ -868,7 +876,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
 <div class="sheet-overlay" id="detail-sheet">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title" id="detail-title">Health Log <button class="sheet-x" onclick="closeSheet('detail-sheet')">X</button></div>
+    <div class="sheet-title" id="detail-title">Health Log <button class="sheet-x" data-click="closeSheet('detail-sheet')">X</button></div>
     <div id="detail-body"></div>
   </div>
 </div>
@@ -879,8 +887,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
     <div class="sheet-handle"></div>
     <div class="sheet-title"><span id="consent-title">🔒 Your data, your consent</span>
       <span style="display:flex;gap:6px;">
-        <button class="lang-btn" data-lang="en" onclick="setLang('en');renderConsentSheet()" style="padding:4px 10px;border-radius:8px;border:1.5px solid var(--border2);background:transparent;font-family:inherit;font-size:11px;cursor:pointer;">EN</button>
-        <button class="lang-btn" data-lang="hi" onclick="setLang('hi');renderConsentSheet()" style="padding:4px 10px;border-radius:8px;border:1.5px solid var(--border2);background:transparent;font-family:inherit;font-size:11px;cursor:pointer;">हिंदी</button>
+        <button class="lang-btn" data-lang="en" data-click="setLang('en');renderConsentSheet()" style="padding:4px 10px;border-radius:8px;border:1.5px solid var(--border2);background:transparent;font-family:inherit;font-size:11px;cursor:pointer;">EN</button>
+        <button class="lang-btn" data-lang="hi" data-click="setLang('hi');renderConsentSheet()" style="padding:4px 10px;border-radius:8px;border:1.5px solid var(--border2);background:transparent;font-family:inherit;font-size:11px;cursor:pointer;">हिंदी</button>
       </span>
     </div>
     <div class="sheet-body" id="consent-body"></div>
@@ -891,19 +899,23 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
 <div class="sheet-overlay" id="triage-sheet">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title" style="color:var(--red);"><span id="triage-title-txt">🚨 Call your care team NOW if…</span> <button class="sheet-x" onclick="closeSheet('triage-sheet')" aria-label="Close">✕</button></div>
+    <div class="sheet-title" style="color:var(--red);"><span id="triage-title-txt">🚨 Call your care team NOW if…</span> <button class="sheet-x" data-click="closeSheet('triage-sheet')" aria-label="Close">✕</button></div>
     <div class="sheet-body">
       <div id="triage-context" style="display:none;background:rgba(220,38,38,0.08);border:1.5px solid rgba(220,38,38,0.3);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--red);font-weight:600;margin-bottom:14px;"></div>
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:4px 16px;margin-bottom:14px;" id="triage-list"></div>
-      <a id="triage-call-btn" href="#" style="display:none;text-decoration:none;text-align:center;margin:0 0 8px;padding:16px;border-radius:14px;background:linear-gradient(135deg,#059669,#047857);color:#fff;font-family:inherit;font-size:15px;font-weight:800;box-shadow:0 4px 20px rgba(5,150,105,0.35);" onclick="logTriageCall()">📞 Call the clinic now</a>
+      <a id="triage-call-btn" href="#" style="display:none;text-decoration:none;text-align:center;margin:0 0 8px;padding:16px;border-radius:14px;background:linear-gradient(135deg,#059669,#047857);color:#fff;font-family:inherit;font-size:15px;font-weight:800;box-shadow:0 4px 20px rgba(5,150,105,0.35);" data-click="logTriageCall()">📞 Call the clinic now</a>
       <div id="triage-no-phone" style="display:none;background:var(--surface2);border:1px dashed var(--border2);border-radius:12px;padding:12px 14px;font-size:12.5px;color:var(--text-muted);margin-bottom:8px;text-align:center;">Your clinic hasn't added an emergency number yet. Use the alert button below, or your local emergency number.</div>
-      <button id="triage-alert-btn" onclick="sendUrgentAlert()" style="width:100%;padding:15px;border-radius:14px;background:rgba(220,38,38,0.08);border:1.5px solid rgba(220,38,38,0.35);color:var(--red);font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:8px;">🚨 Send urgent alert to my doctor</button>
+      <button id="triage-alert-btn" data-click="sendUrgentAlert()" style="width:100%;padding:15px;border-radius:14px;background:rgba(220,38,38,0.08);border:1.5px solid rgba(220,38,38,0.35);color:var(--red);font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:8px;">🚨 Send urgent alert to my doctor</button>
       <div id="triage-emerg-contact" style="display:none;margin-bottom:8px;"></div>
       <div id="triage-footer" style="font-size:12px;color:var(--text-muted);text-align:center;line-height:1.6;padding:4px 8px 8px;">If you can't reach anyone and feel very unwell, go to the nearest emergency department. Take your medication list with you (Profile → My Medications).</div>
     </div>
   </div>
 </div>
 
+<!-- Delegated action dispatcher: resolves data-click= without inline handlers,
+     so the CSP no longer needs script-src-attr 'unsafe-inline'. -->
+<script src="/js/dispatch.js"></script>
+<script src="/js/dom-actions.js"></script>
 <script src="/sync-client.js"></script>
 <!-- QR Code library -->
 <!-- qrcodejs 1.0.0, self-hosted. Was loaded from cdnjs with a corrupted SRI
@@ -1333,7 +1345,7 @@ function refreshLabTasks() {
           +(t.docName?'<div style="font-size:11px;color:var(--text-muted);">Dr. '+t.docName+'</div>':'')
           +'</div>'
           +'</div>'
-          +'<button onclick="uploadForTask(\''+safeTok+'\',\''+safeMrn+'\',\''+safePat+'\',\''+safeDesc+'\')" '
+          +'<button data-click="uploadForTask(\''+safeTok+'\',\''+safeMrn+'\',\''+safePat+'\',\''+safeDesc+'\')" '
           +'style="width:100%;padding:13px;border-radius:10px;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;border:none;'
           +'background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;box-shadow:0 4px 16px rgba(62,95,68,0.25);">'
           +'📤 Open Upload Portal for This Test'
@@ -1452,7 +1464,7 @@ function renderLabFiles() {
       + '<div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + f.name + '</div>'
       + '<div style="font-size:11px;color:var(--text-muted);">' + size + '</div>'
       + '</div>'
-      + '<button onclick="removeLabFile(' + i + ')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:18px;padding:2px 6px;">✕</button>'
+      + '<button data-click="removeLabFile(' + i + ')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:18px;padding:2px 6px;">✕</button>'
       + '</div>';
   }).join('');
 }
@@ -1611,7 +1623,7 @@ function renderTodayMeds(){
     medSlots(m.freq).forEach(function(slot){
       var k=m.name+'|'+slot;total++;if(taken[k])done++;
       html+='<label style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px;">'
-        +'<input type="checkbox" '+(taken[k]?'checked':'')+' onchange="toggleMedTaken(this)" data-med="'+encodeURIComponent(m.name)+'" data-slot="'+slot+'" style="width:18px;height:18px;accent-color:var(--blue);flex-shrink:0;">'
+        +'<input type="checkbox" '+(taken[k]?'checked':'')+' data-change="toggleMedTaken(this)" data-med="'+encodeURIComponent(m.name)+'" data-slot="'+slot+'" style="width:18px;height:18px;accent-color:var(--blue);flex-shrink:0;">'
         +'<span style="flex:1;'+(taken[k]?'text-decoration:line-through;color:var(--text-dim);':'')+'"><strong>'+m.name+'</strong>'+(m.dose?' \u00b7 '+m.dose:'')+'</span>'
         +'<span style="font-size:11px;color:var(--text-muted);flex-shrink:0;">'+slot+'</span></label>';
     });
@@ -1856,7 +1868,7 @@ function renderCalendar(){
     var ds=year+'-'+String(month+1).padStart(2,'0')+'-'+String(i).padStart(2,'0');
     var logged=logDates[ds]?true:false;
     var isToday=ds===t;
-    html+='<div class="cal-day'+(logged?' logged':'')+(isToday?' today':'')+'" onclick="calClick(\''+ds+'\')">'+ i+(logged?'<span class="cal-dot"></span>':'')+'</div>';
+    html+='<div class="cal-day'+(logged?' logged':'')+(isToday?' today':'')+'" data-click="calClick(\''+ds+'\')">'+ i+(logged?'<span class="cal-dot"></span>':'')+'</div>';
   }
   document.getElementById('cal-days').innerHTML=html;
 }
@@ -1881,7 +1893,7 @@ function renderRecentLogs(){
   if(!logs.length){html+='<div style="text-align:center;padding:20px;color:var(--text-dim);font-size:13px;">No logs yet. Tap the button above to start.</div>';}
   else{
     logs.forEach(function(log){
-      html+='<div class="log-card" onclick=\'showLogDetail('+JSON.stringify(log).replace(/\'/g,"&#39;")+')\'>'+
+      html+='<div class="log-card" data-click=\'showLogDetail('+JSON.stringify(log).replace(/\'/g,"&#39;")+')\'>'+
         '<div class="log-card-date">'+log.date+(log.date===todayStr()?' - Today':'')+'</div>'+
         '<div class="log-pills">'+
         (log.cognitive>0?'<span class="lp lp-cog">Cog '+log.cognitive+'/10</span>':'')+
@@ -1930,7 +1942,7 @@ function openFactBr(){
     return header+'<div style="margin-bottom:12px;">'
       +'<div style="font-size:13px;margin-bottom:6px;">'+item.q+'</div>'
       +'<div style="display:flex;gap:4px;">'
-      +[0,1,2,3,4].map(function(v){return '<label style="flex:1;text-align:center;padding:8px 2px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text-muted);" onclick="selectFactOpt('+i+','+v+',this)"><input type="radio" name="fb-'+i+'" value="'+v+'" style="display:none;">'+v+'</label>';}).join('')
+      +[0,1,2,3,4].map(function(v){return '<label style="flex:1;text-align:center;padding:8px 2px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text-muted);" data-click="selectFactOpt('+i+','+v+',this)"><input type="radio" name="fb-'+i+'" value="'+v+'" style="display:none;">'+v+'</label>';}).join('')
       +'</div>'
       +'<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-dim);margin-top:2px;"><span>Not at all</span><span>Very much</span></div>'
       +'</div>';
@@ -2016,7 +2028,7 @@ function addExtraMed(){
 function renderExtraMeds(){
   var c=document.getElementById('extra-meds-list');
   c.innerHTML=extraMeds.map(function(m,i){
-    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--border);"><div><div style="font-size:13px;font-weight:600;">'+m.name+'</div><div style="font-size:11px;color:var(--text-muted);">'+(m.dose||'---')+(m.time?' - '+m.time:'')+'</div></div><button onclick="extraMeds.splice('+i+',1);renderExtraMeds();" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;">X</button></div>';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--border);"><div><div style="font-size:13px;font-weight:600;">'+m.name+'</div><div style="font-size:11px;color:var(--text-muted);">'+(m.dose||'---')+(m.time?' - '+m.time:'')+'</div></div><button data-click="removeExtraMed('+i+');" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;">X</button></div>';
   }).join('');
 }
 
@@ -2073,7 +2085,7 @@ function saveLog(){
 
 function showLogDetail(log){
   var titleEl=document.getElementById('detail-title');
-  titleEl.innerHTML=log.date+' <button class="sheet-x" onclick="closeSheet(\'detail-sheet\')">X</button>';
+  titleEl.innerHTML=log.date+' <button class="sheet-x" data-click="closeSheet(\'detail-sheet\')">X</button>';
   var cols={cognitive:'#ffaa44',seizure:'#ff6060',vision:'#4fb3ff',headache:'#ffaa44',mood:'#00c896',fatigue:'#fb923c',nausea:'#f43f5e',appetite:'#22c55e',sleep:'#818cf8'};
   var lbls={cognitive:'Cognitive',seizure:'Seizure',vision:'Vision/Balance',headache:'Headache',mood:'Mood',fatigue:'Fatigue',nausea:'Nausea',appetite:'Appetite',sleep:'Sleep Quality'};
   var html='<div class="ld-sec"><div class="ld-label">Symptom Scores</div>';
@@ -2124,8 +2136,8 @@ function renderAppts(){
   uEl.innerHTML=upcoming.length?upcoming.map(function(a,i){
     var idx=appts.indexOf(a);
     var actions='';
-    if(a.status==='Pending'||a.status==='Scheduled')actions+='<button onclick="apptAction('+idx+',\'confirm\')" style="padding:6px 12px;border:none;border-radius:8px;background:var(--blue);color:#fff;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">\u2713 Confirm</button>';
-    if(a.status!=='Reschedule Requested')actions+='<button onclick="apptAction('+idx+',\'reschedule\')" style="padding:6px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text-muted);font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">\u21bb Request reschedule</button>';
+    if(a.status==='Pending'||a.status==='Scheduled')actions+='<button data-click="apptAction('+idx+',\'confirm\')" style="padding:6px 12px;border:none;border-radius:8px;background:var(--blue);color:#fff;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">\u2713 Confirm</button>';
+    if(a.status!=='Reschedule Requested')actions+='<button data-click="apptAction('+idx+',\'reschedule\')" style="padding:6px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text-muted);font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">\u21bb Request reschedule</button>';
     return '<div class="appt-card"><div class="appt-date">'+a.date+(a.time?' - '+a.time:'')+'</div><div class="appt-sub">'+(a.type||'Visit')+' - '+(a.doctor||'Your Doctor')+'</div>'+(a.reason?'<div class="appt-sub" style="margin-top:4px;">'+a.reason+'</div>':'')+'<div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="font-size:10.5px;padding:2px 8px;border-radius:8px;font-weight:600;background:'+( sc[a.status]||'var(--text-muted)')+'22;color:'+(sc[a.status]||'var(--text-muted)')+';">'+a.status+'</span>'+actions+'</div></div>';
   }).join(''):'<div class="empty-card">No upcoming appointments.</div>';
   pEl.innerHTML=past.length?past.map(function(a){return '<div class="appt-card"><div class="appt-date" style="color:var(--text-muted);">'+a.date+(a.time?' - '+a.time:'')+'</div><div class="appt-sub">'+(a.type||'Visit')+' - '+(a.doctor||'Your Doctor')+'</div></div>';}).join(''):'<div class="empty-card">No past visits.</div>';
@@ -2345,8 +2357,8 @@ function renderConsentSheet(){
     +'<input type="checkbox" id="consent-research" style="margin-top:3px;accent-color:var(--blue);width:16px;height:16px;flex-shrink:0;">'
     +'<span style="font-size:12.5px;line-height:1.5;">'+C.research+'</span></label>'
     +'<div style="font-size:11.5px;color:var(--text-muted);line-height:1.6;margin-bottom:14px;">'+C.note+'</div>'
-    +'<button class="big-btn" style="background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;margin-bottom:8px;" onclick="acceptConsent()">'+C.accept+'</button>'
-    +'<button onclick="declineConsent()" style="width:100%;padding:12px;border-radius:12px;background:transparent;border:1.5px solid var(--border2);color:var(--text-muted);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">'+C.decline+'</button>'
+    +'<button class="big-btn" style="background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;margin-bottom:8px;" data-click="acceptConsent()">'+C.accept+'</button>'
+    +'<button data-click="declineConsent()" style="width:100%;padding:12px;border-radius:12px;background:transparent;border:1.5px solid var(--border2);color:var(--text-muted);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">'+C.decline+'</button>'
     +'<div style="height:8px;"></div>';
 }
 function openConsentSheet(){renderConsentSheet();openSheet('consent-sheet');}
@@ -2405,7 +2417,7 @@ function showConsentHistory(){
       +'<strong>'+(labels[e.event]||e.event)+'</strong> · v'+e.version
       +'<div style="font-size:11px;color:var(--text-muted);">'+new Date(e.at).toLocaleString()+' · '+(e.lang==='hi'?'हिंदी':'English')+'</div></div>';
   }).join(''):'<div style="color:var(--text-dim);font-size:12.5px;padding:8px 0;">'+(hi?'कोई इतिहास नहीं':'No history yet')+'</div>';
-  document.getElementById('detail-title').innerHTML=(hi?'सहमति इतिहास':'Consent history')+' <button class="sheet-x" onclick="closeSheet(\'detail-sheet\')">✕</button>';
+  document.getElementById('detail-title').innerHTML=(hi?'सहमति इतिहास':'Consent history')+' <button class="sheet-x" data-click="closeSheet(\'detail-sheet\')">✕</button>';
   document.getElementById('detail-body').innerHTML='<div class="ld-sec">'+body+'</div><div style="height:16px;"></div>';
   openSheet('detail-sheet');
 }
@@ -2416,10 +2428,10 @@ function renderPrivacyCard(){
     '<div class="irow"><span class="ikey">Consent</span><span class="ival" style="color:var(--green);">'+(c.acceptedAt?'✓ v'+c.version+' · '+String(c.acceptedAt).slice(0,10):'—')+'</span></div>'
     +'<div class="irow"><span class="ikey">Language shown</span><span class="ival">'+(c.lang==='hi'?'हिंदी':'English')+'</span></div>'
     +'<div class="tog-row"><span style="font-size:12.5px;">De-identified research use</span>'
-    +'<label class="tog"><input type="checkbox" '+(c.research?'checked':'')+' onchange="setResearchOptIn(this.checked)"><span class="tog-track"></span></label></div>'
-    +'<button onclick="openConsentSheet()" style="width:100%;margin-top:10px;padding:11px;border-radius:10px;background:var(--surface2);border:1.5px solid var(--border2);color:var(--text);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">📄 Read the consent text again</button>'
-    +'<button onclick="showConsentHistory()" style="width:100%;margin-top:8px;padding:11px;border-radius:10px;background:var(--surface2);border:1.5px solid var(--border2);color:var(--text);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">🕐 View my consent history</button>'
-    +'<button onclick="withdrawConsent()" style="width:100%;margin-top:8px;padding:11px;border-radius:10px;background:rgba(220,38,38,0.06);border:1.5px solid rgba(220,38,38,0.2);color:var(--red);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">Withdraw consent</button>';
+    +'<label class="tog"><input type="checkbox" '+(c.research?'checked':'')+' data-change="setResearchOptIn(this.checked)"><span class="tog-track"></span></label></div>'
+    +'<button data-click="openConsentSheet()" style="width:100%;margin-top:10px;padding:11px;border-radius:10px;background:var(--surface2);border:1.5px solid var(--border2);color:var(--text);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">📄 Read the consent text again</button>'
+    +'<button data-click="showConsentHistory()" style="width:100%;margin-top:8px;padding:11px;border-radius:10px;background:var(--surface2);border:1.5px solid var(--border2);color:var(--text);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">🕐 View my consent history</button>'
+    +'<button data-click="withdrawConsent()" style="width:100%;margin-top:8px;padding:11px;border-radius:10px;background:rgba(220,38,38,0.06);border:1.5px solid rgba(220,38,38,0.2);color:var(--red);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">Withdraw consent</button>';
 }
 
 // ══════════════════════════════════════════════
@@ -2521,7 +2533,7 @@ function adaptLogSheet(){
     if(quiet){
       sec.classList.add('collapsed');
       var hdr=sec.querySelector('.log-sec-hdr');
-      hdr.insertAdjacentHTML('afterend','<div class="adapt-note" style="font-size:11.5px;color:var(--text-dim);padding:2px 0 6px;cursor:pointer;" role="button" tabindex="0" onclick="this.parentElement.classList.remove(\'collapsed\');this.remove();">'
+      hdr.insertAdjacentHTML('afterend','<div class="adapt-note" style="font-size:11.5px;color:var(--text-dim);padding:2px 0 6px;cursor:pointer;" role="button" tabindex="0" data-click="expandCollapsed(this);">'
         +(hi?'पिछले 5 लॉग में यह नहीं था — अगर आज अलग है तो यहाँ टैप करें।':'None in your last 5 logs — tap here if today is different.')+'</div>');
     }
   });
@@ -2576,7 +2588,7 @@ function renderEduCard(){
     +'<div class="info-card-title">'+card.icon+' '+t.t+'</div>'
     +'<div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;"><span style="font-size:13px;">👁</span><div style="font-size:12.5px;line-height:1.6;"><strong style="color:var(--green);">'+(hi?'नज़र रखें:':'Watch:')+'</strong> '+t.watch+'</div></div>'
     +'<div style="display:flex;gap:8px;margin-bottom:10px;align-items:flex-start;"><span style="font-size:13px;">🚨</span><div style="font-size:12.5px;line-height:1.6;"><strong style="color:var(--red);">'+(hi?'चिंता करें:':'Worry:')+'</strong> '+t.worry+'</div></div>'
-    +'<button onclick="openTriage()" style="width:100%;padding:10px;border-radius:10px;background:rgba(220,38,38,0.06);border:1.5px solid rgba(220,38,38,0.25);color:var(--red);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;">'+(hi?'🚨 कब फ़ोन करें — पूरी सूची':'🚨 When to call — full list')+'</button>'
+    +'<button data-click="openTriage()" style="width:100%;padding:10px;border-radius:10px;background:rgba(220,38,38,0.06);border:1.5px solid rgba(220,38,38,0.25);color:var(--red);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;">'+(hi?'🚨 कब फ़ोन करें — पूरी सूची':'🚨 When to call — full list')+'</button>'
     +'<div style="font-size:10.5px;color:var(--text-dim);margin-top:8px;text-align:center;">'+(hi?'सामान्य जानकारी — आपकी टीम की सलाह इससे ऊपर है।':'General guidance — your care team\'s advice always comes first.')+'</div>'
     +'</div>';
 }

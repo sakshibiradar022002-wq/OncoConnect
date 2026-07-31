@@ -1,9 +1,14 @@
-// Guards the bug class that shipped three dead buttons to production.
+// Guards the bug class that shipped seven dead controls to production.
 //
-// Inline `onclick="fn()"` resolves ONLY against window. A function that is
-// missing, or defined inside an IIFE/closure, fails with no error, no crash and
-// no stack trace — invisible to `node --check`, to the API tests, and to anyone
-// not clicking that exact control. This script makes that failure loud.
+// Actions are declared as `data-click="fn(args)"` and resolved by the delegated
+// dispatcher against window. A function that is missing, or defined inside an
+// IIFE/closure, does nothing at all — invisible to `node --check`, to the API
+// tests, and to anyone not clicking that exact control. This makes it loud.
+//
+// Also fails on any leftover inline `onclick=` in the app documents: those
+// bypass the dispatcher and would need the CSP to keep allowing inline event
+// attributes. Handlers inside generated popup documents are exempt — that
+// window has its own scope and no dispatcher.
 //
 // Two sources of handlers are checked:
 //   1. the live DOM after the app boots  (static markup)
@@ -68,7 +73,7 @@ function handlersInSource(file) {
   const inPopup = popupDefinedNames(src);
   const found = [];
   // onclick="..."  onclick='...'  onclick=\"...\" (escaped inside JS strings)
-  const re = /onclick=(?:\\?["'])((?:[^"'\\]|\\.)*?)(?:\\?["'])/g;
+  const re = /data-click=(?:\\?["'])((?:[^"'\\]|\\.)*?)(?:\\?["'])/g;
   let m;
   while ((m = re.exec(src)) !== null) {
     const body = m[1].replace(/\\(['"])/g, '$1');
@@ -128,8 +133,8 @@ for (const page of PAGES) {
   // 1. live DOM
   const domBad = await p.evaluate((builtins) => {
     const bad = [];
-    for (const el of document.querySelectorAll('[onclick]')) {
-      const code = el.getAttribute('onclick') || '';
+    for (const el of document.querySelectorAll('[data-click]')) {
+      const code = el.getAttribute('data-click') || '';
       for (const stmt of code.split(';')) {
         const m = stmt.match(/(?:^|[\s{(!])([A-Za-z_$][\w$]*)\s*\(/);
         if (!m || builtins.includes(m[1])) continue;
@@ -153,7 +158,23 @@ for (const page of PAGES) {
     if (!ok) srcBad.push(h);
   }
 
-  checked += (await p.evaluate(() => document.querySelectorAll('[onclick]').length)) + uniq.length;
+  // 3. No inline event attributes may survive in the live document. Any that
+  //    do would bypass the dispatcher and force the CSP to keep allowing
+  //    inline script attributes. Handlers inside popup documents built with
+  //    document.write are a separate document and are not reachable here.
+  const inlineLeft = await p.evaluate(() =>
+    [...document.querySelectorAll('*')]
+      .filter(el => [...el.attributes].some(a => /^on[a-z]+$/.test(a.name)))
+      .map(el => `<${el.tagName.toLowerCase()}> ${[...el.attributes].filter(a => /^on[a-z]+$/.test(a.name)).map(a => a.name).join(',')}`)
+      .slice(0, 10)
+  );
+  if (inlineLeft.length) {
+    failures += inlineLeft.length;
+    console.error(`\n✗ ${page.name}: inline event attributes still present`);
+    for (const t of inlineLeft) console.error(`    ${t}`);
+  }
+
+  checked += (await p.evaluate(() => document.querySelectorAll('[data-click]').length)) + uniq.length;
 
   const domNames = new Set(domBad.map(b => b.name));
   const extra = srcBad.filter(b => !domNames.has(b.name));
@@ -176,7 +197,7 @@ if (server) server.kill();
 console.log(`\n${checked} handler reference(s) checked across ${PAGES.length} pages.`);
 if (failures) {
   console.error(`\n${failures} inline handler(s) reference something that is not a function on window.`);
-  console.error('A button wired to one of these does nothing when clicked, silently.');
+  console.error('A control wired to one of these does nothing when clicked, silently.');
   console.error('Fix: define the function, or assign it to window if it lives inside an IIFE.');
   process.exit(1);
 }

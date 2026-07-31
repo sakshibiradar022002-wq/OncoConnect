@@ -50,9 +50,13 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'", 'https://cdnjs.cloudflare.com', 'https://cdn.jsdelivr.net'],
-      // The prototype UIs use inline onclick= handlers; helmet defaults
-      // script-src-attr to 'none', which silently breaks every button.
-      scriptSrcAttr: ["'unsafe-inline'"],
+      // No inline event attributes anywhere: every control declares
+      // data-click="fn(args)" and is resolved by the delegated dispatcher in
+      // public/js/dispatch.js. Inline event attributes are script, so allowing
+      // them weakened XSS defence on a system holding PHI. 'none' is enforced
+      // in CI by scripts/check-handlers.mjs, which fails the build if any
+      // on*= attribute reappears in a live document.
+      scriptSrcAttr: ["'none'"],
       styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
       fontSrc: ["'self'", 'https://fonts.gstatic.com'],
       imgSrc: ["'self'", 'data:', 'blob:'],

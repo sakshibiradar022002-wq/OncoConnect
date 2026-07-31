@@ -42,7 +42,7 @@ input{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:
     <div class="msg" id="login-msg"></div>
     <input id="email" type="email" placeholder="Email">
     <input id="pass" type="password" placeholder="Password">
-    <button class="btn-p" style="width:100%;padding:11px;" onclick="doLogin()">Sign In →</button>
+    <button class="btn-p" style="width:100%;padding:11px;" data-click="doLogin()">Sign In →</button>
     <div class="hint">Only the instance admin (the first registered account) can use this console. Set <b>REQUIRE_DOCTOR_APPROVAL=true</b> in the server environment to make new doctor accounts wait for approval here.</div>
   </div>
 
@@ -64,6 +64,7 @@ input{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:
   </div>
 </div>
 
+<script src="/js/dispatch.js"></script>
 <script>
 async function api(path, opts){
   const r = await fetch('/api'+path, Object.assign({credentials:'include', headers:{'Content-Type':'application/json'}}, opts));
@@ -87,7 +88,7 @@ async function loadAll(){
     <tr><td><b>${x.name||'—'}</b></td><td>${x.email}</td><td class="hide-sm">${x.role}</td>
     <td><span class="badge ${x.active?'b-on':'b-off'}">${x.active?'Active':'Awaiting approval'}</span></td>
     <td class="hide-sm">${x.lastLogin?new Date(x.lastLogin).toLocaleString():'never'}</td>
-    <td>${x.active?`<button class="btn-r" onclick="setActive('${x.id}',false)">Deactivate</button>`:`<button class="btn-g" onclick="setActive('${x.id}',true)">Approve ✓</button>`}</td></tr>`).join('');
+    <td>${x.active?`<button class="btn-r" data-click="setActive('${x.id}',false)">Deactivate</button>`:`<button class="btn-g" data-click="setActive('${x.id}',true)">Approve ✓</button>`}</td></tr>`).join('');
   document.getElementById('audit-body').innerHTML=a.entries.map(e=>`
     <tr><td>${new Date(e.ts).toLocaleString()}</td><td>${e.actorRole||''}</td><td><b>${e.action}</b></td>
     <td class="hide-sm" style="font-family:monospace;font-size:11px;">${(e.targetId||'—').slice(0,14)}</td><td class="hide-sm">${e.ip||''}</td></tr>`).join('');

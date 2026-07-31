@@ -427,6 +427,14 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
   .page-header{flex-wrap:wrap;gap:10px;}
   .msg-bubble{max-width:85%;}
 }
+
+/* ── State that used to be written as inline style from on* attributes ──
+   Focus rings, hover tints and drag highlighting are presentation, so they
+   belong here. Moving them out of markup is what let the CSP drop
+   script-src-attr 'unsafe-inline'. */
+.field-focus:focus{border-color:var(--blue-light);outline:none;}
+.hover-tint:hover{background:var(--blue-pale);color:var(--blue);}
+.drop-zone.drag{border-color:var(--blue-light);background:var(--blue-pale);}
 </style>
 </head>
 <body>
@@ -443,15 +451,15 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
     </div>
 
     <div class="tab-switcher">
-      <button class="ts-btn active" onclick="switchATab('login',this)">Sign In</button>
-      <button class="ts-btn" onclick="switchATab('register',this)">Register</button>
+      <button class="ts-btn active" data-click="switchATab('login',this)">Sign In</button>
+      <button class="ts-btn" data-click="switchATab('register',this)">Register</button>
     </div>
 
     <div id="a-login">
       <div class="msg err" id="login-msg"></div>
       <div class="fg"><label>Email</label><input id="li-email" type="email" placeholder="dr.smith@hospital.com"></div>
       <div class="fg"><label>Password</label><input id="li-pass" type="password" placeholder="••••••••"></div>
-      <button class="btn btn-primary btn-full" style="margin-top:4px;" onclick="doLogin()">Sign In →</button>
+      <button class="btn btn-primary btn-full" style="margin-top:4px;" data-click="doLogin()">Sign In →</button>
     </div>
 
     <div id="a-register" style="display:none;">
@@ -461,12 +469,12 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
       <!-- Step 1: Details -->
       <div id="reg-step-1">
         <div class="g2">
-          <div class="fg"><label>Full Name *</label><input id="rg-name" placeholder="Dr. Sarah Johnson" oninput="clearRegMsg()"></div>
+          <div class="fg"><label>Full Name *</label><input id="rg-name" placeholder="Dr. Sarah Johnson" data-input="clearRegMsg()"></div>
           <div class="fg" style="position:relative;">
             <label>Email Address *</label>
             <input id="rg-email" type="email" placeholder="dr@hospital.com"
-              oninput="clearRegMsg();checkEmailExists(this.value)"
-              onblur="checkEmailExists(this.value)">
+              data-input="regEmailInput()"
+              data-blur="checkEmailExists(this)">
             <div id="rg-email-status" style="font-size:11px;margin-top:3px;min-height:14px;"></div>
           </div>
           <div class="fg"><label>Specialty</label>
@@ -479,13 +487,13 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
         </div>
         <div class="fg">
           <label>Password <span style="font-weight:400;color:var(--text-dim);">(min 8 characters)</span></label>
-          <input id="rg-pass" type="password" placeholder="Min 8 characters" oninput="checkPassStrength(this.value)">
+          <input id="rg-pass" type="password" placeholder="Min 8 characters" data-input="checkPassStrength(this.value)">
           <div id="rg-pass-bar" style="height:4px;border-radius:2px;background:var(--border2);margin-top:6px;overflow:hidden;">
             <div id="rg-pass-fill" style="height:100%;width:0%;border-radius:2px;transition:all 0.3s;"></div>
           </div>
           <div id="rg-pass-label" style="font-size:11px;color:var(--text-dim);margin-top:3px;"></div>
         </div>
-        <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="startEmailVerification()">
+        <button class="btn btn-primary btn-full" style="margin-top:8px;" data-click="startEmailVerification()">
           Send Verification Code →
         </button>
         <div style="font-size:11.5px;color:var(--text-muted);margin-top:10px;text-align:center;line-height:1.6;">
@@ -507,7 +515,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
           <label>Enter 6-digit verification code</label>
           <input id="rg-otp" type="text" maxlength="6" placeholder="000000"
             style="font-size:28px;font-family:var(--mono);text-align:center;letter-spacing:8px;font-weight:700;"
-            oninput="this.value=this.value.replace(/[^0-9]/g,'');if(this.value.length===6)verifyAndCreate()">
+            data-input="otpInput()">
         </div>
         <div id="rg-otp-status" style="font-size:12px;min-height:16px;margin-bottom:12px;text-align:center;"></div>
 
@@ -518,11 +526,11 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
           <div style="font-size:11px;margin-top:4px;">To send real codes: set GMAIL_USER + GMAIL_APP_PASSWORD on the server (or configure EmailJS in Data &amp; Backup → Email Setup).</div>
         </div>
 
-        <button class="btn btn-primary btn-full" onclick="verifyAndCreate()">✓ Verify &amp; Create Account</button>
+        <button class="btn btn-primary btn-full" data-click="verifyAndCreate()">✓ Verify &amp; Create Account</button>
 
         <div style="display:flex;justify-content:space-between;margin-top:10px;">
-          <button onclick="backToStep1()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12.5px;font-family:inherit;">← Change email</button>
-          <button onclick="resendOTP()" style="background:none;border:none;color:var(--blue);cursor:pointer;font-size:12.5px;font-family:inherit;" id="resend-btn">Resend code</button>
+          <button data-click="backToStep1()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12.5px;font-family:inherit;">← Change email</button>
+          <button data-click="resendOTP()" style="background:none;border:none;color:var(--blue);cursor:pointer;font-size:12.5px;font-family:inherit;" id="resend-btn">Resend code</button>
         </div>
         <div id="resend-timer" style="font-size:11px;color:var(--text-dim);text-align:right;margin-top:2px;"></div>
       </div>
@@ -544,12 +552,12 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
       <span class="titlebar-name">OncoConnect Pro</span>
       <span class="titlebar-badge">DOCTOR</span>
     </div>
-    <button class="notif-bell" id="notif-bell" onclick="toggleNotifs()" title="Notifications">🔔<span class="notif-badge" id="notif-badge" style="display:none;">0</span></button>
+    <button class="notif-bell" id="notif-bell" data-click="toggleNotifs()" title="Notifications">🔔<span class="notif-badge" id="notif-badge" style="display:none;">0</span></button>
     <div class="notif-panel" id="notif-panel">
       <div class="notif-head"><span>Notifications</span>
         <span style="display:flex;gap:10px;align-items:center;">
-          <button onclick="toggleNotifPrefs()" class="notif-markread" title="Alert preferences">⚙</button>
-          <button onclick="markAllNotifsRead()" class="notif-markread">Mark all read</button>
+          <button data-click="toggleNotifPrefs()" class="notif-markread" title="Alert preferences">⚙</button>
+          <button data-click="markAllNotifsRead()" class="notif-markread">Mark all read</button>
         </span>
       </div>
       <div id="notif-prefs" style="display:none;padding:12px 14px;border-bottom:1px solid var(--border);background:var(--surface2);"></div>
@@ -562,19 +570,19 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
   <div class="app-body">
     <!-- SIDEBAR -->
     <div class="sidebar">
-      <button class="nav-item" onclick="openPatientSearch()" style="margin-bottom:6px;" aria-label="Search patients"><span class="ni">🔍</span>Search patients <span style="margin-left:auto;font-size:10px;opacity:0.6;font-family:var(--mono,monospace);">Ctrl K</span></button>
+      <button class="nav-item" data-click="openPatientSearch()" style="margin-bottom:6px;" aria-label="Search patients"><span class="ni">🔍</span>Search patients <span style="margin-left:auto;font-size:10px;opacity:0.6;font-family:var(--mono,monospace);">Ctrl K</span></button>
       <div class="sidebar-section">Dashboard</div>
-      <button class="nav-item active" onclick="showPanel('overview',this)"><span class="ni">⬡</span>Overview</button>
-      <button class="nav-item" onclick="showPanel('patients',this)"><span class="ni">👥</span>Patient Records</button>
-      <button class="nav-item" onclick="showPanel('calendars',this)"><span class="ni">📅</span>Health Calendars</button>
-      <button class="nav-item" onclick="showPanel('messages',this)"><span class="ni">💬</span>Patient Messages<span class="nav-badge" id="msg-badge" style="display:none;"></span></button>
-      <button id="nav-labs" class="nav-item" onclick="goToLabsPanel()"><span class="ni">🔬</span>Lab Management<span class="nav-badge" id="lab-badge" style="display:none;background:var(--orange);"></span></button>
-      <button class="nav-item" onclick="showPanel('team',this)"><span class="ni">👥</span>Team Collaboration</button>
+      <button class="nav-item active" data-click="showPanel('overview',this)"><span class="ni">⬡</span>Overview</button>
+      <button class="nav-item" data-click="showPanel('patients',this)"><span class="ni">👥</span>Patient Records</button>
+      <button class="nav-item" data-click="showPanel('calendars',this)"><span class="ni">📅</span>Health Calendars</button>
+      <button class="nav-item" data-click="showPanel('messages',this)"><span class="ni">💬</span>Patient Messages<span class="nav-badge" id="msg-badge" style="display:none;"></span></button>
+      <button id="nav-labs" class="nav-item" data-click="goToLabsPanel()"><span class="ni">🔬</span>Lab Management<span class="nav-badge" id="lab-badge" style="display:none;background:var(--orange);"></span></button>
+      <button class="nav-item" data-click="showPanel('team',this)"><span class="ni">👥</span>Team Collaboration</button>
 
       <div class="sidebar-section" style="margin-top:8px;">System</div>
-      <button class="nav-item" onclick="showPanel('backup',this)"><span class="ni">💾</span>Data &amp; Backup<span class="nav-badge" id="storage-badge" style="display:none;background:var(--orange);">!</span></button>
-      <button class="nav-item" onclick="showInstallGuide()"><span class="ni">📱</span>Patient App Info</button>
-      <button class="nav-item" onclick="openAboutModal()"><span class="ni">🧬</span>Why OncoConnect</button>
+      <button class="nav-item" data-click="showPanel('backup',this)"><span class="ni">💾</span>Data &amp; Backup<span class="nav-badge" id="storage-badge" style="display:none;background:var(--orange);">!</span></button>
+      <button class="nav-item" data-click="showInstallGuide()"><span class="ni">📱</span>Patient App Info</button>
+      <button class="nav-item" data-click="openAboutModal()"><span class="ni">🧬</span>Why OncoConnect</button>
 
       <!-- Storage bar -->
       <div style="padding:10px 14px 0;">
@@ -592,7 +600,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
         <div class="user-card">
           <div class="avatar av-blue" id="doc-av">D</div>
           <div><div class="user-name" id="doc-name">Doctor</div><div class="user-role" id="doc-role">Neuro-Oncology</div></div>
-          <button class="logout-btn" onclick="doLogout()" title="Logout">⎋</button>
+          <button class="logout-btn" data-click="doLogout()" title="Logout">⎋</button>
         </div>
       </div>
     </div>
@@ -611,8 +619,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
           <div class="card-title" style="margin-bottom:4px;">📈 CSV Export</div>
           <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Spreadsheet-friendly exports for reporting and analysis.</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="btn btn-primary btn-sm" onclick="exportPatientsCSV()">⬇ Patients (.csv)</button>
-            <button class="btn btn-primary btn-sm" onclick="exportLogsCSV()">⬇ Symptom logs (.csv)</button>
+            <button class="btn btn-primary btn-sm" data-click="exportPatientsCSV()">⬇ Patients (.csv)</button>
+            <button class="btn btn-primary btn-sm" data-click="exportLogsCSV()">⬇ Symptom logs (.csv)</button>
           </div>
         </div>
 
@@ -637,14 +645,14 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
             </div>
             <div class="fg" style="margin:0;flex:0 0 140px;"><label>From (optional)</label><input type="date" id="rx-from"></div>
             <div class="fg" style="margin:0;flex:0 0 140px;"><label>To (optional)</label><input type="date" id="rx-to"></div>
-            <button class="btn btn-cyan" onclick="exportResearchCSV()">⬇ Export cohort (.csv)</button>
+            <button class="btn btn-cyan" data-click="exportResearchCSV()">⬇ Export cohort (.csv)</button>
           </div>
           <div id="rx-summary" style="font-size:12px;color:var(--text-muted);"></div>
         </div>
 
         <!-- Storage meter -->
         <div class="card" style="margin-bottom:20px;">
-          <div class="card-header"><div class="card-title">📊 Storage Usage</div><button class="btn btn-ghost btn-sm" onclick="refreshStorageInfo()">↻ Refresh</button></div>
+          <div class="card-header"><div class="card-title">📊 Storage Usage</div><button class="btn btn-ghost btn-sm" data-click="refreshStorageInfo()">↻ Refresh</button></div>
           <div id="storage-detail" style="margin-bottom:12px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
               <span style="font-size:13px;color:var(--text-muted);">localStorage usage</span>
@@ -677,7 +685,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
                 <option value="no">Records only (smaller)</option>
               </select>
             </div>
-            <button class="btn btn-primary btn-full" onclick="exportAllData()">⬇ Download JSON Backup</button>
+            <button class="btn btn-primary btn-full" data-click="exportAllData()">⬇ Download JSON Backup</button>
           </div>
 
           <div class="card">
@@ -685,12 +693,12 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
             <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Restore from a previously exported file. Merges — will not overwrite existing records.</div>
             <div class="msg err" id="import-err" style="font-size:12px;"></div>
             <div class="msg ok" id="import-ok" style="font-size:12px;"></div>
-            <div style="border:2px dashed var(--border2);border-radius:10px;padding:20px;text-align:center;cursor:pointer;margin-bottom:10px;" onclick="document.getElementById('import-file-inp').click()">
+            <div style="border:2px dashed var(--border2);border-radius:10px;padding:20px;text-align:center;cursor:pointer;margin-bottom:10px;" data-click="clickEl('import-file-inp')">
               <div style="font-size:24px;margin-bottom:6px;">📂</div>
               <div style="font-size:13px;font-weight:600;color:var(--text);">Click to select backup file</div>
               <div style="font-size:11.5px;color:var(--text-muted);">OncoConnect_Backup_*.json</div>
             </div>
-            <input type="file" id="import-file-inp" accept=".json" style="display:none;" onchange="importBackup(this)">
+            <input type="file" id="import-file-inp" accept=".json" style="display:none;" data-change="importBackup(this)">
           </div>
         </div>
 
@@ -698,7 +706,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
         <div class="card" style="margin-bottom:20px;">
           <div class="card-header">
             <div class="card-title">🔄 Cross-Device Sync</div>
-            <button class="btn btn-primary btn-sm" onclick="exportAllData()">⬇ Export Now</button>
+            <button class="btn btn-primary btn-sm" data-click="exportAllData()">⬇ Export Now</button>
           </div>
           <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.7;">
             <strong style="color:var(--orange);">⚠ Architecture note:</strong> All data is stored in your browser's <code>localStorage</code>. This means the Doctor Software and Patient App <strong>must be open in the same browser on the same physical device</strong> to share data. This is a prototype constraint — not a cross-device sync system. To use OncoConnect on multiple devices, export a backup and import it on the other device.
@@ -756,8 +764,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
             </div>
           </div>
           <div style="display:flex;gap:8px;">
-            <button class="btn btn-primary" style="flex:1;" onclick="exportFHIR()">⬇ Download FHIR Bundle (JSON)</button>
-            <button class="btn btn-ghost btn-sm" onclick="sendFHIRToServer()" title="POST to FHIR server URL above">↗ POST to Server</button>
+            <button class="btn btn-primary" style="flex:1;" data-click="exportFHIR()">⬇ Download FHIR Bundle (JSON)</button>
+            <button class="btn btn-ghost btn-sm" data-click="sendFHIRToServer()" title="POST to FHIR server URL above">↗ POST to Server</button>
           </div>
           <div id="fhir-result" style="font-size:12px;margin-top:8px;display:none;"></div>
         </div>
@@ -794,8 +802,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
             </div>
           </div>
           <div style="display:flex;gap:8px;">
-            <button class="btn btn-primary" style="flex:1;" onclick="saveEmailJSConfig()">💾 Save Email Config</button>
-            <button class="btn btn-ghost btn-sm" onclick="testEmailJS()">🧪 Send Test Email</button>
+            <button class="btn btn-primary" style="flex:1;" data-click="saveEmailJSConfig()">💾 Save Email Config</button>
+            <button class="btn btn-ghost btn-sm" data-click="testEmailJS()">🧪 Send Test Email</button>
           </div>
           <div id="emailjs-config-msg" style="font-size:12px;margin-top:8px;display:none;"></div>
         </div>
@@ -804,7 +812,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
         <div class="card" style="border-color:rgba(220,38,38,0.2);">
           <div class="card-title" style="color:var(--red);margin-bottom:8px;">⚠ Danger Zone</div>
           <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Permanently delete all OncoConnect data from this browser. This cannot be undone. Export a backup first.</div>
-          <button class="btn btn-danger" onclick="clearAllData()" style="width:100%;">🗑 Clear All OncoConnect Data</button>
+          <button class="btn btn-danger" data-click="clearAllData()" style="width:100%;">🗑 Clear All OncoConnect Data</button>
         </div>
       </div>
       <div class="panel active" id="panel-overview">
@@ -812,8 +820,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
           <div><div class="page-title" id="greet-text">Welcome back</div><div class="page-sub">Neuro-oncology command center</div></div>
           <div style="display:flex;gap:8px;align-items:center;">
             <div id="server-status" style="font-size:11px;font-weight:600;padding:6px 12px;border-radius:8px;background:rgba(34,197,94,0.1);color:#16a34a;display:none;">✅ Connected</div>
-            <button class="hist-trigger" onclick="openHistPanel('overview')">🕐 History <span class="hist-trigger-badge" id="ov-hist-count">0</span></button>
-            <button class="btn btn-primary" onclick="openAddPat()">+ Add Patient</button>
+            <button class="hist-trigger" data-click="openHistPanel('overview')">🕐 History <span class="hist-trigger-badge" id="ov-hist-count">0</span></button>
+            <button class="btn btn-primary" data-click="openAddPat()">+ Add Patient</button>
           </div>
         </div>
         <div id="urgent-banner" style="display:none;"></div>
@@ -826,14 +834,14 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
         <!-- Two column: patients + lab -->
         <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start;">
           <div class="card">
-            <div class="card-header"><div class="card-title">Recent Patients</div><button class="btn btn-ghost btn-sm" onclick="showPanel('patients',document.querySelector('.nav-item:nth-child(2)'))">View All →</button></div>
+            <div class="card-header"><div class="card-title">Recent Patients</div><button class="btn btn-ghost btn-sm" data-click="goToPatientsPanel()">View All →</button></div>
             <div id="ov-patients"></div>
           </div>
           <!-- LAB SUBMISSIONS CARD -->
           <div class="lab-qr-card">
             <div style="display:flex;align-items:center;justify-content:space-between;">
               <div class="card-title">🔬 Lab Submissions</div>
-              <button class="btn btn-cyan btn-sm" onclick="goToLabsPanel()">Manage Labs →</button>
+              <button class="btn btn-cyan btn-sm" data-click="goToLabsPanel()">Manage Labs →</button>
             </div>
             <div id="ov-pending-labs-header" style="font-size:11px;color:var(--text-muted);margin-bottom:8px;" id="ov-lab-pending-title">Pending submissions from labs</div>
             <div id="ov-pending-labs"><div style="font-size:11.5px;color:var(--text-dim);">No pending submissions.</div></div>
@@ -845,12 +853,12 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
       <div class="panel" id="panel-patients">
         <div class="page-header">
           <div><div class="page-title">Patient Records</div><div class="page-sub">Manage your patient registry</div></div>
-          <button class="btn btn-primary" onclick="openAddPat()">+ Add Patient</button>
+          <button class="btn btn-primary" data-click="openAddPat()">+ Add Patient</button>
         </div>
         <div class="card">
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <input class="search-bar" id="pat-search" style="flex:1;min-width:200px;" placeholder="Search by name, MRN, or diagnosis…" oninput="renderPatList()">
-            <select id="pat-phase-filter" onchange="renderPatList()" style="padding:10px 12px;border:1px solid var(--border2);border-radius:8px;font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);"><option value="">All phases</option><option>Diagnosis</option><option>Pre-Treatment</option><option>Treatment Phase</option><option>Post-Treatment</option><option>Monitoring</option><option>Palliative</option></select>
+            <input class="search-bar" id="pat-search" style="flex:1;min-width:200px;" placeholder="Search by name, MRN, or diagnosis…" data-input="renderPatList()">
+            <select id="pat-phase-filter" data-change="renderPatList()" style="padding:10px 12px;border:1px solid var(--border2);border-radius:8px;font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);"><option value="">All phases</option><option>Diagnosis</option><option>Pre-Treatment</option><option>Treatment Phase</option><option>Post-Treatment</option><option>Monitoring</option><option>Palliative</option></select>
           </div>
           <div id="pat-list"></div>
           <div id="pat-list-controls" style="display:none;gap:4px;justify-content:center;margin-top:14px;flex-wrap:wrap;"></div>
@@ -863,7 +871,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
         <div class="card">
           <div class="fg" style="max-width:280px;margin-bottom:0;">
             <label>Select Patient</label>
-            <select id="cal-sel" onchange="renderDocCal()"><option value="">— Choose a patient —</option></select>
+            <select id="cal-sel" data-change="renderDocCal()"><option value="">— Choose a patient —</option></select>
           </div>
         </div>
         <div id="cal-view"></div>
@@ -879,8 +887,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
               <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-weight:500;font-size:12.5px;" id="chat-header">Select a patient</div>
               <div class="chat-messages" id="chat-msgs"></div>
               <div class="chat-input-row" id="chat-inp-row" style="display:none;">
-                <input id="chat-inp" placeholder="Type message…" onkeydown="if(event.key==='Enter')sendDocMsg()">
-                <button class="btn btn-primary btn-sm" onclick="sendDocMsg()">Send</button>
+                <input id="chat-inp" placeholder="Type message…" data-enter="sendDocMsg()">
+                <button class="btn btn-primary btn-sm" data-click="sendDocMsg()">Send</button>
               </div>
             </div>
           </div>
@@ -891,14 +899,14 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
       <div class="panel" id="panel-labs">
         <div class="page-header">
           <div><div class="page-title">Lab Management</div><div class="page-sub">Manage partner laboratories and their access</div></div>
-          <button class="btn btn-primary" onclick="openAddLabModal()">+ Add Laboratory</button>
+          <button class="btn btn-primary" data-click="openAddLabModal()">+ Add Laboratory</button>
         </div>
 
         <!-- Tabs: Registered Labs / Pending Submissions / Per-Patient QR -->
         <div style="display:flex;gap:4px;background:var(--surface2);padding:3px;border-radius:8px;margin-bottom:20px;width:fit-content;">
-          <button class="btn btn-ghost btn-sm lab-main-tab active" id="lmt-labs" onclick="switchLabMainTab('labs',this)" style="border-radius:6px;">🏥 Registered Labs</button>
-          <button class="btn btn-ghost btn-sm lab-main-tab" id="lmt-pending" onclick="switchLabMainTab('pending',this)" style="border-radius:6px;">⏳ Pending Submissions <span id="lab-pending-count" style="background:var(--orange);color:#07090f;border-radius:8px;padding:0 5px;font-size:9.5px;font-weight:700;margin-left:3px;display:none;"></span></button>
-          <button class="btn btn-ghost btn-sm lab-main-tab" id="lmt-patqr" onclick="switchLabMainTab('patqr',this)" style="border-radius:6px;">📤 Assign Lab Tests</button>
+          <button class="btn btn-ghost btn-sm lab-main-tab active" id="lmt-labs" data-click="switchLabMainTab('labs',this)" style="border-radius:6px;">🏥 Registered Labs</button>
+          <button class="btn btn-ghost btn-sm lab-main-tab" id="lmt-pending" data-click="switchLabMainTab('pending',this)" style="border-radius:6px;">⏳ Pending Submissions <span id="lab-pending-count" style="background:var(--orange);color:#07090f;border-radius:8px;padding:0 5px;font-size:9.5px;font-weight:700;margin-left:3px;display:none;"></span></button>
+          <button class="btn btn-ghost btn-sm lab-main-tab" id="lmt-patqr" data-click="switchLabMainTab('patqr',this)" style="border-radius:6px;">📤 Assign Lab Tests</button>
         </div>
 
         <!-- REGISTERED LABS -->
@@ -948,14 +956,14 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
                   <label>Report Due By <span style="font-weight:400;color:var(--text-dim);">(date required)</span></label>
                   <input type="date" id="pqr-due-date"
                     style="width:100%;padding:9px 12px;background:var(--surface2);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;font-size:13px;outline:none;"
-                    oninput="updateAutoprioFromDate(this.value)">
+                    data-input="updateAutoprioFromDate(this.value)">
                   <div id="pqr-due-hint" style="font-size:11px;color:var(--text-dim);margin-top:3px;min-height:14px;"></div>
                 </div>
                 <div class="fg" style="margin:0;">
                   <label>Priority <span style="font-weight:400;color:var(--text-dim);">(auto-set from date)</span></label>
                   <div style="display:flex;gap:5px;margin-top:2px;">
                     ${['Routine','Urgent','STAT'].map((p,i)=>`<label id="pqr-prio-lbl-${p}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;background:var(--surface2);border:1.5px solid var(--border2);border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;transition:all 0.15s;">
-                      <input type="radio" name="pqr-priority" value="${p}" ${i===0?'checked':''} style="display:none;" class="pqr-prio-radio" onchange="stylePrioButtons()">
+                      <input type="radio" name="pqr-priority" value="${p}" ${i===0?'checked':''} style="display:none;" class="pqr-prio-radio" data-change="stylePrioButtons()">
                       <span>${p==='Routine'?'✅ Routine':p==='Urgent'?'⚠ Urgent':'🔴 STAT'}</span>
                     </label>`).join('')}
                   </div>
@@ -963,8 +971,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
               </div>
 
               <div style="display:flex;gap:8px;">
-                <button class="btn btn-ghost" onclick="clearAssignForm()" style="flex:1;">Clear</button>
-                <button class="btn btn-primary" onclick="sendToLabPortal()" style="flex:2;font-weight:800;">📤 Send to Lab Portal</button>
+                <button class="btn btn-ghost" data-click="clearAssignForm()" style="flex:1;">Clear</button>
+                <button class="btn btn-primary" data-click="sendToLabPortal()" style="flex:2;font-weight:800;">📤 Send to Lab Portal</button>
               </div>
 
               <div id="pqr-send-ok" style="display:none;margin-top:12px;background:rgba(5,150,105,0.08);border:1.5px solid rgba(5,150,105,0.2);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--green);"></div>
@@ -976,7 +984,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
               <div class="card" style="margin-bottom:14px;">
                 <div class="card-header">
                   <div class="card-title">📋 Active Task Queue</div>
-                  <button class="btn btn-ghost btn-sm" onclick="renderActiveTaskQueue()">↻ Refresh</button>
+                  <button class="btn btn-ghost btn-sm" data-click="renderActiveTaskQueue()">↻ Refresh</button>
                 </div>
                 <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">All pending tasks assigned to your labs. Disappears when lab uploads the result.</div>
                 <div id="active-task-queue"></div>
@@ -1011,14 +1019,14 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
       <div class="panel" id="panel-team">
         <div class="page-header">
           <div><div class="page-title">Team Collaboration</div><div class="page-sub">Manage team members and shared patient access</div></div>
-          <button class="btn btn-primary" onclick="openInviteTeamModal()">+ Invite Team Member</button>
+          <button class="btn btn-primary" data-click="openInviteTeamModal()">+ Invite Team Member</button>
         </div>
 
         <!-- Tabs: Team Members / Shared Patients / Activity -->
         <div style="display:flex;gap:4px;background:var(--surface2);padding:3px;border-radius:8px;margin-bottom:20px;width:fit-content;">
-          <button class="btn btn-ghost btn-sm team-tab active" id="tt-members" onclick="switchTeamTab('members',this)" style="border-radius:6px;">👥 Team Members</button>
-          <button class="btn btn-ghost btn-sm team-tab" id="tt-access" onclick="switchTeamTab('access',this)" style="border-radius:6px;">🔐 Shared Access</button>
-          <button class="btn btn-ghost btn-sm team-tab" id="tt-activity" onclick="switchTeamTab('activity',this)" style="border-radius:6px;">📊 Activity Log</button>
+          <button class="btn btn-ghost btn-sm team-tab active" id="tt-members" data-click="switchTeamTab('members',this)" style="border-radius:6px;">👥 Team Members</button>
+          <button class="btn btn-ghost btn-sm team-tab" id="tt-access" data-click="switchTeamTab('access',this)" style="border-radius:6px;">🔐 Shared Access</button>
+          <button class="btn btn-ghost btn-sm team-tab" id="tt-activity" data-click="switchTeamTab('activity',this)" style="border-radius:6px;">📊 Activity Log</button>
         </div>
 
         <!-- TEAM MEMBERS LIST -->
@@ -1037,7 +1045,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
 
             <div class="fg" style="margin-bottom:12px;">
               <label>Select Patient</label>
-              <select id="team-access-patient" onchange="renderPatientAccessList()" style="width:100%;padding:9px 12px;background:var(--surface2);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;font-size:13px;outline:none;">
+              <select id="team-access-patient" data-change="renderPatientAccessList()" style="width:100%;padding:9px 12px;background:var(--surface2);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;font-size:13px;outline:none;">
                 <option value="">— Choose a patient —</option>
               </select>
             </div>
@@ -1080,8 +1088,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
       <div style="font-size:12px;">Password: <strong style="font-family:var(--mono);" id="al-preview-pass">—</strong></div>
     </div>
     <div style="display:flex;gap:8px;">
-      <button class="btn btn-ghost" onclick="closeOverlay('add-lab-modal')">Cancel</button>
-      <button class="btn btn-primary" style="flex:1;" onclick="addLab()">Register Lab →</button>
+      <button class="btn btn-ghost" data-click="closeOverlay('add-lab-modal')">Cancel</button>
+      <button class="btn btn-primary" style="flex:1;" data-click="addLab()">Register Lab →</button>
     </div>
   </div>
 </div>
@@ -1100,8 +1108,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
       <div style="font-size:12px;color:var(--text-muted);line-height:1.6;">An invitation link will be sent to their email. They can accept to join your team and access shared patients.</div>
     </div>
     <div style="display:flex;gap:8px;margin-top:4px;">
-      <button class="btn btn-ghost" onclick="closeOverlay('invite-team-modal')">Cancel</button>
-      <button class="btn btn-primary" style="flex:1;" onclick="sendTeamInvite()">Send Invite →</button>
+      <button class="btn btn-ghost" data-click="closeOverlay('invite-team-modal')">Cancel</button>
+      <button class="btn btn-primary" style="flex:1;" data-click="sendTeamInvite()">Send Invite →</button>
     </div>
   </div>
 </div>
@@ -1114,7 +1122,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
         <div class="modal-title" id="ld-lab-name">Lab Name</div>
         <div style="font-size:11px;color:var(--text-muted);" id="ld-lab-spec"></div>
       </div>
-      <button onclick="closeOverlay('lab-detail-modal')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;">✕</button>
+      <button data-click="closeOverlay('lab-detail-modal')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;">✕</button>
     </div>
     <div id="ld-body"></div>
   </div>
@@ -1145,8 +1153,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
       </div>
     </div>
     <div style="display:flex;gap:8px;margin-top:4px;">
-      <button class="btn btn-ghost" onclick="closeOverlay('add-pat-modal')">Cancel</button>
-      <button class="btn btn-primary" style="flex:1;" onclick="addPatient()">Create Record →</button>
+      <button class="btn btn-ghost" data-click="closeOverlay('add-pat-modal')">Cancel</button>
+      <button class="btn btn-primary" style="flex:1;" data-click="addPatient()">Create Record →</button>
     </div>
   </div>
 </div>
@@ -1171,7 +1179,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
     <div style="background:rgba(77,156,248,0.06);border:1px solid rgba(77,156,248,0.2);border-radius:8px;padding:12px;font-size:12px;color:var(--blue);">
       💡 <strong>Tip:</strong> When you add a patient, their MRN and password are auto-generated. Share those credentials with the patient for the app login.
     </div>
-    <button class="btn btn-ghost btn-full" style="margin-top:16px;" onclick="closeOverlay('install-modal')">Close</button>
+    <button class="btn btn-ghost btn-full" style="margin-top:16px;" data-click="closeOverlay('install-modal')">Close</button>
   </div>
 </div>
 
@@ -1180,7 +1188,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
   <div class="modal">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
       <div class="modal-title" id="ld-date">Health Log</div>
-      <button onclick="closeOverlay('log-detail-modal')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;">✕</button>
+      <button data-click="closeOverlay('log-detail-modal')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;">✕</button>
     </div>
     <div id="ld-content"></div>
   </div>
@@ -1197,20 +1205,20 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
           <div style="font-size:1.1rem;font-weight:700;">ICD Code Browser</div>
           <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">ICD-10-CM &amp; ICD-11 · Neuro-Oncology codes</div>
         </div>
-        <button onclick="closeOverlay('icd-lookup-modal')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;">✕</button>
+        <button data-click="closeOverlay('icd-lookup-modal')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;">✕</button>
       </div>
       <div style="position:relative;">
-        <input id="icd-search" placeholder="Search by code or diagnosis name… e.g. glioblastoma, C71, meninges" oninput="filterICD()" style="width:100%;padding:9px 12px 9px 36px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;font-size:13px;outline:none;">
+        <input id="icd-search" placeholder="Search by code or diagnosis name… e.g. glioblastoma, C71, meninges" data-input="filterICD()" style="width:100%;padding:9px 12px 9px 36px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;font-size:13px;outline:none;">
         <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:14px;">🔍</span>
       </div>
       <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;" id="icd-filter-btns">
-        <button class="icd-filter-btn active" onclick="setICDFilter('all',this)">All</button>
-        <button class="icd-filter-btn" onclick="setICDFilter('icd10',this)">ICD-10-CM</button>
-        <button class="icd-filter-btn" onclick="setICDFilter('icd11',this)">ICD-11</button>
-        <button class="icd-filter-btn" onclick="setICDFilter('malignant',this)">Malignant Primary</button>
-        <button class="icd-filter-btn" onclick="setICDFilter('meninges',this)">Meninges / CNS</button>
-        <button class="icd-filter-btn" onclick="setICDFilter('secondary',this)">Metastatic</button>
-        <button class="icd-filter-btn" onclick="setICDFilter('benign',this)">Benign / Uncertain</button>
+        <button class="icd-filter-btn active" data-click="setICDFilter('all',this)">All</button>
+        <button class="icd-filter-btn" data-click="setICDFilter('icd10',this)">ICD-10-CM</button>
+        <button class="icd-filter-btn" data-click="setICDFilter('icd11',this)">ICD-11</button>
+        <button class="icd-filter-btn" data-click="setICDFilter('malignant',this)">Malignant Primary</button>
+        <button class="icd-filter-btn" data-click="setICDFilter('meninges',this)">Meninges / CNS</button>
+        <button class="icd-filter-btn" data-click="setICDFilter('secondary',this)">Metastatic</button>
+        <button class="icd-filter-btn" data-click="setICDFilter('benign',this)">Benign / Uncertain</button>
       </div>
     </div>
     <!-- Results -->
@@ -1230,30 +1238,34 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
       <div style="font-size:11px;color:var(--text-muted);font-family:var(--mono);" id="rec-pat-mrn">MRN: —</div>
     </div>
     <div style="display:flex;gap:8px;">
-      <button class="hist-trigger" onclick="openHistPanel('record')">🕐 History</button>
-      <button class="btn btn-ghost btn-sm" onclick="closeRecord()">✕ Close</button>
-      <button class="btn btn-primary btn-sm" onclick="saveRecord()">⬆ Save Record</button>
+      <button class="hist-trigger" data-click="openHistPanel('record')">🕐 History</button>
+      <button class="btn btn-ghost btn-sm" data-click="closeRecord()">✕ Close</button>
+      <button class="btn btn-primary btn-sm" data-click="saveRecord()">⬆ Save Record</button>
     </div>
   </div>
   <div class="record-body">
     <div class="record-nav">
-      <button class="rnav-item active" onclick="showRTab('rt-identity',this)">🪪 Identity</button>
-      <button class="rnav-item" onclick="showRTab('rt-metrics',this)">📊 Metrics</button>
-      <button class="rnav-item" onclick="showRTab('rt-diagnosis',this)">🔬 Diagnosis</button>
-      <button class="rnav-item" onclick="showRTab('rt-molecular',this)">🧬 Molecular</button>
-      <button class="rnav-item" onclick="showRTab('rt-labs',this)">🧪 Labs</button>
-      <button class="rnav-item" onclick="showRTab('rt-prescriptions',this)">💊 Prescriptions</button>
-      <button class="rnav-item" onclick="showRTab('rt-treatment',this)">⚡ Treatment</button>
-      <button class="rnav-item" onclick="showRTab('rt-appointments',this)">🗓 Appointments</button>
-      <button class="rnav-item" onclick="showRTab('rt-imaging',this)">🖼 Imaging</button>
-      <button class="rnav-item" onclick="showRTab('rt-logs',this)">📋 Health Logs</button>
-      <button class="rnav-item" onclick="showRTab('rt-export',this)">📄 Export</button>
-      <button class="rnav-item" onclick="showRTab('rt-creds',this)">🔑 Credentials</button>
+      <button class="rnav-item active" data-click="showRTab('rt-identity',this)">🪪 Identity</button>
+      <button class="rnav-item" data-click="showRTab('rt-metrics',this)">📊 Metrics</button>
+      <button class="rnav-item" data-click="showRTab('rt-diagnosis',this)">🔬 Diagnosis</button>
+      <button class="rnav-item" data-click="showRTab('rt-molecular',this)">🧬 Molecular</button>
+      <button class="rnav-item" data-click="showRTab('rt-labs',this)">🧪 Labs</button>
+      <button class="rnav-item" data-click="showRTab('rt-prescriptions',this)">💊 Prescriptions</button>
+      <button class="rnav-item" data-click="showRTab('rt-treatment',this)">⚡ Treatment</button>
+      <button class="rnav-item" data-click="showRTab('rt-appointments',this)">🗓 Appointments</button>
+      <button class="rnav-item" data-click="showRTab('rt-imaging',this)">🖼 Imaging</button>
+      <button class="rnav-item" data-click="showRTab('rt-logs',this)">📋 Health Logs</button>
+      <button class="rnav-item" data-click="showRTab('rt-export',this)">📄 Export</button>
+      <button class="rnav-item" data-click="showRTab('rt-creds',this)">🔑 Credentials</button>
     </div>
     <div class="record-content" id="record-content"></div>
   </div>
 </div>
 
+<!-- Delegated action dispatcher: resolves data-click= without inline handlers,
+     so the CSP no longer needs script-src-attr 'unsafe-inline'. -->
+<script src="/js/dispatch.js"></script>
+<script src="/js/dom-actions.js"></script>
 <script src="/sync-client.js"></script>
 <script>
 // ═══════════════════════════════════════════════
@@ -1319,7 +1331,7 @@ function checkEmailExists(email) {
   _emailCheckTimer = setTimeout(() => {
     const existing = LS.get('doc_email_' + emailKey(email));
     if (existing) {
-      statusEl.innerHTML = '<span style="color:var(--red);">✗ An account already exists with this email. <a href="#" onclick="switchATab(\'login\',document.querySelector(\'.ts-btn\'));return false;" style="color:var(--blue);">Sign in instead?</a></span>';
+      statusEl.innerHTML = '<span style="color:var(--red);">✗ An account already exists with this email. <a href="#" data-click="goToLoginTab();" style="color:var(--blue);">Sign in instead?</a></span>';
     } else if (email.includes('@') && email.includes('.')) {
       statusEl.innerHTML = '<span style="color:var(--green);">✓ Email available</span>';
     } else {
@@ -1366,7 +1378,7 @@ async function startEmailVerification() {
 
   // Check duplicate
   if (LS.get('doc_email_' + emailKey(email))) {
-    showMsg('reg-msg','An account already exists for this email. <a href="#" onclick="switchATab(\'login\',document.querySelector(\'.ts-btn\'));return false;" style="color:var(--blue);">Sign in instead?</a>');
+    showMsg('reg-msg','An account already exists for this email. <a href="#" data-click="goToLoginTab();" style="color:var(--blue);">Sign in instead?</a>');
     return;
   }
 
@@ -1683,8 +1695,8 @@ function renderPendingApptsBanner(pats){
     ${allPending.map(a=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface2);border-radius:6px;margin-bottom:6px;">
       <div><div style="font-weight:600;font-size:12.5px;">${esc(a.patName)}</div><div style="font-size:11px;color:var(--text-muted);">📅 ${a.date} ${a.time||''} · ${a.reason||'Visit Request'}</div></div>
       <div style="display:flex;gap:6px;">
-        <button class="btn btn-cyan btn-sm" onclick="quickConfirmAppt('${a.mrn}','${a.id}')">Confirm</button>
-        <button class="btn btn-ghost btn-sm" onclick="openRecord('${a.mrn}')">View</button>
+        <button class="btn btn-cyan btn-sm" data-click="quickConfirmAppt('${a.mrn}','${a.id}')">Confirm</button>
+        <button class="btn btn-ghost btn-sm" data-click="openRecord('${a.mrn}')">View</button>
       </div>
     </div>`).join('')}
   </div>`;
@@ -1696,7 +1708,7 @@ function quickConfirmAppt(mrn,id){
   updateStats();flash('✅ Appointment confirmed!');
 }
 function renderPatRow(p){
-  return `<div class="patient-row" onclick="openRecord('${p.mrn}')">
+  return `<div class="patient-row" data-click="openRecord('${p.mrn}')">
     <div class="avatar av-blue">${p.name.charAt(0)}</div>
     <div style="flex:1;min-width:0;">
       <div class="pat-name">${esc(p.name)}</div>
@@ -1851,7 +1863,7 @@ function renderDocsList(){
         <div style="font-size:11px;color:var(--text-dim);">${(d.size/1024).toFixed(0)} KB · ${new Date(d.ts).toLocaleDateString()} · ${d.by||''}</div>
       </div>
       <a href="${d.data}" download="${esc(d.name)}" class="btn btn-ghost btn-sm">⬇</a>
-      <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="deletePatientDoc('${d.id}')">✕</button>
+      <button class="btn btn-ghost btn-sm" style="color:var(--red);" data-click="deletePatientDoc('${d.id}')">✕</button>
     </div>`).join(''):'<div style="text-align:center;padding:20px;color:var(--text-dim);font-size:12px;">No documents uploaded yet.</div>';
 }
 function deletePatientDoc(id){
@@ -1922,7 +1934,7 @@ function renderNotifs(){
     visible.forEach(a=>{const k=a.mrn||'_lab';(byPat[k]=byPat[k]||[]).push(a);});
     rows=Object.entries(byPat).map(([mrn,list2])=>{
       const a=list2[0];const unreadN=list2.filter(x=>!x.read).length;
-      return `<div class="notif-item${unreadN?' unread':''}${list2.some(x=>x.urgent)?' urgent':''}" onclick="${a._labsubs?"toggleNotifs()":`openRecord('${a.mrn}')`}">
+      return `<div class="notif-item${unreadN?' unread':''}${list2.some(x=>x.urgent)?' urgent':''}" data-click="${a._labsubs?"toggleNotifs()":`openRecord('${a.mrn}')`}">
         <div class="notif-item-title">${list2.some(x=>x.urgent)?'🚨 ':''}${a.name||mrn}</div>
         <div class="notif-item-text">${list2.length} alert${list2.length>1?'s':''} — latest: ${esc(a.text)}</div>
         <div class="notif-item-ts">${new Date(a.ts).toLocaleString()}</div>
@@ -1930,7 +1942,7 @@ function renderNotifs(){
     }).join('');
   }else{
     rows=visible.slice(0,30).map(a=>`
-    <div class="notif-item${a.read?'':' unread'}${a.urgent?' urgent':''}" onclick="${a._labsubs?"toggleNotifs()":`openRecord('${a.mrn}')`}">
+    <div class="notif-item${a.read?'':' unread'}${a.urgent?' urgent':''}" data-click="${a._labsubs?"toggleNotifs()":`openRecord('${a.mrn}')`}">
       <div class="notif-item-title">${a.urgent?'🚨 ':''}${a.name||a.mrn}</div>
       <div class="notif-item-text">${esc(a.text)}</div>
       <div class="notif-item-ts">${new Date(a.ts).toLocaleString()}</div>
@@ -1942,7 +1954,7 @@ function renderNotifs(){
   const b=document.getElementById('urgent-banner');
   if(b){
     b.style.display=urgent.length?'block':'none';
-    if(urgent.length)b.innerHTML=`<div class="urgent-banner-inner">🚨 <strong>${urgent.length} urgent alert${urgent.length>1?'s':''}</strong><span>${urgent.slice(0,2).map(a=>(a.name||a.mrn)+' — '+a.text).join(' · ')}</span><button onclick="toggleNotifs()" class="urgent-banner-btn">Review</button></div>`;
+    if(urgent.length)b.innerHTML=`<div class="urgent-banner-inner">🚨 <strong>${urgent.length} urgent alert${urgent.length>1?'s':''}</strong><span>${urgent.slice(0,2).map(a=>(a.name||a.mrn)+' — '+a.text).join(' · ')}</span><button data-click="toggleNotifs()" class="urgent-banner-btn">Review</button></div>`;
   }
 }
 function toggleNotifs(){const p=document.getElementById('notif-panel');p.classList.toggle('open');if(p.classList.contains('open'))renderNotifs();}
@@ -2051,10 +2063,10 @@ async function addPatient(force){
         el.innerHTML='<b>⚠️ Possible duplicate — "'+esc(name)+'" already exists:</b>'+
           dupes.map(d=>'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding:8px 10px;background:var(--surface2);border-radius:7px;">'+
             '<span style="font-size:12px;"><b>'+esc(d.name)+'</b> · '+d.mrn+(d.dob?' · DOB '+esc(d.dob):'')+(d.strong?' · <b style="color:var(--red);">details match</b>':'')+'</span>'+
-            '<button class="btn btn-cyan btn-sm" onclick="document.getElementById(\'add-pat-modal\').classList.remove(\'open\');openRecord(\''+d.mrn+'\')">Open Record</button></div>').join('')+
+            '<button class="btn btn-cyan btn-sm" data-click="closeAddPatientAndOpen(\''+d.mrn+'\')">Open Record</button></div>').join('')+
           '<div style="margin-top:10px;display:flex;gap:8px;">'+
-          '<button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'ap-msg\').style.display=\'none\'">Cancel</button>'+
-          '<button class="btn btn-primary btn-sm" onclick="addPatient(true)">This is a different person — create anyway</button></div>';
+          '<button class="btn btn-ghost btn-sm" data-click="hideEl(\'ap-msg\')">Cancel</button>'+
+          '<button class="btn btn-primary btn-sm" data-click="addPatient(true)">This is a different person — create anyway</button></div>';
       }
       return;
     }
@@ -2190,7 +2202,7 @@ function buildRecordTabs(p){
     <div class="rt-section">
       <div class="rt-title">Demographics</div>
       <div class="g4">
-        <div class="fg"><label>Date of Birth</label><input type="date" id="r-dob" value="${p.dob||''}" oninput="rCalcAge()"></div>
+        <div class="fg"><label>Date of Birth</label><input type="date" id="r-dob" value="${p.dob||''}" data-input="rCalcAge()"></div>
         <div class="fg"><label>Age</label><input id="r-age" readonly value="${p.age||''}" placeholder="Auto"></div>
         <div class="fg"><label>Gender</label><select id="r-gender">${['Male','Female','Other','Prefer not to say'].map(o=>`<option${p.gender===o?' selected':''}>${o}</option>`).join('')}</select></div>
         <div class="fg"><label>Blood Group</label><select id="r-blood">${['O+','O-','A+','A-','B+','B-','AB+','AB-','Unknown'].map(o=>`<option${p.blood===o?' selected':''}>${o}</option>`).join('')}</select></div>
@@ -2230,8 +2242,8 @@ function buildRecordTabs(p){
       <div>
         <div class="rt-title">Anthropometrics &amp; Vitals</div>
         <div class="g3">
-          <div class="fg"><label>Height (cm) <span style="color:var(--text-dim);font-weight:400;">80–250</span></label><input id="r-h" type="number" min="80" max="250" value="${p.height||''}" placeholder="cm" oninput="rCalcBMI()"></div>
-          <div class="fg"><label>Weight (kg) <span style="color:var(--text-dim);font-weight:400;">20–300</span></label><input id="r-w" type="number" min="20" max="300" value="${p.weight||''}" placeholder="kg" oninput="rCalcBMI()"></div>
+          <div class="fg"><label>Height (cm) <span style="color:var(--text-dim);font-weight:400;">80–250</span></label><input id="r-h" type="number" min="80" max="250" value="${p.height||''}" placeholder="cm" data-input="rCalcBMI()"></div>
+          <div class="fg"><label>Weight (kg) <span style="color:var(--text-dim);font-weight:400;">20–300</span></label><input id="r-w" type="number" min="20" max="300" value="${p.weight||''}" placeholder="kg" data-input="rCalcBMI()"></div>
           <div class="fg"><label>BMI (Auto)</label><input id="r-bmi" value="${p.bmi||''}" readonly></div>
         </div>
         <div id="r-bmi-cat" style="font-size:11px;margin-bottom:10px;padding:5px 10px;border-radius:5px;display:none;"></div>
@@ -2239,8 +2251,8 @@ function buildRecordTabs(p){
         <div class="vitals-box">
           <div class="vitals-box-label">Blood Pressure <span id="r-bp-badge" style="font-size:10px;padding:1px 6px;border-radius:3px;font-weight:700;margin-left:6px;"></span></div>
           <div class="g2">
-            <div class="fg" style="margin:0 0 8px;"><label>Systolic (mmHg) <span style="color:var(--text-dim);font-weight:400;">70–260</span></label><input id="r-sys" type="number" min="70" max="260" value="${p.bp_sys||'120'}" oninput="rCalcBP()"></div>
-            <div class="fg" style="margin:0 0 8px;"><label>Diastolic (mmHg) <span style="color:var(--text-dim);font-weight:400;">40–150</span></label><input id="r-dia" type="number" min="40" max="150" value="${p.bp_dia||'80'}" oninput="rCalcBP()"></div>
+            <div class="fg" style="margin:0 0 8px;"><label>Systolic (mmHg) <span style="color:var(--text-dim);font-weight:400;">70–260</span></label><input id="r-sys" type="number" min="70" max="260" value="${p.bp_sys||'120'}" data-input="rCalcBP()"></div>
+            <div class="fg" style="margin:0 0 8px;"><label>Diastolic (mmHg) <span style="color:var(--text-dim);font-weight:400;">40–150</span></label><input id="r-dia" type="number" min="40" max="150" value="${p.bp_dia||'80'}" data-input="rCalcBP()"></div>
           </div>
           <div style="display:flex;gap:16px;font-size:11px;color:var(--text-muted);">
             <span>MAP (Auto): <strong id="r-map" style="color:var(--text);">—</strong> <span style="color:var(--text-dim);">normal 70–100</span></span>
@@ -2251,7 +2263,7 @@ function buildRecordTabs(p){
         <div class="vitals-box" style="margin-top:10px;">
           <div class="vitals-box-label">Heart / Pulse</div>
           <div class="g2">
-            <div class="fg" style="margin:0 0 8px;"><label>Heart Rate (bpm) <span style="color:var(--text-dim);font-weight:400;">normal 60–100</span></label><input id="r-hr" type="number" min="20" max="300" value="${p.hr||'72'}" oninput="rCalcHR()"></div>
+            <div class="fg" style="margin:0 0 8px;"><label>Heart Rate (bpm) <span style="color:var(--text-dim);font-weight:400;">normal 60–100</span></label><input id="r-hr" type="number" min="20" max="300" value="${p.hr||'72'}" data-input="rCalcHR()"></div>
             <div class="fg" style="margin:0 0 8px;"><label>Rhythm</label><select id="r-rhythm">${['Regular','Irregular','A-Fib','Bradycardia','Tachycardia'].map(o=>`<option${(p.rhythm||'Regular')===o?' selected':''}>${o}</option>`).join('')}</select></div>
           </div>
           <div id="r-hr-alert" style="font-size:11px;display:none;padding:3px 8px;border-radius:4px;margin-top:4px;"></div>
@@ -2260,8 +2272,8 @@ function buildRecordTabs(p){
         <div class="vitals-box" style="margin-top:10px;">
           <div class="vitals-box-label">Pulse Oximetry &amp; Temperature</div>
           <div class="g3">
-            <div class="fg" style="margin:0 0 8px;"><label>SpO₂ (%) <span style="color:var(--text-dim);font-weight:400;">normal ≥95</span></label><input id="r-spo2" type="number" min="50" max="100" value="${p.spo2||''}" placeholder="%" oninput="rCalcSpO2()"></div>
-            <div class="fg" style="margin:0 0 8px;"><label>Temperature (°C) <span style="color:var(--text-dim);font-weight:400;">normal 36.1–37.2</span></label><input id="r-temp" type="number" min="30" max="45" step="0.1" value="${p.temp||''}" placeholder="°C" oninput="rCalcTemp()"></div>
+            <div class="fg" style="margin:0 0 8px;"><label>SpO₂ (%) <span style="color:var(--text-dim);font-weight:400;">normal ≥95</span></label><input id="r-spo2" type="number" min="50" max="100" value="${p.spo2||''}" placeholder="%" data-input="rCalcSpO2()"></div>
+            <div class="fg" style="margin:0 0 8px;"><label>Temperature (°C) <span style="color:var(--text-dim);font-weight:400;">normal 36.1–37.2</span></label><input id="r-temp" type="number" min="30" max="45" step="0.1" value="${p.temp||''}" placeholder="°C" data-input="rCalcTemp()"></div>
             <div class="fg" style="margin:0 0 8px;"><label>Respiratory Rate <span style="color:var(--text-dim);font-weight:400;">normal 12–20/min</span></label><input id="r-rr" type="number" min="5" max="60" value="${p.rr||''}" placeholder="/min"></div>
           </div>
           <div id="r-spo2-alert" style="font-size:11px;display:none;padding:3px 8px;border-radius:4px;margin-top:4px;"></div>
@@ -2274,7 +2286,7 @@ function buildRecordTabs(p){
             <div class="fg">
               <label>GCS Score <span style="color:var(--text-dim);font-weight:400;">3–15</span></label>
               <div style="display:flex;gap:6px;align-items:center;">
-                <input id="r-gcs" type="number" min="3" max="15" value="${p.gcs||''}" placeholder="Total" oninput="rCalcGCS()" style="flex:1;">
+                <input id="r-gcs" type="number" min="3" max="15" value="${p.gcs||''}" placeholder="Total" data-input="rCalcGCS()" style="flex:1;">
                 <div style="font-size:11px;color:var(--text-muted);">E<input id="r-gcs-e" type="number" min="1" max="4" value="${p.gcsE||''}" style="width:36px;padding:4px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:inherit;font-size:11px;outline:none;"> V<input id="r-gcs-v" type="number" min="1" max="5" value="${p.gcsV||''}" style="width:36px;padding:4px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:inherit;font-size:11px;outline:none;"> M<input id="r-gcs-m" type="number" min="1" max="6" value="${p.gcsM||''}" style="width:36px;padding:4px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:inherit;font-size:11px;outline:none;"></div>
               </div>
               <div id="r-gcs-label" style="font-size:11px;color:var(--text-muted);margin-top:3px;">${p.gcs ? (p.gcs>=13?'Mild (13-15)':p.gcs>=9?'Moderate (9-12)':'Severe (3-8)') : ''}</div>
@@ -2301,7 +2313,7 @@ function buildRecordTabs(p){
           </div>
           <div class="rt-title" style="margin-top:14px;">Renal Function &amp; Dosing (for chemotherapy)</div>
           <div class="g3">
-            <div class="fg"><label>Serum Creatinine (mg/dL)</label><input id="r-creat" type="number" step="0.01" value="${p.creat||''}" placeholder="e.g. 0.9" oninput="rCalcEGFR()"></div>
+            <div class="fg"><label>Serum Creatinine (mg/dL)</label><input id="r-creat" type="number" step="0.01" value="${p.creat||''}" placeholder="e.g. 0.9" data-input="rCalcEGFR()"></div>
             <div class="fg"><label>eGFR (CKD-EPI 2021) <span style="color:var(--text-dim);font-weight:400;">auto</span></label><input id="r-egfr" readonly value="${p.egfr||''}" placeholder="Auto-calculated" style="background:var(--surface2);"><div id="r-egfr-stage" style="font-size:10.5px;color:var(--text-muted);margin-top:3px;"></div></div>
             <div class="fg"><label>BSA (Mosteller) m² <span style="color:var(--text-dim);font-weight:400;">auto</span></label><input id="r-bsa" readonly value="${p.bsa||''}" placeholder="From height + weight" style="background:var(--surface2);"></div>
           </div>
@@ -2328,14 +2340,14 @@ function buildRecordTabs(p){
             <div style="display:flex;gap:6px;margin-bottom:10px;">
               <input id="r-allergy-inp" placeholder="Allergen name…" autocomplete="off"
                 style="flex:1;padding:8px 11px;background:var(--surface2);border:1.5px solid var(--border2);border-radius:9px;color:var(--text);font-family:inherit;font-size:13px;outline:none;transition:border 0.2s;"
-                onfocus="this.style.borderColor='var(--blue-light)'" onblur="this.style.borderColor='var(--border2)'"
-                onkeydown="if(event.key==='Enter'){event.preventDefault();rAddAllergy();}">
+                class="field-focus"
+                data-enter="addAllergyFromField()">
               <select id="r-allergy-sev" style="padding:8px 6px;background:var(--surface2);border:1.5px solid var(--border2);border-radius:9px;color:var(--text);font-family:inherit;font-size:12px;outline:none;cursor:pointer;">
                 <option value="Mild" style="color:var(--green);">Mild</option>
                 <option value="Moderate" style="color:var(--orange);">Moderate</option>
                 <option value="Severe" style="color:var(--red);">Severe</option>
               </select>
-              <button onclick="rAddAllergy()" style="width:34px;height:34px;border-radius:9px;border:none;background:var(--blue);color:#fff;font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">+</button>
+              <button data-click="rAddAllergy()" style="width:34px;height:34px;border-radius:9px;border:none;background:var(--blue);color:#fff;font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">+</button>
             </div>
             <!-- Tags -->
             <div id="r-allergy-tags" style="display:flex;flex-wrap:wrap;gap:6px;min-height:28px;"></div>
@@ -2358,7 +2370,7 @@ function buildRecordTabs(p){
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
               ${['Hypertension','T2 Diabetes','Hypothyroidism','CAD','COPD','Asthma','CKD','Epilepsy','Depression','Anxiety'].map(c=>{
                 const checked=(p.comorbidities||[]).includes(c);
-                return `<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:${checked?'rgba(44,94,173,0.08)':'var(--surface2)'};border:1.5px solid ${checked?'rgba(44,94,173,0.3)':'var(--border)'};border-radius:9px;cursor:pointer;font-size:12.5px;font-weight:${checked?'700':'500'};color:${checked?'var(--blue)':'var(--text)'};transition:all 0.15s;" onclick="this.querySelector('input').click();updateComorBadge();">
+                return `<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:${checked?'rgba(44,94,173,0.08)':'var(--surface2)'};border:1.5px solid ${checked?'rgba(44,94,173,0.3)':'var(--border)'};border-radius:9px;cursor:pointer;font-size:12.5px;font-weight:${checked?'700':'500'};color:${checked?'var(--blue)':'var(--text)'};transition:all 0.15s;" data-click="toggleComorbidity(this);">
                   <input type="checkbox" class="comor-cb" value="${c}" ${checked?'checked':''} style="display:none;">
                   <span style="width:16px;height:16px;border-radius:4px;border:2px solid ${checked?'var(--blue)':'var(--border2)'};background:${checked?'var(--blue)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;color:#fff;transition:all 0.15s;">${checked?'✓':''}</span>
                   ${c}
@@ -2367,7 +2379,7 @@ function buildRecordTabs(p){
             </div>
             <input id="r-comor-other" placeholder="Other comorbidity…" value="${esc(p.comorbiditiesOther||'')}"
               style="width:100%;padding:8px 11px;background:var(--surface2);border:1.5px solid var(--border2);border-radius:9px;color:var(--text);font-family:inherit;font-size:12.5px;outline:none;transition:border 0.2s;box-sizing:border-box;"
-              onfocus="this.style.borderColor='var(--blue-light)'" onblur="this.style.borderColor='var(--border2)'">
+              class="field-focus">
           </div>
         </div>
 
@@ -2383,7 +2395,7 @@ function buildRecordTabs(p){
           <div style="padding:12px 14px;">
             <textarea id="r-clin-notes" rows="4" placeholder="Assessment, plan, observations…"
               style="width:100%;padding:9px 11px;background:var(--surface2);border:1.5px solid var(--border2);border-radius:9px;color:var(--text);font-family:inherit;font-size:13px;outline:none;resize:vertical;line-height:1.6;transition:border 0.2s;box-sizing:border-box;"
-              onfocus="this.style.borderColor='var(--blue-light)'" onblur="this.style.borderColor='var(--border2)'">${esc(p.clinNotes||'')}</textarea>
+              class="field-focus">${esc(p.clinNotes||'')}</textarea>
           </div>
         </div>
 
@@ -2401,9 +2413,9 @@ function buildRecordTabs(p){
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
       <div class="rt-title" style="margin:0;padding:0;border:none;">Primary Oncology Diagnosis</div>
       <div style="display:flex;gap:6px;">
-        <button class="hist-trigger" onclick="openHistPanel('diagnosis')">🕐 History</button>
-        <button class="btn btn-ghost btn-sm" onclick="openICDLookup()">🔍 Browse ICD</button>
-        <button class="btn btn-ghost btn-sm" onclick="genSummary()">📋 Summary</button>
+        <button class="hist-trigger" data-click="openHistPanel('diagnosis')">🕐 History</button>
+        <button class="btn btn-ghost btn-sm" data-click="openICDLookup()">🔍 Browse ICD</button>
+        <button class="btn btn-ghost btn-sm" data-click="genSummary()">📋 Summary</button>
       </div>
     </div>
 
@@ -2415,7 +2427,7 @@ function buildRecordTabs(p){
           <label>ICD-10 / ICD-11 Code</label>
           <div style="display:flex;gap:6px;">
             <input id="r-icd" value="${esc(p.icd10||'')}" placeholder="e.g. C71.1" style="flex:1;font-family:var(--mono);">
-            <button class="btn btn-ghost btn-sm" onclick="openICDLookup()">Browse</button>
+            <button class="btn btn-ghost btn-sm" data-click="openICDLookup()">Browse</button>
           </div>
           <div id="r-icd-desc" style="font-size:11px;color:var(--cyan);margin-top:4px;display:none;"></div>
         </div>
@@ -2475,7 +2487,7 @@ function buildRecordTabs(p){
               ['Relapse','var(--orange)','rgba(217,119,6,0.1)']
             ].map(([s,col,bg])=>{
               const active=(p.diseaseStatus||'Stable')===s;
-              return `<button onclick="setDS(this,'${s}')" data-ds="${s}" style="padding:8px 4px;border-radius:8px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;border:2px solid ${active?col:'var(--border)'};background:${active?bg:'var(--surface2)'};color:${active?col:'var(--text-muted)'};transition:all 0.15s;">${s}</button>`;
+              return `<button data-click="setDS(this,'${s}')" data-ds="${s}" style="padding:8px 4px;border-radius:8px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;border:2px solid ${active?col:'var(--border)'};background:${active?bg:'var(--surface2)'};color:${active?col:'var(--text-muted)'};transition:all 0.15s;">${s}</button>`;
             }).join('')}
           </div>
           <input type="hidden" id="r-ds" value="${p.diseaseStatus||'Stable'}">
@@ -2560,9 +2572,9 @@ function buildRecordTabs(p){
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div class="rt-title" style="margin:0;padding:0;border:none;">Laboratory Results</div>
       <div style="display:flex;gap:6px;">
-        <button class="btn btn-ghost btn-sm lab-tab-btn active" id="lab-tab-result" onclick="switchLabTab('result')">+ Add Result</button>
-        <button class="btn btn-ghost btn-sm lab-tab-btn" id="lab-tab-report" onclick="switchLabTab('report')">📋 Paste Report</button>
-        <button class="btn btn-ghost btn-sm lab-tab-btn" id="lab-tab-upload" onclick="switchLabTab('upload')">📎 Upload File</button>
+        <button class="btn btn-ghost btn-sm lab-tab-btn active" id="lab-tab-result" data-click="switchLabTab('result')">+ Add Result</button>
+        <button class="btn btn-ghost btn-sm lab-tab-btn" id="lab-tab-report" data-click="switchLabTab('report')">📋 Paste Report</button>
+        <button class="btn btn-ghost btn-sm lab-tab-btn" id="lab-tab-upload" data-click="switchLabTab('upload')">📎 Upload File</button>
       </div>
     </div>
 
@@ -2582,9 +2594,9 @@ function buildRecordTabs(p){
           <div style="position:relative;" id="lab-test-wrap">
             <input id="r-lab-test" placeholder="Type to search or enter test name…" autocomplete="off"
               style="width:100%;padding:8px 10px;background:var(--surface3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:inherit;font-size:12px;outline:none;"
-              oninput="filterLabTests(this.value);autoFillRefRange(this.value)"
-              onfocus="showLabTestDropdown()"
-              onblur="setTimeout(()=>hideLabTestDropdown(),180)">
+              data-input="labTestInput()"
+              data-focus="showLabTestDropdown()"
+              data-blur="hideLabTestDropdownSoon()">
             <div id="lab-test-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1.5px solid var(--blue-light);border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:999;box-shadow:0 8px 24px rgba(44,94,173,0.15);">
             </div>
           </div>
@@ -2594,7 +2606,7 @@ function buildRecordTabs(p){
           <label>Value</label>
           <input id="r-lab-val" placeholder="e.g. 12.4 g/dL"
             style="width:100%;padding:8px 10px;background:var(--surface3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:inherit;font-size:12px;outline:none;"
-            oninput="autoFlagStatus()">
+            data-input="autoFlagStatus()">
         </div>
 
         <div class="fg" style="margin:0;">
@@ -2628,8 +2640,8 @@ function buildRecordTabs(p){
 
       <input type="hidden" id="r-lab-idx" value="-1">
       <div style="display:flex;gap:6px;">
-        <button class="btn btn-ghost btn-sm" onclick="hideLabForm()">Cancel</button>
-        <button class="btn btn-primary btn-sm" onclick="saveLabResult()">Save Result</button>
+        <button class="btn btn-ghost btn-sm" data-click="hideLabForm()">Cancel</button>
+        <button class="btn btn-primary btn-sm" data-click="saveLabResult()">Save Result</button>
       </div>
     </div>
 
@@ -2675,9 +2687,9 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
       </div>
 
       <div style="display:flex;gap:6px;">
-        <button class="btn btn-ghost btn-sm" onclick="hideReportForm()">Cancel</button>
-        <button class="btn btn-cyan btn-sm" onclick="parseReport()">🔍 Parse Report</button>
-        <button class="btn btn-primary btn-sm" id="r-report-import-btn" style="display:none;" onclick="importReport()">✅ Import All Results</button>
+        <button class="btn btn-ghost btn-sm" data-click="hideReportForm()">Cancel</button>
+        <button class="btn btn-cyan btn-sm" data-click="parseReport()">🔍 Parse Report</button>
+        <button class="btn btn-primary btn-sm" id="r-report-import-btn" style="display:none;" data-click="importReport()">✅ Import All Results</button>
       </div>
     </div>
 
@@ -2700,15 +2712,15 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
       <!-- Drop zone -->
       <div id="r-upload-zone"
         style="border:2px dashed var(--border2);border-radius:10px;padding:28px 20px;text-align:center;cursor:pointer;margin-bottom:12px;transition:all 0.2s;"
-        onclick="document.getElementById('r-file-inp').click()"
-        ondragover="event.preventDefault();this.style.borderColor='var(--blue-light)';this.style.background='var(--blue-pale)';"
-        ondragleave="this.style.borderColor='var(--border2)';this.style.background='';"
-        ondrop="event.preventDefault();this.style.borderColor='var(--border2)';this.style.background='';handleRecordFiles(event.dataTransfer.files);">
+        data-click="clickEl('r-file-inp')"
+        class="drop-zone" data-dragover="dragEnterZone(event)"
+        data-dragleave="dragLeaveZone()"
+        data-drop="dropOnZone(event,'handleRecordFiles')">
         <div style="font-size:36px;margin-bottom:8px;">📂</div>
         <div style="font-weight:700;font-size:13px;margin-bottom:4px;color:var(--text);">Click to browse or drag &amp; drop files</div>
         <div style="font-size:11px;color:var(--text-muted);">PDF · JPG · PNG · DOCX · XLSX · any format · multiple files · max 5MB each</div>
       </div>
-      <input type="file" id="r-file-inp" multiple style="display:none;" onchange="handleRecordFiles(this.files)">
+      <input type="file" id="r-file-inp" multiple style="display:none;" data-change="handleRecordFiles(this.files)">
 
       <!-- File list -->
       <div id="r-upload-file-list" style="margin-bottom:10px;"></div>
@@ -2722,8 +2734,8 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
       <div id="r-upload-msg" style="font-size:12px;padding:8px 12px;border-radius:6px;display:none;margin-bottom:10px;"></div>
 
       <div style="display:flex;gap:6px;">
-        <button class="btn btn-ghost btn-sm" onclick="switchLabTab('result');hideUploadForm();">Cancel</button>
-        <button class="btn btn-primary btn-sm" onclick="saveLabFiles()">💾 Save Files to Record</button>
+        <button class="btn btn-ghost btn-sm" data-click="switchLabTab('result');hideUploadForm();">Cancel</button>
+        <button class="btn btn-primary btn-sm" data-click="saveLabFiles()">💾 Save Files to Record</button>
       </div>
     </div>
 
@@ -2731,7 +2743,7 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
     <div id="r-lab-trend-panel" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
         <div style="font-weight:600;font-size:13px;">📈 Trend Over Time</div>
-        <select id="r-lab-trend-select" onchange="renderLabTrend()" style="padding:6px 10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:inherit;font-size:12px;outline:none;min-width:180px;"></select>
+        <select id="r-lab-trend-select" data-change="renderLabTrend()" style="padding:6px 10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:inherit;font-size:12px;outline:none;min-width:180px;"></select>
       </div>
       <div style="position:relative;height:220px;"><canvas id="r-lab-trend-canvas"></canvas></div>
       <div id="r-lab-trend-stats" style="display:flex;gap:16px;margin-top:10px;font-size:12px;color:var(--text-muted);flex-wrap:wrap;"></div>
@@ -2775,15 +2787,15 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
       <div class="rt-title" style="margin:0;padding:0;border:none;">Active Medications</div>
       <div style="display:flex;gap:6px;align-items:center;">
         <span style="font-size:11px;color:var(--text-dim);">Sorted: newest first</span>
-        <button class="hist-trigger" onclick="openHistPanel('prescriptions')">🕐 Rx History</button>
-        <button class="btn btn-primary btn-sm" onclick="openProtocolModal()">📚 Apply Protocol</button>
-        <button class="btn btn-ghost btn-sm" onclick="showMedForm()">+ Add Medication</button>
+        <button class="hist-trigger" data-click="openHistPanel('prescriptions')">🕐 Rx History</button>
+        <button class="btn btn-primary btn-sm" data-click="openProtocolModal()">📚 Apply Protocol</button>
+        <button class="btn btn-ghost btn-sm" data-click="showMedForm()">+ Add Medication</button>
       </div>
     </div>
     <div id="r-med-form" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px;">
       <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
-        <div class="fg" style="margin:0 0 8px;"><label>Drug Name (generic)</label><input id="r-med-name" placeholder="e.g. Temozolomide" oninput="toggleCarboCalc();updateDoseHint()"></div>
-        <div class="fg" style="margin:0 0 8px;"><label>Dose <span title="Recognised chemo drugs show their usual maximum and quick reduction actions below as you type." style="cursor:help;color:var(--blue);">ⓘ</span></label><input id="r-med-dose" placeholder="150 mg/m²" oninput="updateDoseHint()"></div>
+        <div class="fg" style="margin:0 0 8px;"><label>Drug Name (generic)</label><input id="r-med-name" placeholder="e.g. Temozolomide" data-input="carboInput()"></div>
+        <div class="fg" style="margin:0 0 8px;"><label>Dose <span title="Recognised chemo drugs show their usual maximum and quick reduction actions below as you type." style="cursor:help;color:var(--blue);">ⓘ</span></label><input id="r-med-dose" placeholder="150 mg/m²" data-input="updateDoseHint()"></div>
         <div class="fg" style="margin:0 0 8px;"><label>Route</label>
           <select id="r-med-route"><option>PO</option><option>IV</option><option>SC</option><option>IM</option><option>IT</option><option>Topical</option></select>
         </div>
@@ -2803,14 +2815,14 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
         <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:10px;">Dose (mg) = Target AUC × (GFR + 25). GFR is capped at 125 mL/min per FDA guidance. eGFR is normalised to 1.73 m² — verify against a measured GFR where available.</div>
         <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
           <div class="fg" style="margin:0;flex:0 0 110px;"><label>Target AUC</label>
-            <select id="r-carbo-auc" onchange="calcCarboDose()">${[2,3,4,5,6,7].map(a=>'<option'+(a===5?' selected':'')+'>'+a+'</option>').join('')}</select>
+            <select id="r-carbo-auc" data-change="calcCarboDose()">${[2,3,4,5,6,7].map(a=>'<option'+(a===5?' selected':'')+'>'+a+'</option>').join('')}</select>
           </div>
-          <div class="fg" style="margin:0;flex:0 0 130px;"><label>GFR (mL/min)</label><input id="r-carbo-gfr" type="number" step="1" min="0" oninput="calcCarboDose()" placeholder="from eGFR"></div>
+          <div class="fg" style="margin:0;flex:0 0 130px;"><label>GFR (mL/min)</label><input id="r-carbo-gfr" type="number" step="1" min="0" data-input="calcCarboDose()" placeholder="from eGFR"></div>
           <div style="flex:1;font-size:13px;padding-bottom:8px;">Dose: <strong id="r-carbo-result" style="font-family:var(--mono);">—</strong></div>
-          <button class="btn btn-primary btn-sm" style="margin-bottom:4px;" onclick="useCarboDose()">Use this dose</button>
+          <button class="btn btn-primary btn-sm" style="margin-bottom:4px;" data-click="useCarboDose()">Use this dose</button>
         </div>
       </div>
-      <div style="display:flex;gap:6px;"><button class="btn btn-ghost btn-sm" onclick="hideMedForm()">Cancel</button><button class="btn btn-primary btn-sm" onclick="saveMed()">Save</button></div>
+      <div style="display:flex;gap:6px;"><button class="btn btn-ghost btn-sm" data-click="hideMedForm()">Cancel</button><button class="btn btn-primary btn-sm" data-click="saveMed()">Save</button></div>
     </div>
     <div id="r-med-list"></div>
     <div id="r-med-list-controls" style="display:none;gap:4px;justify-content:center;margin-top:14px;flex-wrap:wrap;"></div>
@@ -2820,7 +2832,7 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
   <div id="rt-treatment" class="rtab">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
       <div class="rt-title" style="margin:0;padding:0;border:none;">Treatment Plan</div>
-      <button class="hist-trigger" onclick="openHistPanel('treatment')">🕐 Treatment History</button>
+      <button class="hist-trigger" data-click="openHistPanel('treatment')">🕐 Treatment History</button>
     </div>
     <div class="g2">
       <div>
@@ -2836,8 +2848,8 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
               ${['LINAC','Gamma Knife','CyberKnife','Proton Unit','Tomotherapy','Other'].map(o=>`<option${(p.txDevice||'LINAC')===o?' selected':''}>${o}</option>`).join('')}
             </select>
           </div>
-          <div class="fg"><label>Total Dose (Gy)</label><input id="r-tx-dose" type="number" min="0" step="0.1" value="${p.txDose||''}" placeholder="e.g. 60" oninput="calcDPF()"></div>
-          <div class="fg"><label>Fractions</label><input id="r-tx-frac" type="number" min="0" value="${p.txFractions||''}" placeholder="e.g. 30" oninput="calcDPF()"></div>
+          <div class="fg"><label>Total Dose (Gy)</label><input id="r-tx-dose" type="number" min="0" step="0.1" value="${p.txDose||''}" placeholder="e.g. 60" data-input="calcDPF()"></div>
+          <div class="fg"><label>Fractions</label><input id="r-tx-frac" type="number" min="0" value="${p.txFractions||''}" placeholder="e.g. 30" data-input="calcDPF()"></div>
           <div class="fg"><label>Dose / Fraction (Auto)</label><input id="r-tx-dpf" type="text" value="${p.txDPF||''}" placeholder="—" readonly style="opacity:0.7;"></div>
           <div class="fg"><label>Concurrent Chemo</label>
             <select id="r-tx-chemo">${['No','Yes'].map(o=>`<option${(p.txConcChemo||'No')===o?' selected':''}>${o}</option>`).join('')}</select>
@@ -2894,7 +2906,7 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
     <div style="background:var(--blue-pale);border:1px solid rgba(44,94,173,0.15);border-radius:10px;padding:14px 16px;margin-bottom:16px;">
       <div style="font-weight:700;font-size:12px;color:var(--blue);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;">
         <span>🧮 Radiobiological Calculator (EQD₂ / BED)</span>
-        <span style="font-weight:400;font-size:11px;color:var(--text-muted);">α/β ratio: <input id="r-eqd2-ab" type="number" value="${p.txAlphaBeta||2}" min="1" max="20" step="0.5" style="width:50px;padding:2px 5px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;text-align:center;" oninput="calcEQD2()"></span>
+        <span style="font-weight:400;font-size:11px;color:var(--text-muted);">α/β ratio: <input id="r-eqd2-ab" type="number" value="${p.txAlphaBeta||2}" min="1" max="20" step="0.5" style="width:50px;padding:2px 5px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;text-align:center;" data-input="calcEQD2()"></span>
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:12.5px;">
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;">
@@ -2918,7 +2930,7 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
     <div style="margin-top:20px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <div class="rt-title" style="margin:0;padding:0;border:none;">Treatment Log Entries</div>
-        <button class="btn btn-ghost btn-sm" onclick="showTxEntryForm()">+ Add Entry</button>
+        <button class="btn btn-ghost btn-sm" data-click="showTxEntryForm()">+ Add Entry</button>
       </div>
       <div id="r-tx-entry-form" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:12px;">
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
@@ -2932,7 +2944,7 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
           <div class="fg" style="margin:0;"><label>Drug / Agent</label><input id="txe-drug" placeholder="e.g. TMZ Cycle 3"></div>
           <div class="fg" style="margin:0;"><label>Notes</label><input id="txe-notes" placeholder="Any remarks…"></div>
         </div>
-        <div style="display:flex;gap:6px;"><button class="btn btn-ghost btn-sm" onclick="hideTxEntryForm()">Cancel</button><button class="btn btn-primary btn-sm" onclick="saveTxEntry()">Save Entry</button></div>
+        <div style="display:flex;gap:6px;"><button class="btn btn-ghost btn-sm" data-click="hideTxEntryForm()">Cancel</button><button class="btn btn-primary btn-sm" data-click="saveTxEntry()">Save Entry</button></div>
       </div>
       <table class="lab-table" id="r-tx-entries-table">
         <thead><tr><th>Date</th><th>Type</th><th>Drug / Agent</th><th>Status</th><th>Notes</th><th></th></tr></thead>
@@ -2947,7 +2959,7 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
     <div class="card">
       <div class="card-title" style="margin-bottom:4px;">📁 Patient Documents</div>
       <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;">MRI reports, discharge summaries, prescriptions — visible to the patient in their app.</div>
-      <label class="btn btn-primary btn-sm" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;">⬆ Upload document<input type="file" style="display:none;" onchange="uploadPatientDoc(this)" accept=".pdf,.png,.jpg,.jpeg,.txt,.doc,.docx"></label>
+      <label class="btn btn-primary btn-sm" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;">⬆ Upload document<input type="file" style="display:none;" data-change="uploadPatientDoc(this)" accept=".pdf,.png,.jpg,.jpeg,.txt,.doc,.docx"></label>
       <span style="font-size:11px;color:var(--text-dim);margin-left:10px;">Max 2 MB per file</span>
       <div id="r-docs-list" style="margin-top:14px;"></div>
     </div>
@@ -2990,9 +3002,9 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
       </div>
 
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn btn-ghost btn-sm" onclick="['exp-demo','exp-metrics','exp-diag','exp-mol','exp-labs','exp-meds','exp-tx','exp-appts','exp-imaging','exp-logs'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=true;})">Select All</button>
-        <button class="btn btn-ghost btn-sm" onclick="generatePDFDownload()" style="flex:1;">🖨 Print / Preview</button>
-        <button class="btn btn-primary" style="flex:2;" onclick="generatePDFDownload()">⬇ Download PDF</button>
+        <button class="btn btn-ghost btn-sm" data-click="selectAllExports()">Select All</button>
+        <button class="btn btn-ghost btn-sm" data-click="generatePDFDownload()" style="flex:1;">🖨 Print / Preview</button>
+        <button class="btn btn-primary" style="flex:2;" data-click="generatePDFDownload()">⬇ Download PDF</button>
       </div>
       <div style="font-size:11.5px;color:var(--text-dim);margin-top:10px;text-align:center;">PDF download uses your browser's print-to-PDF feature — works offline, no upload required</div>
     </div>
@@ -3002,7 +3014,7 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
   <div id="rt-appointments" class="rtab">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
       <div class="rt-title" style="margin:0;padding:0;border:none;">Patient Appointments</div>
-      <button class="btn btn-primary btn-sm" onclick="openAddApptForm('${p.mrn}')">+ Schedule Appointment</button>
+      <button class="btn btn-primary btn-sm" data-click="openAddApptForm('${p.mrn}')">+ Schedule Appointment</button>
     </div>
     <div id="r-add-appt-form" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px;">
       <div class="g3">
@@ -3013,15 +3025,15 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
       <div class="fg" style="margin:0 0 8px;"><label>Notes</label><input id="r-appt-notes" placeholder="Any notes for this appointment…"></div>
       <div class="fg" style="margin:0 0 8px;"><label>Patient Email <span style="font-weight:400;color:var(--text-dim);">(optional — for email reminder)</span></label><input id="r-appt-email" type="email" placeholder="patient@email.com"></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
-        <button class="btn btn-ghost btn-sm" onclick="cancelApptForm()">Cancel</button>
-        <button class="btn btn-primary btn-sm" onclick="saveAppt('${p.mrn}')">Save Appointment</button>
-        <button class="btn btn-ghost btn-sm" onclick="saveApptAndEmail('${p.mrn}')" title="Save and send email reminder via EmailJS">✉ Save + Email Reminder</button>
+        <button class="btn btn-ghost btn-sm" data-click="cancelApptForm()">Cancel</button>
+        <button class="btn btn-primary btn-sm" data-click="saveAppt('${p.mrn}')">Save Appointment</button>
+        <button class="btn btn-ghost btn-sm" data-click="saveApptAndEmail('${p.mrn}')" title="Save and send email reminder via EmailJS">✉ Save + Email Reminder</button>
       </div>
     </div>
     <div id="r-appt-pending" style="margin-bottom:16px;"></div>
     <div id="r-appt-list"></div>
     <div style="margin-top:12px;">
-      <button class="btn btn-ghost btn-sm" onclick="exportApptICS(selectedMRN)" style="font-size:12px;">📅 Export All Appointments (.ics / iCalendar)</button>
+      <button class="btn btn-ghost btn-sm" data-click="exportApptICS(selectedMRN)" style="font-size:12px;">📅 Export All Appointments (.ics / iCalendar)</button>
     </div>
   </div>
 
@@ -3029,7 +3041,7 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
   <div id="rt-mdt" class="rtab">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div class="rt-title" style="margin:0;padding:0;border:none;">Tumor Board / MDT Meeting Notes</div>
-      <button class="btn btn-primary btn-sm" onclick="document.getElementById('r-mdt-form').style.display='block';document.getElementById('mdt-date').value=new Date().toISOString().slice(0,10)">+ Add Meeting</button>
+      <button class="btn btn-primary btn-sm" data-click="showMDTForm()">+ Add Meeting</button>
     </div>
     <div id="r-mdt-form" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px;">
       <div class="g2">
@@ -3043,8 +3055,8 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
       <div class="fg" style="margin-bottom:10px;"><label>MDT Recommendation</label><textarea id="mdt-recommendation" rows="3" style="width:100%;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:inherit;font-size:13px;outline:none;resize:vertical;" placeholder="Continue Stupp protocol. Repeat MRI at 3 months. Consider bevacizumab if progression."></textarea></div>
       <div class="fg" style="margin-bottom:10px;"><label>Action Items</label><textarea id="mdt-actions" rows="2" style="width:100%;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:inherit;font-size:12px;outline:none;resize:vertical;" placeholder="1. Order repeat MRI with contrast &#10;2. Refer to palliative care &#10;3. Consent for trial"></textarea></div>
       <div style="display:flex;gap:8px;">
-        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('r-mdt-form').style.display='none'">Cancel</button>
-        <button class="btn btn-primary" onclick="saveMDTNote('${p.mrn}')">Save Meeting Note</button>
+        <button class="btn btn-ghost btn-sm" data-click="hideMDTForm()">Cancel</button>
+        <button class="btn btn-primary" data-click="saveMDTNote('${p.mrn}')">Save Meeting Note</button>
       </div>
     </div>
     <div id="r-mdt-list"></div>
@@ -3054,7 +3066,7 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
   <div id="rt-imaging" class="rtab">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div class="rt-title" style="margin:0;padding:0;border:none;">Imaging Reports (MRI / CT / PET)</div>
-      <button class="btn btn-primary btn-sm" onclick="document.getElementById('r-imaging-form').style.display='block';document.getElementById('img-date').value=new Date().toISOString().slice(0,10)">+ Add Report</button>
+      <button class="btn btn-primary btn-sm" data-click="showImagingForm()">+ Add Report</button>
     </div>
     <div id="r-imaging-form" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px;">
       <div class="g3">
@@ -3084,8 +3096,8 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
       </div>
       <div id="img-photo-note" style="font-size:11px;color:var(--text-dim);margin-bottom:10px;">Up to 3 photos, compressed in your browser before saving — a phone photo of the film works fine. No DICOM needed.</div>
       <div style="display:flex;gap:8px;">
-        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('r-imaging-form').style.display='none'">Cancel</button>
-        <button class="btn btn-primary" onclick="saveImagingReport('${p.mrn}')">Save Report</button>
+        <button class="btn btn-ghost btn-sm" data-click="hideImagingForm()">Cancel</button>
+        <button class="btn btn-primary" data-click="saveImagingReport('${p.mrn}')">Save Report</button>
       </div>
     </div>
     <div id="r-imaging-list"></div>
@@ -3100,7 +3112,7 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);" id="r-trend-label">7-day symptom trends</div>
         <div style="display:flex;gap:4px;">
-          ${[7,14,30,90].map(d=>`<button onclick="renderLogsTrend(selectedMRN,${d})" id="r-trend-btn-${d}" style="padding:3px 9px;font-size:11px;font-family:inherit;font-weight:600;border-radius:6px;cursor:pointer;border:1px solid var(--border2);background:${d===7?'var(--blue)':'var(--surface2)'};color:${d===7?'#fff':'var(--text-muted)'};">${d}d</button>`).join('')}
+          ${[7,14,30,90].map(d=>`<button data-click="renderLogsTrend(selectedMRN,${d})" id="r-trend-btn-${d}" style="padding:3px 9px;font-size:11px;font-family:inherit;font-weight:600;border-radius:6px;cursor:pointer;border:1px solid var(--border2);background:${d===7?'var(--blue)':'var(--surface2)'};color:${d===7?'#fff':'var(--text-muted)'};">${d}d</button>`).join('')}
         </div>
       </div>
       <div id="r-logs-trend-bars" style="display:flex;gap:4px;align-items:flex-end;height:64px;overflow-x:auto;"></div>
@@ -3129,7 +3141,7 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
               <span class="cred-val" id="cred-pass-display">${String(p.pass||'').startsWith('pbkdf2')?'••••••••  (hidden — stored encrypted)':esc(p.pass||'—')}</span>
               ${String(p.pass||'').startsWith('pbkdf2')
                 ?`<span style="font-size:11px;color:var(--text-dim);">Passwords can't be shown after creation. Use Reset below to issue a new one.</span>`
-                :`<button class="btn btn-ghost btn-sm" onclick="copyCreds('${p.mrn}','${esc(p.pass||'')}')" style="font-size:11px;">📋 Copy</button>`}
+                :`<button class="btn btn-ghost btn-sm" data-click="copyCreds('${p.mrn}','${esc(p.pass||'')}')" style="font-size:11px;">📋 Copy</button>`}
             </div>
           </div>
           <div style="font-size:11px;color:var(--text-muted);margin-top:10px;">Share with patient for OncoConnect Patient App login.</div>
@@ -3138,9 +3150,9 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
         <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;">
           <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:10px;">Share credentials</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn btn-ghost btn-sm" onclick="shareCredsWhatsApp('${p.mrn}','${p.pass}','${esc(p.name)}')">📱 WhatsApp</button>
-            <button class="btn btn-ghost btn-sm" onclick="shareCredsEmail('${p.mrn}','${p.pass}','${esc(p.name)}','${esc(p.email||'')}')">✉ Email</button>
-            <button class="btn btn-ghost btn-sm" onclick="printCredsCard('${p.mrn}','${p.pass}','${esc(p.name)}')">🖨 Print Card</button>
+            <button class="btn btn-ghost btn-sm" data-click="shareCredsWhatsApp('${p.mrn}','${p.pass}','${esc(p.name)}')">📱 WhatsApp</button>
+            <button class="btn btn-ghost btn-sm" data-click="shareCredsEmail('${p.mrn}','${p.pass}','${esc(p.name)}','${esc(p.email||'')}')">✉ Email</button>
+            <button class="btn btn-ghost btn-sm" data-click="printCredsCard('${p.mrn}','${p.pass}','${esc(p.name)}')">🖨 Print Card</button>
           </div>
         </div>
 
@@ -3163,8 +3175,8 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
             I confirm the patient has consented to this password change.
           </label>
           <div style="display:flex;gap:8px;">
-            <button class="btn btn-primary btn-sm" onclick="resetPatientPassword('${p.mrn}')">Reset Password</button>
-            <button class="btn btn-ghost btn-sm" onclick="generateNewPassword('${p.mrn}')">Auto-Generate & Reset</button>
+            <button class="btn btn-primary btn-sm" data-click="resetPatientPassword('${p.mrn}')">Reset Password</button>
+            <button class="btn btn-ghost btn-sm" data-click="generateNewPassword('${p.mrn}')">Auto-Generate & Reset</button>
           </div>
           <div id="cred-reset-msg" style="font-size:12px;margin-top:8px;display:none;"></div>
         </div>
@@ -3179,7 +3191,7 @@ Glucose (Fasting): 96 mg/dL  (Ref: 70–100) Normal"
         <div style="background:rgba(220,38,38,0.05);border:1.5px solid rgba(220,38,38,0.15);border-radius:10px;padding:14px;">
           <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--red);margin-bottom:10px;">⚠ Danger Zone</div>
           <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:10px;">Permanently delete this patient's entire record. This cannot be undone.</div>
-          <button class="btn btn-danger" onclick="deletePatient()" style="width:100%;">🗑 Remove Patient Record</button>
+          <button class="btn btn-danger" data-click="deletePatient()" style="width:100%;">🗑 Remove Patient Record</button>
         </div>
       </div>
     </div>
@@ -3732,11 +3744,11 @@ function generatePDFDownload(){
     <div>${/^dr[.\s]/i.test(clinician)?clinician:'Dr. '+clinician} · ${new Date().toLocaleDateString()}</div>
   </div>
   <div class="no-print" style="margin-top:24px;text-align:center;">
-    <button onclick="window.print()" style="padding:12px 28px;background:#1276B8;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-right:8px;">⬇ Save as PDF</button>
-    <button onclick="window.close()" style="padding:12px 20px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;cursor:pointer;">Close</button>
+    <button data-click="printPage()" style="padding:12px 28px;background:#1276B8;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-right:8px;">⬇ Save as PDF</button>
+    <button data-click="closeWindow()" style="padding:12px 20px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;cursor:pointer;">Close</button>
   </div>
 </div>
-<scr\ipt>window.onload=function(){window.print();}</scr\ipt>
+<scr\ipt>window.onload=function(){printPage();}</scr\ipt>
 </body></html>`.replace(/scr\\ipt/g,'script');
 
   const win=window.open('','_blank','width=920,height=760');
@@ -3780,7 +3792,7 @@ function shareCredsEmail(mrn,pass,name,email){
 }
 function printCredsCard(mrn,pass,name){
   const w=window.open('','_blank','width=400,height=480');
-  w.document.write(`<!DOCTYPE html><html><head><title>Patient Card</title><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;padding:24px;}.card{border:2px solid #1276B8;border-radius:12px;padding:20px;max-width:340px;text-align:center;}.logo{font-size:28px;margin-bottom:4px;}.title{font-size:15px;font-weight:700;color:#1276B8;margin-bottom:12px;}.name{font-size:18px;font-weight:700;margin-bottom:14px;}.box{background:#f0f5ff;border-radius:8px;padding:10px 14px;text-align:left;margin-bottom:10px;}.label{font-size:10px;text-transform:uppercase;color:#475569;margin-bottom:3px;}.val{font-size:16px;font-weight:700;font-family:monospace;color:#1276B8;}.note{font-size:11px;color:#64748b;margin-top:12px;}.no-print{margin-top:16px;}@media print{.no-print{display:none;}}</style></head><body><div class="card"><div class="logo">🏥</div><div class="title">OncoConnect Patient App</div><div class="name">${name}</div><div class="box"><div class="label">Username (MRN)</div><div class="val">${mrn}</div></div><div class="box"><div class="label">Password</div><div class="val">${pass}</div></div><div class="note">Log in at OncoConnect Patient App</div><div class="no-print" style="margin-top:16px;"><button onclick="window.print()" style="padding:10px 20px;background:#1276B8;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;width:100%;">🖨 Print Card</button></div></div></body></html>`);
+  w.document.write(`<!DOCTYPE html><html><head><title>Patient Card</title><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;padding:24px;}.card{border:2px solid #1276B8;border-radius:12px;padding:20px;max-width:340px;text-align:center;}.logo{font-size:28px;margin-bottom:4px;}.title{font-size:15px;font-weight:700;color:#1276B8;margin-bottom:12px;}.name{font-size:18px;font-weight:700;margin-bottom:14px;}.box{background:#f0f5ff;border-radius:8px;padding:10px 14px;text-align:left;margin-bottom:10px;}.label{font-size:10px;text-transform:uppercase;color:#475569;margin-bottom:3px;}.val{font-size:16px;font-weight:700;font-family:monospace;color:#1276B8;}.note{font-size:11px;color:#64748b;margin-top:12px;}.no-print{margin-top:16px;}@media print{.no-print{display:none;}}</style></head><body><div class="card"><div class="logo">🏥</div><div class="title">OncoConnect Patient App</div><div class="name">${name}</div><div class="box"><div class="label">Username (MRN)</div><div class="val">${mrn}</div></div><div class="box"><div class="label">Password</div><div class="val">${pass}</div></div><div class="note">Log in at OncoConnect Patient App</div><div class="no-print" style="margin-top:16px;"><button data-click="printPage()" style="padding:10px 20px;background:#1276B8;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;width:100%;">🖨 Print Card</button></div></div></body></html>`);
   w.document.close();
 }
 async function resetPatientPassword(mrn){
@@ -3959,7 +3971,7 @@ function rCalcGCS(){
 function saveMDTNote(mrn){
   const note={date:document.getElementById('mdt-date')?.value||'',type:document.getElementById('mdt-type')?.value||'',venue:document.getElementById('mdt-venue')?.value||'',chair:document.getElementById('mdt-chair')?.value||'',attendees:document.getElementById('mdt-attendees')?.value||'',presentation:document.getElementById('mdt-presentation')?.value||'',recommendation:document.getElementById('mdt-recommendation')?.value||'',actions:document.getElementById('mdt-actions')?.value||'',addedAt:Date.now(),addedBy:currentDoc?.name||''};
   const p=LS.get('pat_'+mrn)||{};if(!p.mdtNotes)p.mdtNotes=[];p.mdtNotes.unshift(note);LS.set('pat_'+mrn,p);
-  document.getElementById('r-mdt-form').style.display='none';
+  hideMDTForm();
   ['mdt-attendees','mdt-recommendation','mdt-actions','mdt-presentation','mdt-venue','mdt-chair'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   renderMDTNotes(mrn);flash('MDT note saved');
 }
@@ -3971,7 +3983,7 @@ function renderMDTNotes(mrn){
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><div style="display:flex;align-items:center;gap:10px;">
       <div style="background:rgba(44,94,173,0.1);color:var(--blue);font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;">${esc(n.type)}</div>
       <strong>${esc(n.date)}</strong>${n.venue?`<span style="font-size:11.5px;color:var(--text-muted);">${esc(n.venue)}</span>`:''}
-    </div><button onclick="deleteMDTNote('${mrn}',${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:11px;">✕</button></div>
+    </div><button data-click="deleteMDTNote('${mrn}',${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:11px;">✕</button></div>
     ${n.chair?`<div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Chair: ${esc(n.chair)}</div>`:''}
     ${n.attendees?`<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Attendees: ${esc(n.attendees)}</div>`:''}
     ${n.recommendation?`<div style="margin-bottom:6px;"><span style="font-size:10.5px;font-weight:700;text-transform:uppercase;color:var(--text-muted);">Recommendation</span><div style="font-size:13px;margin-top:2px;">${esc(n.recommendation)}</div></div>`:''}
@@ -4011,7 +4023,7 @@ async function saveImagingReport(mrn){
     catch(e){ console.warn('photo compression failed',e); flash('One photo could not be read — saved without it.'); }
   }
   const p=LS.get('pat_'+mrn)||{};if(!p.imaging)p.imaging=[];p.imaging.unshift(report);LS.set('pat_'+mrn,p);
-  document.getElementById('r-imaging-form').style.display='none';
+  hideImagingForm();
   ['img-facility','img-t1','img-t2','img-dwi','img-mass','img-impression','img-dim1','img-dim2','img-next','img-photos'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   renderImagingReports(mrn);flash('Imaging report saved');
 }
@@ -4066,7 +4078,7 @@ function renderImagingReports(mrn){
           ${r.dim1&&r.dim2?`<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(0,200,180,0.12);color:var(--cyan);">📐 ${r.dim1} × ${r.dim2} cm</span>`:''}
           ${r.nextDue?`<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;${r.nextDue<todayStr2?'background:rgba(255,92,92,0.14);color:var(--red);':'background:rgba(240,160,75,0.13);color:var(--orange);'}">📅 next scan ${esc(r.nextDue)}${r.nextDue<todayStr2?' — OVERDUE':''}</span>`:''}
         </div>
-        <button onclick="deleteImagingReport('${mrn}',${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:11px;">✕</button>
+        <button data-click="deleteImagingReport('${mrn}',${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:11px;">✕</button>
       </div>
       <div style="padding:12px 14px;">
         ${r.impression?`<div style="font-weight:700;font-size:13.5px;margin-bottom:10px;">${esc(r.impression)}</div>`:''}
@@ -4075,7 +4087,7 @@ function renderImagingReports(mrn){
         ${r.dwi?`<div class="irow"><span class="ikey">DWI/ADC</span><span class="ival">${esc(r.dwi)}</span></div>`:''}
         ${r.mass?`<div class="irow"><span class="ikey">Mass Effect</span><span class="ival">${esc(r.mass)}</span></div>`:''}
         ${(r.photos||[]).length?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
-          ${r.photos.map((ph,pi)=>`<img src="${ph}" onclick="viewImagingPhoto(this.src)" title="Click to enlarge"
+          ${r.photos.map((ph,pi)=>`<img src="${ph}" data-click="viewImagingPhotoFrom(this)" title="Click to enlarge"
             style="width:110px;height:82px;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:zoom-in;">`).join('')}
         </div>`:''}
       </div></div>`;}).join('');
@@ -4149,7 +4161,7 @@ function renderAllergyTags() {
     return `<span style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 12px;background:${bg};border:1px solid ${col};border-radius:20px;font-size:12px;font-weight:600;color:${col};white-space:nowrap;">
       ${name}
       <span style="font-size:9.5px;font-weight:700;padding:1px 5px;background:${col}22;border-radius:8px;">${sev}</span>
-      <button onclick="rAllergies.splice(${i},1);renderAllergyTags()" style="background:none;border:none;color:${col};cursor:pointer;font-size:14px;padding:0 0 0 2px;line-height:1;opacity:0.7;" title="Remove">✕</button>
+      <button data-click="removeAllergy(${i})" style="background:none;border:none;color:${col};cursor:pointer;font-size:14px;padding:0 0 0 2px;line-height:1;opacity:0.7;" title="Remove">✕</button>
     </span>`;
   }).join('');
   // Update count badge
@@ -4319,8 +4331,8 @@ function showExtractedResults(text, fileName) {
   previewDiv.innerHTML = '<div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">✅ ' + rows.length + ' results extracted from "' + fileName + '" — review and import:</div>'
     + previewHtml
     + '<div style="display:flex;gap:6px;margin-bottom:8px;">'
-    + '<button class="btn btn-primary btn-sm" onclick="importExtractedLabResults(' + JSON.stringify(rows).replace(/"/g,'&quot;') + ')">✅ Import ' + rows.length + ' Results to Table</button>'
-    + '<button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'r-upload-extract-preview\').innerHTML=\'\'">Dismiss</button>'
+    + '<button class="btn btn-primary btn-sm" data-click="importExtractedLabResults(' + JSON.stringify(rows).replace(/"/g,'&quot;') + ')">✅ Import ' + rows.length + ' Results to Table</button>'
+    + '<button class="btn btn-ghost btn-sm" data-click="clearHTML(\'r-upload-extract-preview\')">Dismiss</button>'
     + '</div>';
 
   if (msg) msg.style.display = 'none';
@@ -4385,7 +4397,7 @@ function renderUploadFileList() {
         <div style="font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.name}</div>
         <div style="font-size:10.5px;color:var(--text-muted);">${sizeStr} · ${f.type || 'file'}</div>
       </div>
-      <button class="btn btn-danger btn-sm" onclick="removeUploadFile(${i})" title="Remove">✕</button>
+      <button class="btn btn-danger btn-sm" data-click="removeUploadFile(${i})" title="Remove">✕</button>
     </div>`;
   }).join('');
 }
@@ -4458,14 +4470,14 @@ function renderLabFilesList() {
           <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.name}</div>
           <div style="font-size:10px;color:var(--text-muted);">${sizeStr}</div>
         </div>
-        <button class="btn btn-ghost btn-sm" style="font-size:11px;" onclick="viewLabFileDr('${i}',${fi})" title="View">👁 View</button>
-        <button class="btn btn-ghost btn-sm" style="font-size:11px;" onclick="downloadLabFileDr('${i}',${fi})" title="Download">⬇</button>
+        <button class="btn btn-ghost btn-sm" style="font-size:11px;" data-click="viewLabFileDr('${i}',${fi})" title="View">👁 View</button>
+        <button class="btn btn-ghost btn-sm" style="font-size:11px;" data-click="downloadLabFileDr('${i}',${fi})" title="Download">⬇</button>
       </div>`;
     }).join('');
     return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;box-shadow:var(--shadow);">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
         <div><span style="font-weight:700;font-size:12.5px;">${entry.date||'—'}</span>${entry.lab ? ' · <span style="color:var(--text-muted);font-size:11.5px;">'+entry.lab+'</span>' : ''}</div>
-        <button class="btn btn-danger btn-sm" style="font-size:11px;" onclick="deleteLabFilesEntry(${i})">🗑 Remove</button>
+        <button class="btn btn-danger btn-sm" style="font-size:11px;" data-click="deleteLabFilesEntry(${i})">🗑 Remove</button>
       </div>
       ${entry.notes ? '<div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">'+entry.notes+'</div>' : ''}
       <div style="font-size:11px;color:var(--text-dim);margin-bottom:2px;">${(entry.files||[]).length} file${(entry.files||[]).length!==1?'s':''}</div>
@@ -4654,9 +4666,9 @@ function filterLabTests(query) {
     html += `<div style="padding:5px 10px 3px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-dim);background:var(--surface2);border-bottom:1px solid var(--border);">${group}</div>`;
     names.forEach(name => {
       html += `<div style="padding:8px 12px;font-size:13px;cursor:pointer;color:var(--text);transition:background 0.1s;"
-        onmousedown="selectLabTest('${name.replace(/'/g,"\\'")}')"
-        onmouseenter="this.style.background='var(--blue-pale)';this.style.color='var(--blue)'"
-        onmouseleave="this.style.background='';this.style.color='var(--text)'"
+        data-mousedown="selectLabTest('${name.replace(/'/g,"\\'")}')"
+        class="hover-tint"
+        
       >${hl(name)}</div>`;
     });
   });
@@ -4926,8 +4938,8 @@ function renderLabsTable() {
       <td><span style="font-size:10.5px;padding:2px 8px;border-radius:8px;font-weight:600;background:${sc[l.status]||'#6b7f99'}22;color:${sc[l.status]||'#6b7f99'};">${l.status}</span></td>
       <td style="color:var(--text-muted);font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.notes||l.specimen||'—'}</td>
       <td style="display:flex;gap:4px;">
-        <button class="btn btn-ghost btn-sm" onclick="switchLabTab('result');showLabForm(${i})">✏</button>
-        <button class="btn btn-danger btn-sm" onclick="delLab(${i})">🗑</button>
+        <button class="btn btn-ghost btn-sm" data-click="switchLabTab('result');showLabForm(${i})">✏</button>
+        <button class="btn btn-danger btn-sm" data-click="delLab(${i})">🗑</button>
       </td>
     </tr>`).join('');
   renderPaginationControls('r-labs-list-controls',state,pag2.totalPages);
@@ -5017,25 +5029,25 @@ function parseReport() {
         ${parsedReportRows.map((r, i) => `
           <tr style="border-bottom:1px solid var(--border);" id="preview-row-${i}">
             <td style="padding:7px 10px;font-weight:500;">
-              <input value="${esc(r.test)}" onchange="parsedReportRows[${i}].test=this.value"
+              <input value="${esc(r.test)}" data-change="setParsedReportField(${i},'test')"
                 style="background:transparent;border:none;color:var(--text);font-family:inherit;font-size:12px;font-weight:500;width:100%;outline:none;border-bottom:1px solid var(--border);">
             </td>
             <td style="padding:7px 10px;">
-              <input value="${esc(r.value)}" onchange="parsedReportRows[${i}].value=this.value"
+              <input value="${esc(r.value)}" data-change="setParsedReportField(${i},'value')"
                 style="background:transparent;border:none;color:var(--text);font-family:var(--mono);font-size:12px;width:80px;outline:none;border-bottom:1px solid var(--border);">
             </td>
             <td style="padding:7px 10px;">
-              <input value="${r.ref}" onchange="parsedReportRows[${i}].ref=this.value"
+              <input value="${r.ref}" data-change="setParsedReportField(${i},'ref')"
                 style="background:transparent;border:none;color:var(--text-muted);font-size:11px;width:100%;outline:none;border-bottom:1px solid var(--border);">
             </td>
             <td style="padding:7px 10px;">
-              <select onchange="parsedReportRows[${i}].status=this.value"
+              <select data-change="setParsedReportField(${i},'status')"
                 style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:${sc[r.status]||'#6b7f99'};font-family:inherit;font-size:11px;padding:2px 6px;outline:none;">
                 ${['Normal','High','Low','Critical','Pending'].map(s => `<option${s===r.status?' selected':''}>${s}</option>`).join('')}
               </select>
             </td>
             <td style="padding:7px 4px;">
-              <button onclick="parsedReportRows.splice(${i},1);parseReport.previewOnly=true;document.getElementById('r-report-preview-rows').querySelectorAll('tr')[${i}+1]?.remove();document.getElementById('r-report-count').textContent='${parsedReportRows.length-1} results';" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px;">✕</button>
+              <button data-click="removeParsedReportRow(${i})" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px;">✕</button>
             </td>
           </tr>`).join('')}
       </tbody>
@@ -5261,8 +5273,8 @@ function openProtocolModal(){
           <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">${p.meds.map(m=>esc(m.name)+' '+esc(m.dose)).join(' · ')}</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0;">
-          <button class="btn btn-primary btn-sm" onclick="applyProtocol('${p.id}',${custom})">Apply</button>
-          ${custom?`<button class="btn btn-danger btn-sm" onclick="deleteCustomProtocol('${p.id}')">Delete</button>`:''}
+          <button class="btn btn-primary btn-sm" data-click="applyProtocol('${p.id}',${custom})">Apply</button>
+          ${custom?`<button class="btn btn-danger btn-sm" data-click="deleteCustomProtocol('${p.id}')">Delete</button>`:''}
         </div>
       </div>
     </div>`;
@@ -5272,13 +5284,13 @@ function openProtocolModal(){
     <div class="modal" style="max-width:640px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
         <div class="modal-title">📚 Protocol Library</div>
-        <button onclick="document.getElementById('protocol-modal').remove()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:20px;">✕</button>
+        <button data-click="removeEl('protocol-modal')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:20px;">✕</button>
       </div>
       <div class="modal-sub">Applying adds the regimen's medications (each checked by the safety guardrails), sets the start date, and generates the visit/lab schedule as appointments. Verify against your institutional protocol.</div>
       <div class="fg" style="max-width:220px;"><label>Start date</label><input type="date" id="proto-start" value="${new Date().toISOString().slice(0,10)}"></div>
       ${PROTOCOL_LIBRARY.map(p=>row(p,false)).join('')}
       ${customs.length?'<div class="sec-head">Your clinic variants</div>'+customs.map(p=>row(p,true)).join(''):''}
-      <button class="btn btn-ghost btn-full" onclick="saveCurrentAsProtocol()" style="margin-top:6px;">💾 Save current medication list as a clinic variant</button>
+      <button class="btn btn-ghost btn-full" data-click="saveCurrentAsProtocol()" style="margin-top:6px;">💾 Save current medication list as a clinic variant</button>
     </div>`;
   document.body.appendChild(modal);
   modal.addEventListener('click',e=>{if(e.target===modal)modal.remove();});
@@ -5351,8 +5363,8 @@ function updateDoseHint(){
   el.innerHTML='<span style="color:'+(over?'var(--red)':'var(--text-muted)')+';">'
     +(over?'⚠ Above the usual maximum. ':'ℹ ')+esc(entry.note)+(caps.length?' — '+caps.join(', '):'')+'</span>'
     +(d?' <span style="white-space:nowrap;">Quick adjust: '
-      +'<button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:11px;" onclick="adjustDose(20)" title="Standard first dose reduction for grade 3–4 haematologic or grade 3 non-haematologic toxicity — verify against your protocol.">−20%</button> '
-      +'<button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:11px;" onclick="adjustDose(25)" title="Deeper reduction where the protocol specifies 25% steps.">−25%</button></span>':'');
+      +'<button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:11px;" data-click="adjustDose(20)" title="Standard first dose reduction for grade 3–4 haematologic or grade 3 non-haematologic toxicity — verify against your protocol.">−20%</button> '
+      +'<button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:11px;" data-click="adjustDose(25)" title="Deeper reduction where the protocol specifies 25% steps.">−25%</button></span>':'');
   el.style.display='block';
 }
 function adjustDose(pct){
@@ -5383,12 +5395,12 @@ function renderSavedViewsRow(){
     sb.parentElement.insertAdjacentHTML('beforebegin','<div id="saved-views-row" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;"></div>');
     row=document.getElementById('saved-views-row');
   }
-  const chip=(label,active,onclick,title)=>`<button class="btn btn-sm ${active?'btn-primary':'btn-ghost'}" onclick="${onclick}" title="${title||''}">${label}</button>`;
+  const chip=(label,active,action,title)=>`<button class="btn btn-sm ${active?'btn-primary':'btn-ghost'}" data-click="${action}" title="${title||''}">${label}</button>`;
   row.innerHTML=
     chip('All',!_svFilter,'setSavedView(null)')
     +chip('⚠ High-risk',_svFilter==='highrisk','setSavedView(\'highrisk\')','CTCAE ≥3 in the last 7 days or an unread urgent alert')
     +savedViews().map((sv2,i)=>chip('★ '+esc(sv2.name),_svFilter&&_svFilter.name===sv2.name,`setSavedView(${i})`,'Saved view')).join('')
-    +`<button class="btn btn-ghost btn-sm" onclick="saveCurrentView()" title="Save the current search + phase filter as a one-tap view">＋ Save view</button>`;
+    +`<button class="btn btn-ghost btn-sm" data-click="saveCurrentView()" title="Save the current search + phase filter as a one-tap view">＋ Save view</button>`;
 }
 function setSavedView(x){
   if(x===null)_svFilter=null;
@@ -5430,7 +5442,7 @@ function renderNotifPrefs(){
   const el=document.getElementById('notif-prefs');if(!el)return;
   const p=notifPrefs();
   const cb=(k,label,hint)=>`<label style="display:flex;gap:8px;align-items:center;font-size:12px;margin-bottom:6px;cursor:pointer;" title="${hint||''}">
-    <input type="checkbox" ${p[k]?'checked':''} onchange="setNotifPref('${k}',this.checked)" style="accent-color:var(--blue);">${label}</label>`;
+    <input type="checkbox" ${p[k]?'checked':''} data-change="setNotifPref('${k}',this.checked)" style="accent-color:var(--blue);">${label}</label>`;
   el.innerHTML=
     '<div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:8px;">Alert subscriptions</div>'
     +cb('ctcae3','CTCAE grade ≥3 in a new diary entry')
@@ -5440,10 +5452,10 @@ function renderNotifPrefs(){
     +cb('digest','Digest mode — one line per patient','Collapse multiple alerts from the same patient into one row')
     +'<div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin:10px 0 6px;">Snooze non-urgent</div>'
     +'<div style="display:flex;gap:6px;">'
-    +'<button class="btn btn-ghost btn-sm" onclick="snoozeNotifs(1)">1 h</button>'
-    +'<button class="btn btn-ghost btn-sm" onclick="snoozeNotifs(4)">4 h</button>'
-    +'<button class="btn btn-ghost btn-sm" onclick="snoozeNotifs(24)">Until tomorrow</button>'
-    +(p.snoozeUntil>Date.now()?'<button class="btn btn-primary btn-sm" onclick="snoozeNotifs(0)">End snooze</button>':'')
+    +'<button class="btn btn-ghost btn-sm" data-click="snoozeNotifs(1)">1 h</button>'
+    +'<button class="btn btn-ghost btn-sm" data-click="snoozeNotifs(4)">4 h</button>'
+    +'<button class="btn btn-ghost btn-sm" data-click="snoozeNotifs(24)">Until tomorrow</button>'
+    +(p.snoozeUntil>Date.now()?'<button class="btn btn-primary btn-sm" data-click="snoozeNotifs(0)">End snooze</button>':'')
     +'</div>';
 }
 // Rule engine: synthesises alerts from diary data. Idempotent per day/log.
@@ -5545,7 +5557,7 @@ function renderRecordLogs(mrn){
   if(!logs.length){c.innerHTML='<div style="text-align:center;padding:24px;color:var(--text-dim);">No health logs yet.</div>';return;}
   const sc={Normal:'#00d4b4',High:'#ff5c5c',Low:'#f0a04b'};
   c.innerHTML=logs.map(log=>`
-    <div class="log-entry" onclick='showLogDetail(${JSON.stringify(log).replace(/'/g,"&#39;")})'>
+    <div class="log-entry" data-click='showLogDetail(${JSON.stringify(log).replace(/'/g,"&#39;")})'>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div style="font-weight:500;font-size:12.5px;">📅 ${log.date}</div>
         <div style="display:flex;gap:4px;flex-wrap:wrap;">
@@ -5639,13 +5651,13 @@ function renderPaginationControls(elementId, state, totalPages) {
   const controls = document.getElementById(elementId);
   if (!controls || totalPages <= 1) { if (controls) controls.style.display = 'none'; return; }
   controls.style.display = 'flex';
-  let html = `<button class="btn btn-ghost btn-sm" ${state.page === 0 ? 'disabled' : ''} onclick="prevPage('${elementId.replace('-controls','')}')">← Previous</button>`;
+  let html = `<button class="btn btn-ghost btn-sm" ${state.page === 0 ? 'disabled' : ''} data-click="prevPage('${elementId.replace('-controls','')}')">← Previous</button>`;
   const maxPages = Math.min(5, totalPages);
   const start = Math.max(0, state.page - 2);
   for (let i = start; i < start + maxPages && i < totalPages; i++) {
-    html += `<button class="btn ${i === state.page ? 'btn-primary' : 'btn-ghost'} btn-sm" onclick="goToPage('${elementId.replace('-controls','')}', ${i})">${i + 1}</button>`;
+    html += `<button class="btn ${i === state.page ? 'btn-primary' : 'btn-ghost'} btn-sm" data-click="goToPage('${elementId.replace('-controls','')}', ${i})">${i + 1}</button>`;
   }
-  html += `<button class="btn btn-ghost btn-sm" ${state.page >= totalPages - 1 ? 'disabled' : ''} onclick="nextPage('${elementId.replace('-controls','')}')">Next →</button>`;
+  html += `<button class="btn btn-ghost btn-sm" ${state.page >= totalPages - 1 ? 'disabled' : ''} data-click="nextPage('${elementId.replace('-controls','')}')">Next →</button>`;
   controls.innerHTML = html;
 }
 
@@ -5737,7 +5749,7 @@ function renderICDResults(q = '') {
   container.innerHTML = Object.values(groups).map(g => `
     <div class="icd-group-header">${g.label}</div>
     ${g.items.map(item => `
-      <div class="icd-row${icdSelectedCode === item.code ? ' selected' : ''}" onclick="selectICDCode('${item.code}','${item.label.replace(/'/g,"\\'")}','${(item.site||'').replace(/'/g,"\\'")}')">
+      <div class="icd-row${icdSelectedCode === item.code ? ' selected' : ''}" data-click="selectICDCode('${item.code}','${item.label.replace(/'/g,"\\'")}','${(item.site||'').replace(/'/g,"\\'")}')">
         <div class="icd-code">${item.code}</div>
         <div style="flex:1;">
           <div class="icd-label">${highlightQuery(item.label, q)}</div>
@@ -5855,8 +5867,8 @@ function renderRecordAppts(mrn){
           <div style="display:flex;justify-content:space-between;align-items:center;">
             <div><div style="font-weight:600;font-size:13px;">📅 ${a.date} ${a.time||''}</div><div style="font-size:11.5px;color:var(--text-muted);">${a.type||'Visit Request'}${a.notes?' · '+a.notes:''}</div></div>
             <div style="display:flex;gap:6px;">
-              <button class="btn btn-cyan btn-sm" onclick="confirmAppt('${mrn}','${a.id}')">Confirm</button>
-              <button class="btn btn-danger btn-sm" onclick="cancelAppt('${mrn}','${a.id}')">Decline</button>
+              <button class="btn btn-cyan btn-sm" data-click="confirmAppt('${mrn}','${a.id}')">Confirm</button>
+              <button class="btn btn-danger btn-sm" data-click="cancelAppt('${mrn}','${a.id}')">Decline</button>
             </div>
           </div>
         </div>`).join('');
@@ -5902,7 +5914,7 @@ function renderDocCal(){
       ${Array.from({length:dim},(_,i)=>{
         const d=i+1,ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
         const hasLog=logDates.has(ds);const isToday=ds===today();
-        return `<div class="cal-day${hasLog?' has-log':''}${isToday?' today':''}" onclick="${hasLog?`viewDocLog('${mrn}','${ds}')`:''}" title="${ds}">
+        return `<div class="cal-day${hasLog?' has-log':''}${isToday?' today':''}" data-click="${hasLog?`viewDocLog('${mrn}','${ds}')`:''}" title="${ds}">
           ${d}${hasLog?'<span class="cal-dot"></span>':''}
         </div>`;
       }).join('')}
@@ -5935,7 +5947,7 @@ function showLogDetail(log){
 function renderConvos(){
   const pats=getMyPatients();
   const c=document.getElementById('chat-convos');
-  c.innerHTML=pats.length?pats.map(p=>`<div class="chat-conv${selectedChatMRN===p.mrn?' active':''}" onclick="openChat('${p.mrn}')"><div style="font-weight:500;font-size:12px;">${esc(p.name)}</div><div style="font-size:10.5px;color:var(--text-muted);">${esc(p.mrn)}</div></div>`).join(''):'<div style="padding:8px;font-size:11px;color:var(--text-dim);">No patients.</div>';
+  c.innerHTML=pats.length?pats.map(p=>`<div class="chat-conv${selectedChatMRN===p.mrn?' active':''}" data-click="openChat('${p.mrn}')"><div style="font-weight:500;font-size:12px;">${esc(p.name)}</div><div style="font-size:10.5px;color:var(--text-muted);">${esc(p.mrn)}</div></div>`).join(''):'<div style="padding:8px;font-size:11px;color:var(--text-dim);">No patients.</div>';
 }
 function openChat(mrn){
   selectedChatMRN=mrn;
@@ -5944,7 +5956,7 @@ function openChat(mrn){
   document.getElementById('chat-inp-row').style.display='flex';
   renderDocMsgs();
   document.querySelectorAll('.chat-conv').forEach(c=>c.classList.remove('active'));
-  document.querySelector(`.chat-conv[onclick*="${mrn}"]`)?.classList.add('active');
+  document.querySelector(`.chat-conv[data-click*="${mrn}"]`)?.classList.add('active');
 }
 function renderDocMsgs(){
   const msgs=LS.get('msgs_'+selectedChatMRN)||[];
@@ -5978,16 +5990,16 @@ document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{
       <div class="hist-title">🕐 Change History</div>
       <div style="font-size:11px;color:var(--text-muted);" id="hist-panel-context">All sections</div>
     </div>
-    <button onclick="closeHistPanel()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;">✕</button>
+    <button data-click="closeHistPanel()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;">✕</button>
   </div>
   <div class="hist-subtabs" id="hist-subtabs">
-    <button class="hst active" onclick="switchHistTab('all',this)">All Changes</button>
-    <button class="hst" onclick="switchHistTab('diagnosis',this)">Diagnosis</button>
-    <button class="hst" onclick="switchHistTab('metrics',this)">Metrics</button>
-    <button class="hst" onclick="switchHistTab('prescriptions',this)">Prescriptions</button>
-    <button class="hst" onclick="switchHistTab('treatment',this)">Treatment</button>
-    <button class="hst" onclick="switchHistTab('labs',this)">Labs</button>
-    <button class="hst" onclick="switchHistTab('molecular',this)">Molecular</button>
+    <button class="hst active" data-click="switchHistTab('all',this)">All Changes</button>
+    <button class="hst" data-click="switchHistTab('diagnosis',this)">Diagnosis</button>
+    <button class="hst" data-click="switchHistTab('metrics',this)">Metrics</button>
+    <button class="hst" data-click="switchHistTab('prescriptions',this)">Prescriptions</button>
+    <button class="hst" data-click="switchHistTab('treatment',this)">Treatment</button>
+    <button class="hst" data-click="switchHistTab('labs',this)">Labs</button>
+    <button class="hst" data-click="switchHistTab('molecular',this)">Molecular</button>
   </div>
   <div class="hist-body" id="hist-body">
     <div style="text-align:center;padding:40px;color:var(--text-dim);">No history yet.</div>
@@ -6101,7 +6113,7 @@ function renderHistEntries() {
     const dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
     const col = sectionColors[entry.section] || '#6b7f99';
     const changeCount = (entry.changes || []).length;
-    return '<div class="hist-entry"><div class="hist-entry-head" onclick="toggleHistEntry(\'he-' + idx + '\')">'
+    return '<div class="hist-entry"><div class="hist-entry-head" data-click="toggleHistEntry(\'he-' + idx + '\')">'
       + '<div><div style="font-weight:600;font-size:12.5px;"><span style="font-size:9.5px;padding:1px 6px;border-radius:3px;font-weight:700;background:' + col + '18;color:' + col + ';margin-right:6px;">' + esc(entry.section.toUpperCase()) + '</span>' + dateStr + '</div>'
       + '<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">By ' + esc(entry.doctor||'Unknown') + ' · ' + changeCount + ' change' + (changeCount!==1?'s':'') + '</div></div>'
       + '<span style="color:var(--text-dim);">▾</span></div>'
@@ -6160,7 +6172,7 @@ function renderMedList() {
         +'<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">'+(m.dose||'—')+' · '+(m.route||'—')+' · '+(m.freq||'—')+(m.indication?' · '+m.indication:'')+' </div>'
         +((m.start||m.end)?'<div class="med-date-badge">📅 '+(m.start||'')+(m.end?' → '+m.end:'')+' </div>':'')
         +'</div>'
-        +'<button class="btn btn-danger btn-sm" onclick="delMed('+m._orig+')">Remove</button>'
+        +'<button class="btn btn-danger btn-sm" data-click="delMed('+m._orig+')">Remove</button>'
         +'</div>';
     }
   });
@@ -6241,7 +6253,7 @@ function renderTxEntries() {
   const sc = { Ongoing:'#f0a04b', Completed:'#00d4b4', Paused:'#a78bfa', Stopped:'#ff5c5c' };
   const sorted = [...rTxEntries].sort((a,b) => new Date(b.date) - new Date(a.date));
   if (!sorted.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-dim);">No entries yet. Add treatment log entries above.</td></tr>'; return; }
-  tbody.innerHTML = sorted.map((e,i) => '<tr><td style="white-space:nowrap;">' + (e.date||'—') + '</td><td style="font-weight:500;">' + e.type + '</td><td>' + (e.drug||'—') + '</td><td><span style="font-size:10.5px;padding:2px 7px;border-radius:8px;font-weight:600;background:' + (sc[e.status]||'#6b7f99') + '22;color:' + (sc[e.status]||'#6b7f99') + ';">' + e.status + '</span></td><td style="color:var(--text-muted);font-size:11px;">' + (e.notes||'—') + '</td><td><button class="btn btn-danger btn-sm" onclick="delTxEntry(' + i + ')">🗑</button></td></tr>').join('');
+  tbody.innerHTML = sorted.map((e,i) => '<tr><td style="white-space:nowrap;">' + (e.date||'—') + '</td><td style="font-weight:500;">' + e.type + '</td><td>' + (e.drug||'—') + '</td><td><span style="font-size:10.5px;padding:2px 7px;border-radius:8px;font-weight:600;background:' + (sc[e.status]||'#6b7f99') + '22;color:' + (sc[e.status]||'#6b7f99') + ';">' + e.status + '</span></td><td style="color:var(--text-muted);font-size:11px;">' + (e.notes||'—') + '</td><td><button class="btn btn-danger btn-sm" data-click="delTxEntry(' + i + ')">🗑</button></td></tr>').join('');
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -6331,7 +6343,7 @@ function refreshStorageInfo() {
           <div><span style="font-family:var(--mono);color:var(--text-muted);">${item.key}</span></div>
           <div style="display:flex;align-items:center;gap:10px;">
             <strong>${formatBytes(item.size)}</strong>
-            ${isMrn ? `<button class="btn btn-ghost btn-sm" style="font-size:11px;" onclick="compressPatientFiles('${item.key.replace('pat_','')}')">🗜 Remove files</button>` : ''}
+            ${isMrn ? `<button class="btn btn-ghost btn-sm" style="font-size:11px;" data-click="compressPatientFiles('${item.key.replace('pat_','')}')">🗜 Remove files</button>` : ''}
           </div>
         </div>`;
       }).join('');
@@ -6596,7 +6608,7 @@ function showLabCredsOnce(lab, password, verb) {
       </div>
       <div style="display:flex;gap:8px;">
         <button class="btn btn-ghost" style="flex:1;" id="lco-copy-btn">📋 Copy credentials</button>
-        <button class="btn btn-primary" style="flex:1;" onclick="document.getElementById('lab-creds-once-modal').remove()">Done</button>
+        <button class="btn btn-primary" style="flex:1;" data-click="removeEl('lab-creds-once-modal')">Done</button>
       </div>
     </div>`;
   document.body.appendChild(modal);
@@ -6649,11 +6661,11 @@ function renderLabsList() {
       + '</div>'
       + '</div>'
       + '<div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0;">'
-      + '<button class="btn btn-cyan btn-sm" onclick="openShareLink(\'' + lab.labId + '\')">🔗 Share Access</button>'
-      + '<button class="btn btn-ghost btn-sm" onclick="resetLabPassword(\'' + lab.labId + '\')">🔁 Reset Password</button>'
-      + '<button class="btn btn-ghost btn-sm" onclick="openLabDetail(\'' + lab.labId + '\')">📋 Activity</button>'
-      + '<button class="btn btn-ghost btn-sm" onclick="openLabWindowForLab(\'' + lab.labId + '\')">🧪 Portal</button>'
-      + '<button class="btn btn-danger btn-sm" onclick="removeLab(\'' + lab.labId + '\')">Remove</button>'
+      + '<button class="btn btn-cyan btn-sm" data-click="openShareLink(\'' + lab.labId + '\')">🔗 Share Access</button>'
+      + '<button class="btn btn-ghost btn-sm" data-click="resetLabPassword(\'' + lab.labId + '\')">🔁 Reset Password</button>'
+      + '<button class="btn btn-ghost btn-sm" data-click="openLabDetail(\'' + lab.labId + '\')">📋 Activity</button>'
+      + '<button class="btn btn-ghost btn-sm" data-click="openLabWindowForLab(\'' + lab.labId + '\')">🧪 Portal</button>'
+      + '<button class="btn btn-danger btn-sm" data-click="removeLab(\'' + lab.labId + '\')">Remove</button>'
       + '</div></div></div>';
   }).join('');
   updateLabBadge();
@@ -6735,7 +6747,7 @@ function openShareLink(labId) {
           <div class="modal-title">🔬 Share Lab Portal Access</div>
           <div style="font-size:11px;color:var(--text-muted);" id="slm-lab-spec"></div>
         </div>
-        <button onclick="closeOverlay('share-link-modal')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:20px;">✕</button>
+        <button data-click="closeOverlay('share-link-modal')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:20px;">✕</button>
       </div>
 
       <!-- QR code -->
@@ -6861,7 +6873,7 @@ function printLabQRCard(lab, portalUrl, sourceCanvas) {
     4. Select patient, upload report / PDF, submit
   </div>
   <div class="doc">${/^dr[.\s]/i.test(currentDoc.name)?currentDoc.name:'Dr. '+currentDoc.name}</div>
-  <button class="no-print" onclick="window.print()" style="padding:10px 20px;background:#000;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;width:100%;margin-top:14px;">🖨 Print</button>
+  <button class="no-print" data-click="printPage()" style="padding:10px 20px;background:#000;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;width:100%;margin-top:14px;">🖨 Print</button>
 </div>
 </body></html>`);
   w.document.close();
@@ -6880,7 +6892,7 @@ function openLabDetail(labId) {
     + '<div><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Pending Submissions (' + pending.length + ')</div>'
     + (pending.length ? pending.map((s,i) => '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:12px;margin-bottom:8px;">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><div><strong>' + (s.patName||'Unknown') + '</strong> <span style="font-family:var(--mono);color:var(--text-muted);font-size:11px;">' + (s.mrn||'') + '</span></div>'
-      + '<div style="display:flex;gap:5px;"><button class="btn btn-cyan btn-sm" onclick="importLabSubFromDetail(\'' + labId + '\',' + i + ')">Import</button><button class="btn btn-ghost btn-sm" onclick="dismissLabSubFromDetail(\'' + labId + '\',' + i + ')">Dismiss</button></div></div>'
+      + '<div style="display:flex;gap:5px;"><button class="btn btn-cyan btn-sm" data-click="importLabSubFromDetail(\'' + labId + '\',' + i + ')">Import</button><button class="btn btn-ghost btn-sm" data-click="dismissLabSubFromDetail(\'' + labId + '\',' + i + ')">Dismiss</button></div></div>'
       + '<div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">' + (s.date||'—') + ' · ' + (s.results||[]).length + ' results</div>'
       + (s.results&&s.results.length ? '<table style="width:100%;border-collapse:collapse;font-size:11px;"><thead><tr style="border-bottom:1px solid var(--border);"><th style="padding:4px 8px;text-align:left;color:var(--text-muted);">Test</th><th style="padding:4px 8px;text-align:left;color:var(--text-muted);">Value</th><th style="padding:4px 8px;text-align:left;color:var(--text-muted);">Ref</th><th style="padding:4px 8px;text-align:left;color:var(--text-muted);">Status</th></tr></thead><tbody>' + s.results.map(r => '<tr style="border-bottom:1px solid var(--border);"><td style="padding:4px 8px;font-weight:500;">' + r.test + '</td><td style="padding:4px 8px;font-family:var(--mono);">' + r.value + '</td><td style="padding:4px 8px;color:var(--text-muted);">' + (r.ref||'—') + '</td><td style="padding:4px 8px;"><span style="font-size:10px;padding:1px 6px;border-radius:8px;font-weight:600;background:' + (sc[r.status]||'#6b7f99') + '22;color:' + (sc[r.status]||'#6b7f99') + ';">' + r.status + '</span></td></tr>').join('') + '</tbody></table>' : '')
       + '</div>').join('') : '<div style="color:var(--text-dim);font-size:11.5px;">No pending submissions.</div>')
@@ -6941,7 +6953,7 @@ function renderPendingLabs() {
   c.innerHTML = pending.slice(0,4).map((s,i) => '<div class="lab-pending-row">'
     + '<div><div style="font-weight:600;font-size:12.5px;">' + (s.patName||'Unknown') + ' <span style="color:var(--text-muted);font-family:var(--mono);font-size:10.5px;">' + (s.mrn||'') + '</span></div>'
     + '<div style="font-size:11px;color:var(--text-muted);">' + (s.labName||'Lab') + ' · ' + (s.date||'—') + ' · ' + (s.results||[]).length + ' results</div></div>'
-    + '<div style="display:flex;gap:5px;"><button class="btn btn-cyan btn-sm" onclick="importLabSub(' + i + ')">Import</button><button class="btn btn-ghost btn-sm" onclick="dismissLabSub(' + i + ')">✕</button></div>'
+    + '<div style="display:flex;gap:5px;"><button class="btn btn-cyan btn-sm" data-click="importLabSub(' + i + ')">Import</button><button class="btn btn-ghost btn-sm" data-click="dismissLabSub(' + i + ')">✕</button></div>'
     + '</div>').join('');
 }
 // ══════════════════════════════════════════════
@@ -7072,18 +7084,18 @@ function _showReadPreview(rows, fileName, sub, idx, warnMsg) {
           ${sub.testName ? ' &nbsp;·&nbsp; <strong>'+sub.testName+'</strong>' : ''}
         </div>
       </div>
-      <button onclick="document.getElementById('lab-read-modal').remove()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:22px;line-height:1;padding:0;">✕</button>
+      <button data-click="removeEl('lab-read-modal')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:22px;line-height:1;padding:0;">✕</button>
     </div>
     ${warnHTML}${tableHTML}${noResultsMsg}
     <div style="display:flex;flex-wrap:wrap;gap:8px;">
-      ${rows.length ? `<button class="btn btn-primary" style="flex:2;min-width:160px;" onclick="labConfirmImport('${rowsJSON}',${idx})">
+      ${rows.length ? `<button class="btn btn-primary" style="flex:2;min-width:160px;" data-click="labConfirmImport('${rowsJSON}',${idx})">
         ✅ Add ${rows.length} Result${rows.length!==1?'s':''} to Patient Record
       </button>` : ''}
-      <button class="btn btn-ghost" style="flex:1;min-width:120px;" onclick="labSaveFileOnly(${idx})">
+      <button class="btn btn-ghost" style="flex:1;min-width:120px;" data-click="labSaveFileOnly(${idx})">
         📎 Save as File Attachment
       </button>
     </div>
-    ${rows.length ? `<button class="btn btn-ghost btn-sm" style="width:100%;margin-top:6px;" onclick="labSaveBoth('${rowsJSON}',${idx})">
+    ${rows.length ? `<button class="btn btn-ghost btn-sm" style="width:100%;margin-top:6px;" data-click="labSaveBoth('${rowsJSON}',${idx})">
       Save File + Add Results to Record
     </button>` : ''}
     <div style="font-size:11px;color:var(--text-dim);margin-top:10px;text-align:center;">Results appear in patient's Labs tab after import</div>
@@ -7199,7 +7211,7 @@ function renderPendingSubmissionsPanel() {
       + files.map((f,fi) => {
         const icon = f.type==='application/pdf'?'📄':f.type&&f.type.startsWith('image/')?'🖼':'📎';
         const sizeKB = (f.size/1024).toFixed(0);
-        const viewBtn = f.data ? '<button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 7px;margin-left:6px;" onclick="event.stopPropagation();_viewPendingFile('+i+','+fi+')">👁</button>' : '';
+        const viewBtn = f.data ? '<button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 7px;margin-left:6px;" data-click="viewPendingFile('+i+','+fi+')">👁</button>' : '';
         return '<span style="display:inline-flex;align-items:center;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 9px;font-size:11.5px;">'
           + icon+' <strong>'+f.name+'</strong> <span style="color:var(--text-dim);">'+sizeKB+'KB</span>'+viewBtn+'</span>';
       }).join('') + '</div>' : '';
@@ -7222,10 +7234,10 @@ function renderPendingSubmissionsPanel() {
       + fileChips + resultsPreview
       + '</div>'
       + '<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">'
-      + '<button class="btn btn-primary btn-sm" onclick="importLabSub('+i+')">'
+      + '<button class="btn btn-primary btn-sm" data-click="importLabSub('+i+')">'
       + (canRead ? '🔬 Read & Import' : isFile ? '📎 Save File' : '✅ Import Results')
       + '</button>'
-      + '<button class="btn btn-danger btn-sm" onclick="dismissLabSub('+i+')">Dismiss</button>'
+      + '<button class="btn btn-danger btn-sm" data-click="dismissLabSub('+i+')">Dismiss</button>'
       + '</div></div></div>';
   }).join('');
 }
@@ -7431,7 +7443,7 @@ function renderActiveTaskQueue() {
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
         <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;background:${col}18;color:${col};">${t.priority}</span>
-        <button onclick="cancelTask('${t.taskId}')" title="Cancel task"
+        <button data-click="cancelTask('${t.taskId}')" title="Cancel task"
           style="background:none;border:none;color:var(--red);cursor:pointer;font-size:11px;opacity:0.6;padding:0;">✕ Cancel</button>
       </div>
     </div>`;
@@ -7749,7 +7761,7 @@ function openLabWindow(lab) {
 
     // PDF Upload view
     '<div id="view-pdf">',
-    '<div class="upload-zone" onclick="document.getElementById(\'file-input\').click()" ondragover="event.preventDefault();this.classList.add(\'drag\')" ondragleave="this.classList.remove(\'drag\')" ondrop="event.preventDefault();this.classList.remove(\'drag\');document.getElementById(\'file-input\').files=event.dataTransfer.files;handleFileSelect(document.getElementById(\'file-input\'))">',
+    '<div class="upload-zone" onclick="document.getElementById(\'file-input\').click()" ondragover="event.preventDefault();this.classList.add(\'drag\')" ondragleave="this.classList.remove(\'drag\')" ondrop="event.preventDefault();this.classList.remove(\'drag\');document.getElementById(\'file-input\').files=event.dataTransfer.files;handleFiles()">',
     '<div class="upload-icon">📂</div>',
     '<div class="upload-label">Click to upload or drag & drop</div>',
     '<div class="upload-sub">PDF, JPG, PNG · Max 4MB per file · Multiple files allowed</div>',
@@ -7826,9 +7838,9 @@ function openLabWindow(lab) {
   window.addEventListener('appinstalled', function(){ banner.style.display = 'none'; });
 })();
 </script>
-<div id="nav-backdrop" onclick="document.body.classList.remove('nav-open')"></div>
-<button id="nav-fab" aria-label="Toggle menu" onclick="document.body.classList.toggle('nav-open')">☰</button>
-<script>document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('.nav-item'))document.body.classList.remove('nav-open');});</script>
+<div id="nav-backdrop" data-click="closeNav()"></div>
+<button id="nav-fab" aria-label="Toggle menu" data-click="toggleNav()">☰</button>
+<script>document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('.nav-item'))closeNav();});</script>
 <script>
 // ═══════════════════════════════════════════════
 // TREATMENT PROTOCOL TEMPLATES
@@ -7968,7 +7980,7 @@ function buildClinicPanel(){
   if(document.getElementById('panel-clinic'))return;
   const nav=document.getElementById('nav-labs');
   if(nav)nav.insertAdjacentHTML('afterend',
-    '<button id="nav-clinic" class="nav-item" onclick="showPanel(\'clinic\',this);renderClinic()"><span class="ni">🏥</span>Clinic Management</button>');
+    '<button id="nav-clinic" class="nav-item" data-click="goToClinicPanel(this)"><span class="ni">🏥</span>Clinic Management</button>');
   const host=document.getElementById('panel-overview')?.parentElement;
   if(!host)return;
   const p=document.createElement('div');
@@ -7978,7 +7990,7 @@ function buildClinicPanel(){
       <div class="page-sub">Day board, tasks, billing, inventory &amp; reports</div></div></div>
     <div id="clinic-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">
       ${['Day Board','Tasks & Recall','Billing','Inventory','Reports','📊 Impact','🛡 Governance'].map((t,i)=>
-        `<button class="btn ${i?'btn-ghost':'btn-primary'}" data-ct="${i}" onclick="switchClinicTab(${i},this)">${t}</button>`).join('')}
+        `<button class="btn ${i?'btn-ghost':'btn-primary'}" data-ct="${i}" data-click="switchClinicTab(${i},this)">${t}</button>`).join('')}
     </div>
     <div id="ct-0"></div><div id="ct-1" style="display:none;"></div><div id="ct-2" style="display:none;"></div>
     <div id="ct-3" style="display:none;"></div><div id="ct-4" style="display:none;"></div><div id="ct-5" style="display:none;"></div><div id="ct-6" style="display:none;"></div>`;
@@ -8041,7 +8053,7 @@ window.renderGovernanceTab=function renderGovernanceTab(){
   </div>
   <div class="card" style="margin-bottom:14px;">
     <div class="card-header"><div class="card-title">🔐 Audit trail integrity</div>
-      <button class="btn btn-ghost btn-sm" onclick="renderGovernanceTab()">↻ Re-verify</button></div>
+      <button class="btn btn-ghost btn-sm" data-click="renderGovernanceTab()">↻ Re-verify</button></div>
     <div style="display:flex;align-items:center;gap:12px;">
       <div style="font-size:32px;">${broken?'❌':'✅'}</div>
       <div style="font-size:13px;line-height:1.6;">
@@ -8122,7 +8134,7 @@ window.openAboutModal=function openAboutModal(){
     <div class="modal" style="max-width:600px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
         <div class="modal-title">🧬 Why OncoConnect?</div>
-        <button onclick="document.getElementById('about-modal').remove()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:20px;">✕</button>
+        <button data-click="removeEl('about-modal')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:20px;">✕</button>
       </div>
       <div class="modal-sub">A neuro-oncology platform connecting patients, clinicians and labs — symptom tracking, chemo workflows and triage, with encrypted cross-device sync and audit-ready data.</div>
       ${card('🧑‍🤝‍🧑','Patients',['Log symptoms in minutes, in your language','Clear "when to call now" triage with one-tap contact','Fewer unmanaged side effects between visits'])}
@@ -8206,8 +8218,8 @@ function renderImpactTab(){
   el.innerHTML=`
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
     <span style="font-size:12px;color:var(--text-muted);font-weight:700;">WINDOW</span>
-    ${[30,90].map(d=>`<button class="btn btn-sm ${impactDays===d?'btn-primary':'btn-ghost'}" onclick="setImpactWindow(${d})">${d} days</button>`).join('')}
-    <button class="btn btn-cyan btn-sm" style="margin-left:auto;" onclick="exportPilotSummary()">⬇ Pilot summary (.csv)</button>
+    ${[30,90].map(d=>`<button class="btn btn-sm ${impactDays===d?'btn-primary':'btn-ghost'}" data-click="setImpactWindow(${d})">${d} days</button>`).join('')}
+    <button class="btn btn-cyan btn-sm" style="margin-left:auto;" data-click="exportPilotSummary()">⬇ Pilot summary (.csv)</button>
   </div>
   <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
     ${tile('Active patients',active+' / '+pats.length,'logged ≥1 time in window','var(--blue)')}
@@ -8250,9 +8262,9 @@ function renderDayBoard(){
     <div class="card-header" style="flex-wrap:wrap;gap:10px;">
       <div class="card-title">🪑 Infusion Chairs</div>
       <div style="display:flex;gap:8px;align-items:center;">
-        <input type="date" value="${boardDate}" onchange="clinicSetDate(this.value)"
+        <input type="date" value="${boardDate}" data-change="clinicSetDate(this.value)"
           style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
-        <select onchange="clinicChairs(this.value)" style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
+        <select data-change="clinicChairs(this.value)" style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
           ${[2,3,4,5,6,8].map(n=>`<option ${n===c.chairs?'selected':''} value="${n}">${n} chairs</option>`).join('')}
         </select>
       </div>
@@ -8265,10 +8277,10 @@ function renderDayBoard(){
         ${Array.from({length:c.chairs},(_,i)=>{
           const b=byCell[(i+1)+'|'+sl];
           return b
-            ?`<td style="padding:4px;border-top:1px solid var(--border);"><div onclick="chairRemove('${b.id}')" title="Click to remove"
+            ?`<td style="padding:4px;border-top:1px solid var(--border);"><div data-click="chairRemove('${b.id}')" title="Click to remove"
                  style="background:${b.type==='Chemo'?'rgba(79,179,255,0.16)':'rgba(0,200,150,0.14)'};border-radius:6px;padding:5px 8px;cursor:pointer;">
                  <b style="font-size:11.5px;">${esc2(b.name)}</b><div style="font-size:10px;color:var(--text-muted);">${esc2(b.type)}</div></div></td>`
-            :`<td style="padding:4px;border-top:1px solid var(--border);"><button onclick="chairBook(${i+1},'${sl}')"
+            :`<td style="padding:4px;border-top:1px solid var(--border);"><button data-click="chairBook(${i+1},'${sl}')"
                  style="width:100%;padding:8px;border:1px dashed var(--border);border-radius:6px;background:transparent;color:var(--text-dim);cursor:pointer;font-size:11px;">+</button></td>`;
         }).join('')}</tr>`).join('')}
     </table></div>
@@ -8279,7 +8291,7 @@ function renderDayBoard(){
     <div style="display:flex;gap:8px;max-width:420px;">
       <input id="clinic-emerg-phone" value="${esc2((LS.get('doc_'+currentDoc.docId)||{}).clinicPhone||'')}" placeholder="e.g. +91 98765 43210"
         style="flex:1;padding:8px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:inherit;font-size:13px;outline:none;">
-      <button class="btn btn-primary btn-sm" onclick="saveClinicPhone()">Save</button>
+      <button class="btn btn-primary btn-sm" data-click="saveClinicPhone()">Save</button>
     </div>
   </div>
   <div class="card">
@@ -8290,8 +8302,8 @@ function renderDayBoard(){
           <span style="font-size:11px;color:var(--text-muted);margin-left:8px;">arrived ${esc2(a.time||'')}</span>
           <span style="font-size:10px;font-weight:700;margin-left:8px;color:${a.status==='waiting'?'var(--orange)':a.status==='called'?'var(--cyan)':'var(--green)'};">${(a.status||'').toUpperCase()}</span></div>
         <div style="display:flex;gap:6px;">
-          ${a.status==='waiting'?`<button class="btn btn-cyan btn-sm" onclick="checkinStatus('${a.mrn}','called')">Call In</button>`:''}
-          ${a.status!=='seen'?`<button class="btn btn-ghost btn-sm" onclick="checkinStatus('${a.mrn}','seen')">Done</button>`:''}
+          ${a.status==='waiting'?`<button class="btn btn-cyan btn-sm" data-click="checkinStatus('${a.mrn}','called')">Call In</button>`:''}
+          ${a.status!=='seen'?`<button class="btn btn-ghost btn-sm" data-click="checkinStatus('${a.mrn}','seen')">Done</button>`:''}
         </div>
       </div>`).join(''):'<div style="color:var(--text-dim);font-size:12.5px;padding:8px 4px;">No patients have checked in for this day.</div>'}
   </div>`;
@@ -8357,15 +8369,15 @@ function renderTasksTab(){
         <option value="">— no patient —</option>${getMyPatients().map(p=>`<option value="${p.mrn}">${esc2(p.name)}</option>`).join('')}
       </select>
       <input type="date" id="ctask-due" style="padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
-      <button class="btn btn-primary" onclick="clinicAddTask()">+ Add</button>
+      <button class="btn btn-primary" data-click="clinicAddTask()">+ Add</button>
     </div>
     ${list.length?list.map(tk=>{
       const overdue=!tk.done&&tk.due&&tk.due<t;
       return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface2);border-radius:7px;margin-bottom:6px;${tk.done?'opacity:0.5;':''}">
-        <input type="checkbox" ${tk.done?'checked':''} onchange="clinicToggleTask('${tk.id}')" style="width:15px;height:15px;cursor:pointer;">
+        <input type="checkbox" ${tk.done?'checked':''} data-change="clinicToggleTask('${tk.id}')" style="width:15px;height:15px;cursor:pointer;">
         <div style="flex:1;"><div style="font-size:12.5px;${tk.done?'text-decoration:line-through;':''}">${esc2(tk.text)}</div>
           <div style="font-size:10.5px;color:var(--text-muted);">${tk.mrn?'👤 '+esc2((LS.get('pat_'+tk.mrn)||{}).name||tk.mrn)+' · ':''}${tk.due?`<span style="${overdue?'color:var(--red);font-weight:700;':''}">due ${tk.due}${overdue?' — OVERDUE':''}</span>`:''}</div></div>
-        <button onclick="clinicDelTask('${tk.id}')" style="border:none;background:transparent;color:var(--text-dim);cursor:pointer;font-size:14px;">✕</button>
+        <button data-click="clinicDelTask('${tk.id}')" style="border:none;background:transparent;color:var(--text-dim);cursor:pointer;font-size:14px;">✕</button>
       </div>`;}).join(''):'<div style="color:var(--text-dim);font-size:12.5px;">No tasks yet.</div>'}
   </div>
   <div class="card">
@@ -8374,7 +8386,7 @@ function renderTasksTab(){
       <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--surface2);border-radius:7px;margin-bottom:6px;">
         <div><b style="font-size:12.5px;">${esc2(r.p.name)}</b>
           <div style="font-size:11px;color:var(--text-muted);">${esc2(r.p.diag||'')} · last activity: ${r.lastSeen||'never'}</div></div>
-        <button class="btn btn-cyan btn-sm" onclick="openRecord('${r.p.mrn}')">Open Record</button>
+        <button class="btn btn-cyan btn-sm" data-click="openRecord('${r.p.mrn}')">Open Record</button>
       </div>`).join(''):'<div style="color:var(--text-dim);font-size:12.5px;">Every patient has an upcoming appointment. 🎉</div>'}
   </div>
   <div class="card" style="margin-top:14px;">
@@ -8383,7 +8395,7 @@ function renderTasksTab(){
       <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--surface2);border-radius:7px;margin-bottom:6px;">
         <div><b style="font-size:12.5px;">${esc2(r.p.name)}</b>
           <div style="font-size:11px;color:var(--text-muted);">last scan ${r.last||'—'} · follow-up was due <b style="color:var(--red);">${r.due}</b></div></div>
-        <button class="btn btn-cyan btn-sm" onclick="openRecord('${r.p.mrn}')">Open Record</button>
+        <button class="btn btn-cyan btn-sm" data-click="openRecord('${r.p.mrn}')">Open Record</button>
       </div>`).join(''):'<div style="color:var(--text-dim);font-size:12.5px;">No overdue surveillance scans.</div>'}
   </div>`;
 }
@@ -8418,10 +8430,10 @@ function renderBillingTab(){
       <input type="date" id="inv-date" value="${today()}" style="padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
     </div>
     <div id="inv-items"></div>
-    <button class="btn btn-ghost btn-sm" onclick="invAddRow()">+ Add line item</button>
+    <button class="btn btn-ghost btn-sm" data-click="invAddRow()">+ Add line item</button>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
       <div style="font-size:14px;font-weight:700;">Total: <span id="inv-total">₹0</span></div>
-      <button class="btn btn-primary" onclick="invSave()">Save Invoice</button>
+      <button class="btn btn-primary" data-click="invSave()">Save Invoice</button>
     </div>
   </div>
   <div class="card">
@@ -8434,8 +8446,8 @@ function renderBillingTab(){
           <div style="font-size:11px;color:var(--text-muted);">${inv.date} · ${(inv.items||[]).length} item(s) · ${money(inv.total)}</div></div>
         <div style="display:flex;gap:6px;align-items:center;">
           <span style="font-size:10px;font-weight:800;padding:3px 9px;border-radius:99px;background:${inv.status==='Paid'?'rgba(0,200,150,0.15)':'rgba(240,160,75,0.15)'};color:${inv.status==='Paid'?'var(--green)':'var(--orange)'};">${inv.status||'Unpaid'}</span>
-          ${inv.status!=='Paid'?`<button class="btn btn-cyan btn-sm" onclick="invMarkPaid('${inv.mrn}','${inv.id}')">Mark Paid</button>`:''}
-          <button class="btn btn-ghost btn-sm" onclick="invPrint('${inv.mrn}','${inv.id}')">🖨 Print</button>
+          ${inv.status!=='Paid'?`<button class="btn btn-cyan btn-sm" data-click="invMarkPaid('${inv.mrn}','${inv.id}')">Mark Paid</button>`:''}
+          <button class="btn btn-ghost btn-sm" data-click="invPrint('${inv.mrn}','${inv.id}')">🖨 Print</button>
         </div>
       </div>`).join(''):'<div style="color:var(--text-dim);font-size:12.5px;">No invoices yet.</div>'}
   </div>`;
@@ -8444,10 +8456,10 @@ function renderBillingTab(){
 window.invAddRow=function(){
   document.getElementById('inv-items').insertAdjacentHTML('beforeend',
     `<div style="display:flex;gap:6px;margin-bottom:6px;" class="inv-row">
-      <input placeholder="Description (e.g. Consultation, TMZ cycle 2)" class="inv-desc" oninput="invTotal()" style="flex:3;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
-      <input type="number" placeholder="Qty" value="1" min="1" class="inv-qty" oninput="invTotal()" style="flex:0 0 64px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
-      <input type="number" placeholder="Rate ₹" class="inv-rate" oninput="invTotal()" style="flex:0 0 110px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
-      <button onclick="this.parentElement.remove();invTotal()" style="border:none;background:transparent;color:var(--text-dim);cursor:pointer;">✕</button>
+      <input placeholder="Description (e.g. Consultation, TMZ cycle 2)" class="inv-desc" data-input="invTotal()" style="flex:3;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
+      <input type="number" placeholder="Qty" value="1" min="1" class="inv-qty" data-input="invTotal()" style="flex:0 0 64px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
+      <input type="number" placeholder="Rate ₹" class="inv-rate" data-input="invTotal()" style="flex:0 0 110px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
+      <button data-click="removeInvoiceRow(this)" style="border:none;background:transparent;color:var(--text-dim);cursor:pointer;">✕</button>
     </div>`);
 };
 window.invTotal=function(){
@@ -8497,7 +8509,7 @@ window.invPrint=function(mrn,id){
     </table>
     <div style="margin-top:14px;font-size:12px;">Status: <b style="color:${inv.status==='Paid'?'#0e9f6e':'#c26a1b'};">${inv.status}</b></div>
     <div style="margin-top:40px;font-size:11px;color:#889;">Generated by OncoConnect · This is a computer-generated invoice.</div>
-    <script>window.print();<\/script></body></html>`);
+    <script>printPage();<\/script></body></html>`);
   w.document.close();
 };
 
@@ -8516,7 +8528,7 @@ function renderInventoryTab(){
       <input id="stk-qty" type="number" placeholder="Stock" style="flex:0 0 80px;padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
       <input id="stk-min" type="number" placeholder="Min" style="flex:0 0 70px;padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
       <input id="stk-exp" type="date" title="Expiry" style="padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
-      <button class="btn btn-primary" onclick="stkAdd()">+ Add</button>
+      <button class="btn btn-primary" data-click="stkAdd()">+ Add</button>
     </div>
   </div>
   <div class="card">
@@ -8531,9 +8543,9 @@ function renderInventoryTab(){
         <div style="display:flex;gap:6px;align-items:center;">
           ${expired?'<span style="font-size:10px;font-weight:800;color:var(--red);">EXPIRED</span>':expiring?'<span style="font-size:10px;font-weight:800;color:var(--orange);">EXPIRING SOON</span>':''}
           ${low?'<span style="font-size:10px;font-weight:800;color:var(--red);">LOW STOCK</span>':''}
-          <button class="btn btn-cyan btn-sm" onclick="stkAdj('${it.id}',-1)">− Dispense</button>
-          <button class="btn btn-ghost btn-sm" onclick="stkAdj('${it.id}',1)">+1</button>
-          <button onclick="stkDel('${it.id}')" style="border:none;background:transparent;color:var(--text-dim);cursor:pointer;">✕</button>
+          <button class="btn btn-cyan btn-sm" data-click="stkAdj('${it.id}',-1)">− Dispense</button>
+          <button class="btn btn-ghost btn-sm" data-click="stkAdj('${it.id}',1)">+1</button>
+          <button data-click="stkDel('${it.id}')" style="border:none;background:transparent;color:var(--text-dim);cursor:pointer;">✕</button>
         </div>
       </div>`;}).join(''):'<div style="color:var(--text-dim);font-size:12.5px;">No stock items yet.</div>'}
   </div>`;
@@ -8574,9 +8586,9 @@ function renderReportsTab(){
   el.innerHTML=`
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
     <label style="font-size:12px;color:var(--text-muted);font-weight:700;">MONTH</label>
-    <input type="month" id="rep-month" value="${month}" onchange="renderReportsTab()"
+    <input type="month" id="rep-month" value="${month}" data-change="renderReportsTab()"
       style="padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;">
-    <button class="btn btn-ghost btn-sm" onclick="repCSV()">⬇ Export CSV</button>
+    <button class="btn btn-ghost btn-sm" data-click="repCSV()">⬇ Export CSV</button>
   </div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;">
     ${tile('NEW PATIENTS',newPats,'var(--blue)')}
@@ -8629,7 +8641,7 @@ window.initApp=function(){ _initApp2(); buildClinicPanel(); };
     // Label icon-only buttons so screen readers announce them.
     var SYM={'✕':'Close','×':'Close','⎋':'Log out','🖨':'Print','⬇':'Download','🔍':'Search',
       '📋':'Copy','＋':'Add','+':'Add','←':'Back','→':'Next','🗑':'Delete','✓':'Confirm','▶':'Run'};
-    document.querySelectorAll('button, [onclick]').forEach(function(b){
+    document.querySelectorAll('button, [data-click]').forEach(function(b){
       if(b.getAttribute('aria-label')) return;
       var txt=(b.textContent||'').trim();
       // "icon-only" = no ASCII letters in the label
@@ -8810,7 +8822,7 @@ function renderPatientAccessList() {
         <div style="font-size:12px;font-weight:500;">${esc(m.email)}</div>
         <div style="font-size:10px;color:var(--text-muted);">${m.role}</div>
       </div>
-      <select id="access-${m.user_id}" value="view" onchange="grantAccess('${mrn}', '${m.user_id}', this.value)" style="padding:4px 8px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--text);font-size:11px;">
+      <select id="access-${m.user_id}" value="view" data-change="grantAccess('${mrn}', '${m.user_id}', this.value)" style="padding:4px 8px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--text);font-size:11px;">
         <option value="">— No access —</option>
         <option value="view">👁 View only</option>
         <option value="edit">✏ Edit</option>
