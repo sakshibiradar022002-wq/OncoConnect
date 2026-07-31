@@ -50,6 +50,29 @@ jobs:
       - name: Syntax-check inline browser scripts
         run: node scripts/check-html.mjs
 
+  build:
+    name: frontend build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Build the shared frontend bundle
+        run: npm run build
+      # The build fingerprints the bundle and rewrites the HTML and service
+      # worker to match. If the committed output is out of date, the tree is
+      # dirty after building and the deployed HTML would point at a stale file.
+      - name: Fail if the committed build is stale
+        run: |
+          if [ -n "$(git status --porcelain public/dist public/index.html public/patient.html public/sw.js)" ]; then
+            echo "The committed build output is out of date. Run: npm run build"
+            git --no-pager diff --stat public/dist public/index.html public/patient.html public/sw.js
+            exit 1
+          fi
+
   handlers:
     name: inline handler resolution
     runs-on: ubuntu-latest

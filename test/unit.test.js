@@ -14,6 +14,66 @@ const { patientOwnsKey } = await import('../src/routes/sync.js');
 const { encryptPHI, decryptPHI, hashPassword, verifyPassword } = await import('../src/crypto.js');
 const { validateLabSubmission } = await import('../src/validators/labResults.js');
 
+// ── Shared clinical logic ─────────────────────────────────────────
+// Evaluates public/js/clinical.js exactly as the browser receives it, so these
+// cover the shipped file rather than a copy. This logic used to be duplicated
+// in both apps with nothing keeping the copies in sync.
+const clinical = await (async () => {
+  const { readFileSync } = await import('node:fs');
+  const vm = await import('node:vm');
+  const sandbox = {};
+  vm.runInNewContext(readFileSync('public/js/clinical.js', 'utf8'), sandbox);
+  return sandbox.__clinical;
+})();
+
+describe('CTCAE symptom grading', () => {
+  test('maps the 0-10 slider onto grades 0-4', () => {
+    const cases = [
+      [0, 0], [1, 1], [3, 1], [4, 2], [6, 2], [7, 3], [8, 3], [9, 4], [10, 4],
+    ];
+    for (const [input, grade] of cases) {
+      assert.equal(clinical.ctcaeGrade(input), grade, `slider ${input} should be grade ${grade}`);
+    }
+  });
+
+  test('boundaries sit where CTCAE puts them', () => {
+    // The thresholds are the clinically meaningful part: 3|4 separates mild
+    // from moderate, 6|7 moderate from severe, 8|9 severe from very severe.
+    assert.notEqual(clinical.ctcaeGrade(3), clinical.ctcaeGrade(4));
+    assert.notEqual(clinical.ctcaeGrade(6), clinical.ctcaeGrade(7));
+    assert.notEqual(clinical.ctcaeGrade(8), clinical.ctcaeGrade(9));
+  });
+
+  test('non-numeric and negative input degrade to grade 0, never a crash', () => {
+    for (const v of [null, undefined, '', 'abc', NaN, -5]) {
+      assert.equal(clinical.ctcaeGrade(v), 0);
+    }
+  });
+
+  test('string input from a range control is accepted', () => {
+    assert.equal(clinical.ctcaeGrade('7'), 3);
+  });
+
+  test('every grade has a label and a colour', () => {
+    for (const key of ['CTCAE_SHORT', 'CTCAE_LABELS', 'CTCAE_COLS']) {
+      assert.equal(clinical[key].length, 5, `${key} must cover grades 0-4`);
+    }
+    for (let g = 0; g <= 4; g++) {
+      assert.match(clinical.CTCAE_COLS[g], /^#[0-9a-f]{6}$/i);
+    }
+  });
+});
+
+describe('currency formatting', () => {
+  test('formats in Indian rupees', () => {
+    assert.match(clinical.money(1000), /^₹/);
+    assert.equal(clinical.money(0), '₹0');
+  });
+  test('treats missing values as zero rather than NaN', () => {
+    for (const v of [null, undefined, '']) assert.equal(clinical.money(v), '₹0');
+  });
+});
+
 // ── Patient data isolation ────────────────────────────────────────
 // This is the boundary that keeps one patient out of another's records.
 describe('patientOwnsKey — cross-patient isolation', () => {

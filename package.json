@@ -25,7 +25,9 @@
     "load-test:stress": "k6 run tests/load.js -e VUS=50 -e DURATION=120s",
     "backup": "node scripts/backup.js",
     "rotate-key": "node scripts/rotate-phi-key.js",
-    "make-admin": "node scripts/make-admin.js"
+    "make-admin": "node scripts/make-admin.js",
+    "build": "node scripts/build.mjs",
+    "build:dev": "node scripts/build.mjs --dev"
   },
   "engines": {
     "node": ">=20.0.0"
@@ -50,6 +52,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
     "@playwright/test": "^1.62.0",
-    "axe-core": "^4.12.1"
+    "axe-core": "^4.12.1",
+    "esbuild": "^0.28.1"
   }
 }

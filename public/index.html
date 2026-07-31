@@ -1264,8 +1264,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(75,184,250,.18
 
 <!-- Delegated action dispatcher: resolves data-click= without inline handlers,
      so the CSP no longer needs script-src-attr 'unsafe-inline'. -->
-<script src="/js/dispatch.js"></script>
-<script src="/js/dom-actions.js"></script>
+<!-- ctcaeGrade / CTCAE_* / money now come from /js/clinical.js — one definition, unit-tested. -->
+<script src="/dist/app.dd7dd69222.js"></script>
 <script src="/sync-client.js"></script>
 <script>
 // ═══════════════════════════════════════════════
@@ -5510,8 +5510,8 @@ function evaluateSmartAlerts(){
 // ── LOGS DISPLAY ──
 // CTCAE-style grading — the exact mapping the patient app applies to its
 // 0–10 sliders, so both sides chart the same scale.
-const CTCAE_SHORT=['G0','G1','G2','G3','G4'];
-function ctcaeGrade(v){v=parseInt(v,10)||0;return v<=0?0:v<=3?1:v<=6?2:v<=8?3:4;}
+
+
 function ctcaeTag(v){const g=ctcaeGrade(v);const cols=['#94a3b8','#059669','#d97706','#dc2626','#7f1d1d'];return `<span style="font-size:9.5px;font-weight:700;color:${cols[g]};">${CTCAE_SHORT[g]}</span>`;}
 
 function renderSymptomTrends(mrn){
@@ -7971,7 +7971,7 @@ const SLOTS=['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00'];
 function cfg(){ return LS.get('clinic_cfg')||{chairs:4}; }
 function dayKey(d){ return 'clinicday_'+d; }
 function getDay(d){ return LS.get(dayKey(d))||{bookings:[]}; }
-function money(n){ return '₹'+Number(n||0).toLocaleString('en-IN'); }
+
 function esc2(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 

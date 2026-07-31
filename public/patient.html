@@ -914,8 +914,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(147,218,151,.2
 
 <!-- Delegated action dispatcher: resolves data-click= without inline handlers,
      so the CSP no longer needs script-src-attr 'unsafe-inline'. -->
-<script src="/js/dispatch.js"></script>
-<script src="/js/dom-actions.js"></script>
+<!-- ctcaeGrade / CTCAE_* / money now come from /js/clinical.js — one definition, unit-tested. -->
+<script src="/dist/app.dd7dd69222.js"></script>
 <script src="/sync-client.js"></script>
 <!-- QR Code library -->
 <!-- qrcodejs 1.0.0, self-hosted. Was loaded from cdnjs with a corrupted SRI
@@ -1781,10 +1781,10 @@ function getMyLogs(){return LS.keys('log_'+PAT.mrn+'_').map(function(k){return L
 // ── CTCAE-style grading ──
 // The 0–10 sliders map onto the toxicity grades the care team charts with,
 // so patient self-reports and the doctor's toxicity view speak one scale.
-var CTCAE_SHORT=['G0','G1','G2','G3','G4'];
-var CTCAE_LABELS=['G0 · None','G1 · Mild','G2 · Moderate','G3 · Severe','G4 · Very severe'];
-var CTCAE_COLS=['#94a3b8','#059669','#d97706','#dc2626','#7f1d1d'];
-function ctcaeGrade(v){v=parseInt(v,10)||0;return v<=0?0:v<=3?1:v<=6?2:v<=8?3:4;}
+
+
+
+
 function ctcaeChip(v){var g=ctcaeGrade(v);return '<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:6px;margin-left:6px;background:'+CTCAE_COLS[g]+'1a;color:'+CTCAE_COLS[g]+';white-space:nowrap;">'+CTCAE_LABELS[g]+'</span>';}
 
 // ── 30-day symptom trends (inline SVG — works offline, no libraries) ──
@@ -2812,7 +2812,7 @@ if (typeof window.initApp === 'function') {
 (function(){
 'use strict';
 function esc3(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
-function money(n){ return '₹'+Number(n||0).toLocaleString('en-IN'); }
+
 
 /* ── 1. VISIT CHECK-IN (top of Visits screen) ─────────────────── */
 function renderCheckin(){
